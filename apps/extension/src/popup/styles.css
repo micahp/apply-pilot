@@ -1,0 +1,104 @@
+.popup {
+  width: 400px;
+  padding: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.settings-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.profile {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+h2 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+h3 {
+  margin: 16px 0 8px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.field {
+  margin-bottom: 12px;
+}
+
+.field label {
+  display: block;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.field span {
+  display: block;
+  font-size: 16px;
+  color: #333;
+}
+
+.experience {
+  background: white;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+}
+
+.empty-state p {
+  margin: 0 0 16px 0;
+  color: #666;
+}
+
+button {
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #0056b3;
+}
+
+.loading {
+  text-align: center;
+  padding: 32px;
+  color: #666;
+}
+
+.error {
+  text-align: center;
+  padding: 32px;
+  color: #dc3545;
+} 
