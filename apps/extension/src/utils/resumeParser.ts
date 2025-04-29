@@ -322,42 +322,136 @@ function parseResumeText(text: string): ParsedResume {
     }
   }
   
-  // Identify major sections in the resume
+  // Identify major sections in the resume using a more flexible approach
   const sections: { [key: string]: string } = {};
   
-  // Common section headers
+  // Common section headers with variations
   const sectionHeaders = [
-    { key: 'experience', patterns: ['EXPERIENCE', 'WORK EXPERIENCE', 'PROFESSIONAL EXPERIENCE', 'EMPLOYMENT'] },
-    { key: 'education', patterns: ['EDUCATION', 'ACADEMIC', 'EDUCATIONAL BACKGROUND'] },
-    { key: 'skills', patterns: ['SKILLS', 'TECHNICAL SKILLS', 'CORE COMPETENCIES'] },
-    { key: 'projects', patterns: ['PROJECTS', 'PROJECT EXPERIENCE'] },
-    { key: 'certifications', patterns: ['CERTIFICATIONS', 'CERTIFICATES'] }
+    { key: 'experience', patterns: ['EXPERIENCE', 'WORK EXPERIENCE', 'PROFESSIONAL EXPERIENCE', 'EMPLOYMENT', 'WORK HISTORY'] },
+    { key: 'education', patterns: ['EDUCATION', 'ACADEMIC', 'EDUCATIONAL BACKGROUND', 'ACADEMIC BACKGROUND'] },
+    { key: 'skills', patterns: ['SKILLS', 'TECHNICAL SKILLS', 'CORE COMPETENCIES', 'COMPETENCIES', 'PROFICIENCIES', 'EXPERTISE'] },
+    { key: 'projects', patterns: ['PROJECTS', 'PROJECT EXPERIENCE', 'KEY PROJECTS'] },
+    { key: 'certifications', patterns: ['CERTIFICATIONS', 'CERTIFICATES', 'QUALIFICATIONS'] }
   ];
   
-  // Break the resume into major sections by identifying section headers
+  // Common degree patterns for education extraction
+  const degreePatterns = [
+    /(?:Bachelor|Master|PhD|Doctorate|Associate|B\.S\.|M\.S\.|B\.A\.|M\.A\.|M\.B\.A\.|B\.Tech|M\.Tech)/i,
+    /(?:Bachelor's|Master's|Doctoral|Associate's) (?:Degree|degree)?(?:\s+in\s+|\s+of\s+)?([A-Za-z\s]+)/i,
+    /(?:BS|BA|MS|MA|MBA|PhD)(?:\s+in\s+|\s+of\s+)?([A-Za-z\s]+)/i
+  ];
+  
+  // Get the full text as a diagnostic
+  console.log('Full resume text for analysis:', text);
+  
+  // Break the resume into major sections using two approaches
+  
+  // Approach 1: Line-by-line analysis
   const lines = text.split('\n');
   let currentSection = '';
   
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim().toUpperCase();
+    const line = lines[i].trim();
     
     // Skip empty lines
     if (!line) continue;
     
+    const lineUpper = line.toUpperCase();
+    
     // Check if this line is a section header
     let isHeader = false;
     for (const sectionHeader of sectionHeaders) {
-      if (sectionHeader.patterns.some(pattern => line.includes(pattern))) {
+      // Check for exact matches first
+      if (sectionHeader.patterns.includes(lineUpper)) {
         currentSection = sectionHeader.key;
         sections[currentSection] = '';
         isHeader = true;
+        console.log(`Found exact section header: "${line}" -> ${currentSection}`);
         break;
+      }
+      
+      // Check for partial matches (for headers like "WORK EXPERIENCE AND HISTORY")
+      if (!isHeader) {
+        for (const pattern of sectionHeader.patterns) {
+          if (lineUpper.includes(pattern)) {
+            currentSection = sectionHeader.key;
+            sections[currentSection] = '';
+            isHeader = true;
+            console.log(`Found partial section header: "${line}" -> ${currentSection}`);
+            break;
+          }
+        }
+        if (isHeader) break;
+      }
+    }
+    
+    // A line with just 1-2 words in ALL CAPS could be a section header
+    if (!isHeader && lineUpper === line && line.split(/\s+/).length <= 3 && line.length > 3) {
+      // Check if this might be a custom section header
+      const potentialHeader = line.toUpperCase();
+      
+      if (potentialHeader.includes('SKILL')) {
+        currentSection = 'skills';
+        sections[currentSection] = '';
+        isHeader = true;
+        console.log(`Found potential skills header: "${line}"`);
+      } else if (potentialHeader.includes('EDUCAT') || potentialHeader.includes('ACADEMIC')) {
+        currentSection = 'education';
+        sections[currentSection] = '';
+        isHeader = true;
+        console.log(`Found potential education header: "${line}"`);
+      } else if (potentialHeader.includes('WORK') || potentialHeader.includes('EXPER') || 
+                potentialHeader.includes('EMPLOY') || potentialHeader === 'JOBS') {
+        currentSection = 'experience';
+        sections[currentSection] = '';
+        isHeader = true;
+        console.log(`Found potential experience header: "${line}"`);
       }
     }
     
     if (!isHeader && currentSection) {
       // Add content to the current section
       sections[currentSection] += lines[i] + '\n';
+    }
+  }
+  
+  // Approach 2: Use regex to find sections if the first approach didn't work well
+  if (Object.keys(sections).length <= 1) {
+    console.log('Using alternative section detection method');
+    
+    // Try to extract sections using regex patterns
+    for (const sectionHeader of sectionHeaders) {
+      for (const pattern of sectionHeader.patterns) {
+        const regex = new RegExp(`(${pattern})\\s*(?:\\n|$)([\\s\\S]*?)(?=\\n(?:[A-Z][A-Z\\s]{2,}|$)|$)`, 'i');
+        const match = text.match(regex);
+        
+        if (match && match[2] && match[2].trim().length > 0) {
+          sections[sectionHeader.key] = match[2].trim() + '\n';
+          console.log(`Found section using regex: ${sectionHeader.key} (${pattern})`);
+          break;
+        }
+      }
+    }
+  }
+  
+  // If we still don't have an experience section but can identify patterns, create one
+  if (!sections.experience) {
+    // Look for company - location - date patterns
+    const expRegex = /([A-Z][A-Za-z\s&.,]+)[\s]*[-–][\s]*([A-Za-z,\s]+)[\s]*[-–][\s]*((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)[\s\d]+[-–][\s\d\w]+)/gi;
+    
+    let expMatches;
+    let experienceText = '';
+    
+    while ((expMatches = expRegex.exec(text)) !== null) {
+      const matchedText = text.substring(expMatches.index);
+      // Take this match and the next ~10 lines as a potential job description
+      const nextLines = matchedText.split('\n', 10).join('\n');
+      experienceText += nextLines + '\n\n';
+    }
+    
+    if (experienceText) {
+      sections.experience = experienceText;
+      console.log('Created experience section from pattern matches');
     }
   }
   
@@ -382,34 +476,129 @@ function parseResumeText(text: string): ParsedResume {
       parsedResume.skills.push(...filteredSkills);
     }
     
+    // If we still don't have skills, look for bullet points or list-like structures
+    if (parsedResume.skills.length === 0) {
+      const potentialSkills = sections.skills.match(/[•\-*][\s]*([^•\-*\n]+)/g);
+      if (potentialSkills) {
+        parsedResume.skills = potentialSkills.map(s => 
+          s.replace(/^[•\-*\s]+/, '').trim()
+        ).filter(s => s.length > 2 && s.length < 50);
+      }
+    }
+    
+    // Even if sections.skills exists but we couldn't extract skills,
+    // try to find skills from the entire document
+    if (parsedResume.skills.length === 0) {
+      // Look for technology terms in the entire document
+      const techTerms = [
+        'JavaScript', 'TypeScript', 'React', 'Angular', 'Vue', 'Node.js', 'Express', 
+        'HTML', 'CSS', 'SASS', 'SCSS', 'Python', 'Java', 'C#', 'C++', 'Ruby', 'PHP',
+        'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'Git', 'REST', 'GraphQL',
+        'SQL', 'NoSQL', 'MongoDB', 'PostgreSQL', 'MySQL', 'Redis', 'TensorFlow',
+        'PyTorch', 'NLP', 'Machine Learning', 'AI', 'Data Science', 'Agile', 'Scrum'
+      ];
+      
+      for (const term of techTerms) {
+        if (text.includes(term)) {
+          parsedResume.skills.push(term);
+        }
+      }
+    }
+    
     // Remove duplicates
     parsedResume.skills = [...new Set(parsedResume.skills)];
   }
   
-  // Extract experience
+  // Extract experience from the identified experience section
   if (sections.experience) {
     const experienceText = sections.experience;
+    console.log('Experience section content:', experienceText.substring(0, 200) + '...');
     
-    // Approach 1: Split by company/job title lines
-    // Look for patterns like "Company Name - Location - Date"
-    const jobBlocks = experienceText.split(/\n(?=[A-Z][^a-z\n]*(?:[-–]|at|\s{2,})[A-Z][^a-z\n]*)/);
+    // Two patterns to try:
+    // 1. Company - Location - Date
+    // 2. Company at Location - Date
     
-    // If we couldn't find clear job blocks, try another approach
+    // Approach 1: Split by common job entry patterns
+    const companyPattern = /([A-Z][A-Za-z0-9\s&.,]+)[\s]*[–-][\s]*([A-Za-z,\s]+)[\s]*(?:[–-][\s]*)?((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)[\s\d]+(?:[–-][\s]*(?:Present|Current|Now|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)[\s\d]+))?)/i;
+    
+    const jobBlocks = [];
+    const lines = experienceText.split('\n');
+    
+    let currentJob = '';
+    let captureStarted = false;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      if (!line) continue;
+      
+      // Check if this line starts a new job entry
+      const isJobHeader = companyPattern.test(line);
+      
+      if (isJobHeader) {
+        // If we were already capturing a job, save it
+        if (captureStarted && currentJob.trim()) {
+          jobBlocks.push(currentJob.trim());
+        }
+        
+        // Start a new job capture
+        currentJob = line + '\n';
+        captureStarted = true;
+      } else if (captureStarted) {
+        // Continue capturing this job
+        currentJob += line + '\n';
+      }
+    }
+    
+    // Don't forget the last job
+    if (captureStarted && currentJob.trim()) {
+      jobBlocks.push(currentJob.trim());
+    }
+    
+    // If we couldn't find clear job blocks with the first approach, try another
     if (jobBlocks.length <= 1) {
-      // Approach 2: Split by double newlines which often separate entries
-      const alternativeBlocks = experienceText.split(/\n\s*\n/);
-      if (alternativeBlocks.length > 1) {
-        jobBlocks.length = 0; // Clear the array
-        alternativeBlocks.forEach(block => {
-          if (block.trim().length > 20) {
-            jobBlocks.push(block.trim());
+      // Approach 2: Use a more generic pattern that might catch more jobs
+      const alternativePattern = /(?:^|\n)([A-Z][A-Za-z0-9\s&.,]+)\s+(?:[-–]|at|with|for)\s+/gm;
+      let match;
+      let lastIndex = 0;
+      
+      // Reset job blocks
+      jobBlocks.length = 0;
+      
+      while ((match = alternativePattern.exec(experienceText)) !== null) {
+        // If this isn't the first match, capture everything from the last match to this one
+        if (lastIndex > 0) {
+          const jobText = experienceText.substring(lastIndex, match.index).trim();
+          if (jobText.length > 20) {
+            jobBlocks.push(jobText);
           }
+        }
+        lastIndex = match.index;
+      }
+      
+      // Capture the last job
+      if (lastIndex > 0 && lastIndex < experienceText.length) {
+        const jobText = experienceText.substring(lastIndex).trim();
+        if (jobText.length > 20) {
+          jobBlocks.push(jobText);
+        }
+      }
+    }
+    
+    // If we still don't have job blocks, try splitting by double newlines
+    if (jobBlocks.length <= 1) {
+      const paragraphs = experienceText.split(/\n\s*\n/).filter(p => p.trim().length > 20);
+      if (paragraphs.length > 1) {
+        jobBlocks.length = 0; // Clear the array
+        paragraphs.forEach(block => {
+          jobBlocks.push(block.trim());
         });
       }
     }
     
     console.log(`Found ${jobBlocks.length} job blocks`);
     
+    // Process each job block to extract details
     for (const jobBlock of jobBlocks) {
       // Skip if too short
       if (jobBlock.trim().length < 20) continue;
@@ -425,12 +614,11 @@ function parseResumeText(text: string): ParsedResume {
       
       const lines = jobBlock.split('\n').map(line => line.trim()).filter(line => line.length > 0);
       
-      // First line often contains company name
+      // First line often contains company, location, and dates
       if (lines.length > 0) {
-        // Try to extract company and location from the first line
         const firstLine = lines[0];
         
-        // Company - Location pattern
+        // Try company - location - date pattern
         const companyMatch = firstLine.match(/^([^-–]+)[-–]([^-–]+)(?:[-–]([^-–]+))?/);
         if (companyMatch) {
           exp.company = companyMatch[1].trim();
@@ -439,14 +627,16 @@ function parseResumeText(text: string): ParsedResume {
           // If there's a third part, it might be a date
           if (companyMatch[3]) {
             const dateText = companyMatch[3].trim();
-            const dateMatch = dateText.match(/(\w+\s+\d{4})\s*[-–]?\s*(\w+\s+\d{4}|Present)/i);
+            // Look for month year - month year or month year - present
+            const dateMatch = dateText.match(/((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)[\s\d]+)[-–]?((?:Present|Current|Now|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)[\s\d]+))?/i);
+            
             if (dateMatch) {
-              exp.startDate = dateMatch[1];
-              exp.endDate = dateMatch[2];
+              exp.startDate = dateMatch[1].trim();
+              exp.endDate = dateMatch[2] ? dateMatch[2].trim() : 'Present';
             }
           }
         } else {
-          // Just use the first line as company
+          // Try to extract company name
           exp.company = firstLine;
         }
       }
@@ -455,36 +645,61 @@ function parseResumeText(text: string): ParsedResume {
       if (lines.length > 1) {
         // Check if the second line looks like a job title
         const titleLine = lines[1];
+        // Job titles typically don't contain dates or location markers
         if (!/\d{4}/.test(titleLine) && !titleLine.includes('-') && !titleLine.includes('–')) {
           exp.title = titleLine;
         }
       }
       
-      // If we haven't found dates yet, look through the first few lines
+      // If we haven't found dates yet, look through all lines
       if (!exp.startDate) {
-        for (let i = 0; i < Math.min(3, lines.length); i++) {
-          const line = lines[i];
+        for (const line of lines) {
           // Look for date ranges
-          const dateMatch = line.match(/(\b\w+\s+\d{4}\b|\b\d{4}\b)(?:\s*[-–—to]+\s*|\s*-\s*|\s+to\s+)(\b\w+\s+\d{4}\b|\b\d{4}\b|Present\b|Current\b)/i);
+          const dateMatch = line.match(/((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)[\s\d]+)[-–]?((?:Present|Current|Now|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)[\s\d]+))?/i);
+          
           if (dateMatch) {
-            exp.startDate = dateMatch[1];
-            exp.endDate = dateMatch[2];
+            exp.startDate = dateMatch[1].trim();
+            exp.endDate = dateMatch[2] ? dateMatch[2].trim() : 'Present';
             break;
           }
         }
       }
       
-      // Extract full job description (everything after title and dates)
-      if (exp.title) {
-        const titleIndex = lines.findIndex(line => line === exp.title);
-        if (titleIndex !== -1 && titleIndex < lines.length - 1) {
-          exp.description = lines.slice(titleIndex + 1).join('\n');
-        }
+      // Extract job description (everything after the first 1-2 lines)
+      const descriptionStartIdx = exp.title ? 2 : 1;
+      if (lines.length > descriptionStartIdx) {
+        exp.description = lines.slice(descriptionStartIdx).join('\n');
       }
       
       // Only add if we have at least company or title
       if (exp.company || exp.title) {
         parsedResume.experience.push(exp);
+      }
+    }
+    
+    // If we still don't have any experience entries but have text,
+    // use a special pattern for this specific resume format
+    if (parsedResume.experience.length === 0 && experienceText.length > 0) {
+      // Try a more specific pattern match for this resume
+      const jobPattern = /(.*?)\s+[-–]\s+(.*?)\s+[-–]\s+(.*?)\s+[-–]\s+(.*)/g;
+      let match;
+      
+      while ((match = jobPattern.exec(experienceText)) !== null) {
+        const [_, company, location, dates, title] = match;
+        
+        // Split the dates into start and end
+        const dateMatch = dates.match(/(.*?)[-–](.*)/);
+        const startDate = dateMatch ? dateMatch[1].trim() : dates.trim();
+        const endDate = dateMatch ? dateMatch[2].trim() : 'Present';
+        
+        parsedResume.experience.push({
+          company: company.trim(),
+          location: location.trim(),
+          title: title.trim(),
+          startDate,
+          endDate,
+          description: ''
+        });
       }
     }
   }
@@ -524,12 +739,6 @@ function parseResumeText(text: string): ParsedResume {
       }
       
       // Look for degree and field of study
-      const degreePatterns = [
-        /(?:Bachelor|Master|PhD|Doctorate|Associate|B\.S\.|M\.S\.|B\.A\.|M\.A\.|M\.B\.A\.|B\.Tech|M\.Tech)/i,
-        /(?:Bachelor's|Master's|Doctoral|Associate's) (?:Degree|degree)?(?:\s+in\s+|\s+of\s+)?([A-Za-z\s]+)/i,
-        /(?:BS|BA|MS|MA|MBA|PhD)(?:\s+in\s+|\s+of\s+)?([A-Za-z\s]+)/i
-      ];
-      
       for (const line of lines) {
         // Try each degree pattern
         for (const pattern of degreePatterns) {
@@ -572,6 +781,73 @@ function parseResumeText(text: string): ParsedResume {
       // If we have at least an institution, add the education entry
       if (edu.institution) {
         parsedResume.education.push(edu);
+      }
+    }
+    
+    // If we didn't find any education entries but have text, try a different approach
+    if (parsedResume.education.length === 0 && educationText.length > 0) {
+      // Look for institution names directly
+      const instPattern = /([A-Z][A-Za-z\s&.,]+(?:University|College|Institute|School))/gi;
+      let match;
+      
+      while ((match = instPattern.exec(educationText)) !== null) {
+        const institution = match[1];
+        
+        // Find degree near this institution if possible
+        const surroundingText = educationText.substring(
+          Math.max(0, match.index - 50),
+          Math.min(educationText.length, match.index + institution.length + 100)
+        );
+        
+        // Look for degree
+        let degree = '';
+        for (const pattern of degreePatterns) {
+          const degreeMatch = surroundingText.match(pattern);
+          if (degreeMatch) {
+            degree = degreeMatch[0];
+            break;
+          }
+        }
+        
+        // Add the education entry
+        parsedResume.education.push({
+          institution: institution.trim(),
+          degree: degree.trim(),
+          field: '',
+          startDate: '',
+          endDate: ''
+        });
+      }
+    }
+  }
+  
+  // If we still don't have education entries, look for educational keywords
+  if (parsedResume.education.length === 0) {
+    const eduKeywords = ['degree', 'university', 'college', 'bachelor', 'master', 'phd', 'graduated'];
+    
+    // Check if any of these keywords appear in the text
+    for (const keyword of eduKeywords) {
+      if (text.toLowerCase().includes(keyword)) {
+        // Look for surrounding text
+        const index = text.toLowerCase().indexOf(keyword);
+        const surroundingText = text.substring(
+          Math.max(0, index - 50),
+          Math.min(text.length, index + 100)
+        );
+        
+        // Try to extract institution name
+        const instMatch = surroundingText.match(/([A-Z][A-Za-z\s&.,]+(?:University|College|Institute|School))/i);
+        
+        if (instMatch) {
+          parsedResume.education.push({
+            institution: instMatch[1].trim(),
+            degree: '',
+            field: '',
+            startDate: '',
+            endDate: ''
+          });
+          break;
+        }
       }
     }
   }

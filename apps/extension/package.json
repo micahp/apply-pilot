@@ -4,13 +4,15 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "pdf-parse": "^1.1.1",
+    "pdfjs-dist": "^3.10.111",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "pdfjs-dist": "^3.10.111"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.246",
+    "@types/pdf-parse": "^1.1.5",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15"
   }
-} 
+}

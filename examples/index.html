@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Parser Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 20px 0;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #results {
+            white-space: pre-wrap;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        .log-entry {
+            margin-bottom: 10px;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Resume Parser Test</h1>
+    
+    <p>This page tests the enhanced PDF resume parser with a sample resume that follows the specified format:</p>
+    <ul>
+        <li>All section headers in ALL CAPS</li>
+        <li>Work experience with company name first, followed by job title and date</li>
+        <li>Bullet points for descriptions</li>
+    </ul>
+    
+    <button id="runTest">Run Parser Test</button>
+    
+    <div id="results">Test results will appear here...</div>
+    
+    <script type="module">
+        // Import the test script
+        import { ResumeTester } from './resume_test.js';
+        
+        // Override console.log to display in the results div
+        const resultsDiv = document.getElementById('results');
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = args.join(' ');
+            
+            // Apply styling based on content
+            if (logEntry.textContent.includes('PASS') || 
+                logEntry.textContent.includes('✓') ||
+                logEntry.textContent.includes('PASSED')) {
+                logEntry.classList.add('success');
+            }
+            
+            resultsDiv.appendChild(logEntry);
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry error';
+            logEntry.textContent = 'ERROR: ' + args.join(' ');
+            resultsDiv.appendChild(logEntry);
+        };
+        
+        // Set up the test runner
+        document.getElementById('runTest').addEventListener('click', async () => {
+            resultsDiv.innerHTML = 'Running test...<br>';
+            
+            try {
+                const tester = new ResumeTester();
+                const success = await tester.runTests();
+                
+                if (success) {
+                    resultsDiv.innerHTML += '<div class="log-entry success">Test completed successfully!</div>';
+                } else {
+                    resultsDiv.innerHTML += '<div class="log-entry error">Test failed!</div>';
+                }
+            } catch (error) {
+                console.error('Error running test:', error.message);
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -2,8 +2,39 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Profile, PartialProfile } from '../types/profile';
 import { ProfileForm } from '../components/ProfileForm';
-import { parseResumeFile } from '../utils/resumeParser';
+import { parseResumeFile } from '../utils/enhancedPdfParser';
 import './styles.css';
+
+// Add this tooltip component to show resume format guidance
+function ResumeFormatTip() {
+  const [showTip, setShowTip] = useState(false);
+  
+  return (
+    <div className="resume-format-tip">
+      <button 
+        className="tip-button"
+        onMouseEnter={() => setShowTip(true)}
+        onMouseLeave={() => setShowTip(false)}
+        onClick={() => setShowTip(!showTip)}
+      >
+        ?
+      </button>
+      {showTip && (
+        <div className="tip-popup">
+          <h4>Resume Format Tips</h4>
+          <p>For best results:</p>
+          <ul>
+            <li>Use a single-column layout</li>
+            <li>Use standard section headings: EXPERIENCE, EDUCATION, SKILLS</li>
+            <li>PDF format is preferred</li>
+            <li>Use text-based PDFs (not scanned images)</li>
+            <li>Use standard fonts (Arial, Times New Roman, Calibri)</li>
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function Options() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -35,6 +66,15 @@ function Options() {
     } catch (error) {
       setError('Failed to save profile');
       console.error('AutoApply: Error saving profile', error);
+    }
+  };
+
+  const handleClearProfile = () => {
+    if (window.confirm('Are you sure you want to clear your profile? This action cannot be undone.')) {
+      chrome.storage.local.set({ profile: null }, () => {
+        setProfile(null);
+        alert('Profile cleared successfully!');
+      });
     }
   };
 
@@ -115,14 +155,25 @@ function Options() {
         setProfile(mergedProfile as Profile);
         setResumeUploading(false);
         
-        // Display success message
+        setResumeData({
+          personal: mergedProfile.personal || {},
+          workExperience: mergedProfile.workExperience || [],
+          education: mergedProfile.education || [],
+          skills: mergedProfile.skills || []
+        });
+
+        // Show a more detailed success message
+        const personalInfoCount = Object.values(mergedProfile.personal || {}).filter(Boolean).length;
         alert(`Resume parsed successfully! 
-Found: 
-- Personal info: ${Object.values(mergedProfile.personal || {}).filter(Boolean).length > 0 ? 'Yes' : 'No'}
-- Work experience: ${mergedProfile.workExperience?.length || 0} entries
-- Education: ${mergedProfile.education?.length || 0} entries
-- Skills: ${mergedProfile.skills?.length || 0} skills
-        `);
+
+Found:
+${personalInfoCount > 0 ? `✓ Personal info: ${personalInfoCount} fields` : '✗ No personal info detected'}
+${mergedProfile.workExperience?.length ? `✓ Work experience: ${mergedProfile.workExperience.length} entries` : '✗ No work experience detected'}
+${mergedProfile.education?.length ? `✓ Education: ${mergedProfile.education.length} entries` : '✗ No education detected'}
+${mergedProfile.skills?.length ? `✓ Skills: ${mergedProfile.skills.length} skills` : '✗ No skills detected'}
+
+Review your profile to verify the information and make any necessary corrections.
+`);
       } finally {
         // Always clean up the interval
         clearInterval(progressInterval);
@@ -190,6 +241,7 @@ Found:
                   >
                     {resumeUploading ? 'Parsing Resume...' : 'Import from Resume'}
                   </button>
+                  <ResumeFormatTip />
                 </div>
 
                 {resumeUploading && (
@@ -215,6 +267,7 @@ Found:
             <ProfileForm 
               initialProfile={profile || undefined}
               onSubmit={handleSaveProfile}
+              onClear={handleClearProfile}
             />
           </div>
           

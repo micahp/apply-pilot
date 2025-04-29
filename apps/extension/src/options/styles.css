@@ -568,4 +568,98 @@ input:checked + .slider:before {
   .settings-container {
     padding: 16px;
   }
+}
+
+/* Add styles for the resume format tooltip */
+.resume-format-tip {
+  position: relative;
+  display: inline-block;
+  margin-left: 10px;
+}
+
+.tip-button {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  color: #666;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.tip-button:hover {
+  background-color: #e0e0e0;
+}
+
+.tip-popup {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 280px;
+  background-color: white;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  padding: 12px;
+  z-index: 1000;
+}
+
+.tip-popup::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  width: 16px;
+  height: 16px;
+  background-color: white;
+  transform: rotate(45deg);
+  box-shadow: -3px -3px 5px rgba(0, 0, 0, 0.05);
+}
+
+.tip-popup h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 16px;
+}
+
+.tip-popup p {
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+.tip-popup ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.tip-popup li {
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+/* Style the upload button group */
+.upload-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.resume-upload {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .tip-popup {
+    width: 240px;
+    right: -100px;
+  }
+  
+  .tip-popup::before {
+    right: 108px;
+  }
 } 

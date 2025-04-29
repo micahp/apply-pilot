@@ -5,12 +5,14 @@ interface ProfileFormProps {
   initialProfile?: Partial<Profile>;
   onSubmit: (profile: Partial<Profile>) => void;
   onCancel?: () => void;
+  onClear?: () => void;
 }
 
 export const ProfileForm: React.FC<ProfileFormProps> = ({ 
   initialProfile = {}, 
   onSubmit,
-  onCancel
+  onCancel,
+  onClear
 }) => {
   const [profile, setProfile] = useState<Partial<Profile>>({
     personal: { firstName: '', lastName: '', email: '', phone: '' },
@@ -426,6 +428,11 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           {onCancel && (
             <button type="button" className="cancel-btn" onClick={onCancel}>
               Cancel
+            </button>
+          )}
+          {onClear && (
+            <button type="button" className="clear-btn" onClick={onClear}>
+              Clear Profile
             </button>
           )}
           <button type="submit" className="primary-btn">
