@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Parser</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .upload-container {
+      border: 2px dashed #ccc;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 20px;
+      border-radius: 5px;
+    }
+    #file-input {
+      display: none;
+    }
+    .upload-btn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .upload-btn:hover {
+      background-color: #45a049;
+    }
+    #file-name {
+      margin-top: 10px;
+      font-style: italic;
+    }
+    .result-container {
+      border: 1px solid #ddd;
+      padding: 20px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+      max-height: 500px;
+      overflow-y: auto;
+      display: none;
+    }
+    .loader {
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #3498db;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 2s linear infinite;
+      margin: 20px auto;
+      display: none;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Resume PDF Parser</h1>
+  
+  <div class="upload-container">
+    <label for="file-input" class="upload-btn">Choose Resume PDF</label>
+    <input type="file" id="file-input" accept=".pdf" />
+    <div id="file-name"></div>
+    <button id="parse-btn" class="upload-btn" style="margin-top: 20px; display: none;">Parse Resume</button>
+  </div>
+  
+  <div class="loader" id="loader"></div>
+  
+  <div class="result-container" id="result-container">
+    <h3>Parsed Resume Content:</h3>
+    <pre id="result"></pre>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const fileInput = document.getElementById('file-input');
+      const fileNameDisplay = document.getElementById('file-name');
+      const parseBtn = document.getElementById('parse-btn');
+      const loader = document.getElementById('loader');
+      const resultContainer = document.getElementById('result-container');
+      const resultDisplay = document.getElementById('result');
+      
+      // Show file name when selected
+      fileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+          const fileName = this.files[0].name;
+          fileNameDisplay.textContent = `Selected file: ${fileName}`;
+          parseBtn.style.display = 'inline-block';
+        } else {
+          fileNameDisplay.textContent = '';
+          parseBtn.style.display = 'none';
+        }
+      });
+      
+      // Parse resume on button click
+      parseBtn.addEventListener('click', function() {
+        if (!fileInput.files || !fileInput.files[0]) {
+          alert('Please select a PDF file first');
+          return;
+        }
+        
+        const file = fileInput.files[0];
+        if (!file.name.toLowerCase().endsWith('.pdf')) {
+          alert('Please select a PDF file');
+          return;
+        }
+        
+        // Show loader
+        loader.style.display = 'block';
+        resultContainer.style.display = 'none';
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // Send to API
+        fetch('http://localhost:3000/parse-resume', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(err => { throw new Error(err.error || 'Failed to parse PDF'); });
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Display result
+          resultDisplay.textContent = JSON.stringify(data, null, 2);
+          resultContainer.style.display = 'block';
+        })
+        .catch(error => {
+          alert(error.message || 'Error parsing resume');
+          console.error('Error:', error);
+        })
+        .finally(() => {
+          loader.style.display = 'none';
+        });
+      });
+    });
+  </script>
+</body>
+</html> 

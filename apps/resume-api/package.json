@@ -1,0 +1,20 @@
+{
+  "name": "resume-api",
+  "version": "1.0.0",
+  "description": "Backend API for parsing PDF resumes",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.4.1",
+    "@fastify/multipart": "^7.7.3",
+    "@fastify/static": "^6.11.2",
+    "fastify": "^4.24.3",
+    "pdf-parse": "^1.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+} 
