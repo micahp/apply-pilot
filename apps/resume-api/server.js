@@ -80,18 +80,87 @@ function extractStructuredResumeData(text) {
     structuredData.personal.phone = phones[0];
   }
   
-  // Extract name - look for patterns or use heuristics
-  const nameMatch = text.match(/^([A-Z][a-z]+)\s+([A-Z][a-z]+)/);
-  if (nameMatch) {
-    structuredData.personal.firstName = nameMatch[1];
-    structuredData.personal.lastName = nameMatch[2];
-  } else {
-    // Try to find name in other formats, like "Name: John Doe"
-    const altNameMatch = text.match(/(?:name|candidate)[\s:]+([A-Z][a-z]+)\s+([A-Z][a-z]+)/i);
-    if (altNameMatch) {
-      structuredData.personal.firstName = altNameMatch[1];
-      structuredData.personal.lastName = altNameMatch[2];
+  // Improved name extraction - try multiple approaches
+  let nameFound = false;
+
+  // Approach 1: First line if it looks like a name (standard format)
+  const firstLine = text.split('\n')[0].trim();
+  if (firstLine && /^[A-Z][a-z]+(\s+[A-Z][a-z]+)+$/.test(firstLine) && firstLine.length < 40) {
+    const nameParts = firstLine.split(/\s+/);
+    if (nameParts.length >= 2) {
+      structuredData.personal.firstName = nameParts[0];
+      structuredData.personal.lastName = nameParts[nameParts.length - 1];
+      nameFound = true;
     }
+  }
+
+  // Approach 2: Look for patterns suggesting a name near the beginning (within first 10 lines)
+  if (!nameFound) {
+    const initialLines = text.split('\n').slice(0, 10).join('\n');
+    const namePattern = /\b([A-Z][a-z]+)(?:\s+([A-Z][a-z]+))(?:\s+([A-Z][a-z]+))?\b/g;
+    
+    let nameMatch;
+    // Find the first occurrence that looks like a name (not all caps, reasonable length)
+    while ((nameMatch = namePattern.exec(initialLines)) !== null) {
+      const fullMatch = nameMatch[0];
+      if (fullMatch.length > 4 && fullMatch.length < 40 && fullMatch !== fullMatch.toUpperCase()) {
+        const parts = fullMatch.split(/\s+/);
+        structuredData.personal.firstName = parts[0];
+        structuredData.personal.lastName = parts[parts.length - 1];
+        nameFound = true;
+        break;
+      }
+    }
+  }
+
+  // Approach 3: Look for explicit name labels
+  if (!nameFound) {
+    const nameLabels = [
+      /name[\s:]+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/i,
+      /candidate[\s:]+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/i
+    ];
+    
+    for (const pattern of nameLabels) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const nameParts = match[1].split(/\s+/);
+        if (nameParts.length >= 2) {
+          structuredData.personal.firstName = nameParts[0];
+          structuredData.personal.lastName = nameParts[nameParts.length - 1];
+          nameFound = true;
+          break;
+        }
+      }
+    }
+  }
+
+  // If we still don't have a name, try a more aggressive approach for the first line
+  if (!nameFound) {
+    const lines = text.split('\n').filter(line => line.trim().length > 0);
+    for (let i = 0; i < Math.min(3, lines.length); i++) {
+      const line = lines[i].trim();
+      // Check if this line contains only words with first letter capitalized and reasonable length
+      if (
+        line.length > 3 && 
+        line.length < 40 && 
+        line.split(/\s+/).length <= 4 &&
+        !/[0-9@]/.test(line) && // No numbers or @ symbols (to avoid emails)
+        !/EXPERIENCE|EDUCATION|SKILLS|PROJECTS|CONTACT|PROFESSIONAL|SUMMARY/.test(line.toUpperCase())
+      ) {
+        const parts = line.split(/\s+/);
+        if (parts.length >= 2) {
+          structuredData.personal.firstName = parts[0];
+          structuredData.personal.lastName = parts[parts.length - 1];
+          nameFound = true;
+          break;
+        }
+      }
+    }
+  }
+
+  // Add a full name property for convenience
+  if (structuredData.personal.firstName && structuredData.personal.lastName) {
+    structuredData.personal.name = `${structuredData.personal.firstName} ${structuredData.personal.lastName}`;
   }
   
   // Extract sections
