@@ -304,24 +304,34 @@ function extractStructuredResumeData(text) {
         
         // Look for date patterns in first few lines
         let dateLineIndex = -1;
-        let foundMonthYearPattern = false;
+        let foundDatePattern = false;
         
-        for (let i = 0; i < Math.min(3, lines.length); i++) {
-          // Look for month name + year pattern
-          const monthYearPattern = /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})\s*[-–—]\s*((?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})|Present)/i;
+        // Helper function to extract month number from text
+        const extractMonthNumber = (monthText) => {
+          // Remove any periods and trim
+          const cleanMonth = monthText.replace('.', '').toLowerCase().trim();
+          return monthNames[cleanMonth] || monthNames[cleanMonth.substring(0, 3)];
+        };
+        
+        // Multiple date pattern matching approaches
+        for (let i = 0; i < Math.min(4, lines.length); i++) {
+          const line = lines[i];
           
-          const monthYearMatch = lines[i].match(monthYearPattern);
+          // Approach 1: Standard "Month Year - Month Year" or "Month Year - Present"
+          const monthYearPattern = /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s+(\d{4})\s*[-–—]\s*((?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s+(\d{4})|Present)/i;
+          
+          const monthYearMatch = line.match(monthYearPattern);
           if (monthYearMatch) {
             dateLineIndex = i;
-            foundMonthYearPattern = true;
+            foundDatePattern = true;
             
             // Extract month and year for start date
-            const startMonth = monthYearMatch[1].toLowerCase();
+            const startMonth = monthYearMatch[1];
             const startYear = monthYearMatch[2];
-            const startMonthNum = monthNames[startMonth.toLowerCase()] || monthNames[startMonth.substring(0, 3).toLowerCase()];
+            const startMonthNum = extractMonthNumber(startMonth);
             
             // Format raw dates (Month Year)
-            rawStartDate = `${monthYearMatch[1]} ${startYear}`;
+            rawStartDate = `${startMonth} ${startYear}`;
             
             // Create formatted date (YYYY-MM-DD)
             if (startMonthNum && startYear) {
@@ -340,12 +350,12 @@ function extractStructuredResumeData(text) {
               endDate = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
             } else {
               // Extract end month and year
-              const endMonthMatch = monthYearMatch[3].match(/\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})/i);
+              const endMonthMatch = monthYearMatch[3].match(/\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s+(\d{4})/i);
               
               if (endMonthMatch) {
                 const endMonth = endMonthMatch[1];
                 const endYear = endMonthMatch[2];
-                const endMonthNum = monthNames[endMonth.toLowerCase()] || monthNames[endMonth.substring(0, 3).toLowerCase()];
+                const endMonthNum = extractMonthNumber(endMonth);
                 
                 rawEndDate = `${endMonth} ${endYear}`;
                 
@@ -360,13 +370,110 @@ function extractStructuredResumeData(text) {
             break;
           }
           
-          // Fallback: Look for year-year pattern if no month names found
-          if (!foundMonthYearPattern) {
+          // Approach 2: Handle more date formats: "Month. Year - Month. Year"
+          const abbreviatedMonthPattern = /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?\s+(\d{4})\s*[-–—]+\s*((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?\s+(\d{4})|Present)/i;
+          
+          const abbreviatedMatch = line.match(abbreviatedMonthPattern);
+          if (abbreviatedMatch && !foundDatePattern) {
+            dateLineIndex = i;
+            foundDatePattern = true;
+            
+            const startMonth = abbreviatedMatch[1];
+            const startYear = abbreviatedMatch[2];
+            const startMonthNum = extractMonthNumber(startMonth);
+            
+            rawStartDate = `${startMonth} ${startYear}`;
+            
+            if (startMonthNum && startYear) {
+              startDate = `${startYear}-${startMonthNum.toString().padStart(2, '0')}-01`;
+            }
+            
+            if (abbreviatedMatch[3].toLowerCase() === 'present') {
+              rawEndDate = 'Present';
+              const now = new Date();
+              endDate = now.toISOString().split('T')[0];
+            } else {
+              const endMonthMatch = abbreviatedMatch[3].match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?\s+(\d{4})/i);
+              
+              if (endMonthMatch) {
+                const endMonth = endMonthMatch[1];
+                const endYear = endMonthMatch[2];
+                const endMonthNum = extractMonthNumber(endMonth);
+                
+                rawEndDate = `${endMonth} ${endYear}`;
+                
+                if (endMonthNum && endYear) {
+                  const lastDay = getLastDayOfMonth(parseInt(endYear), endMonthNum);
+                  endDate = `${endYear}-${endMonthNum.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`;
+                }
+              }
+            }
+            
+            break;
+          }
+          
+          // Approach 3: More flexible pattern that looks for any date-like information
+          if (!foundDatePattern) {
+            // Look for lines containing both a month name and at least one year
+            const hasMonth = /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\b/i.test(line);
+            const years = line.match(/\b(20\d{2}|19\d{2})\b/g);
+            
+            if (hasMonth && years && years.length > 0) {
+              dateLineIndex = i;
+              foundDatePattern = true;
+              
+              // Extract individual date components using more targeted patterns
+              const monthMatches = line.match(/\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\b/gi);
+              
+              if (monthMatches && monthMatches.length > 0 && years.length > 0) {
+                // Assume first month and year combination is start date
+                const startMonth = monthMatches[0];
+                const startYear = years[0];
+                const startMonthNum = extractMonthNumber(startMonth);
+                
+                rawStartDate = `${startMonth} ${startYear}`;
+                
+                if (startMonthNum) {
+                  startDate = `${startYear}-${startMonthNum.toString().padStart(2, '0')}-01`;
+                }
+                
+                // End date logic
+                if (line.toLowerCase().includes('present')) {
+                  rawEndDate = 'Present';
+                  const now = new Date();
+                  endDate = now.toISOString().split('T')[0];
+                } else if (monthMatches.length > 1 && years.length > 1) {
+                  // Assume last month and last year form the end date
+                  const endMonth = monthMatches[monthMatches.length - 1];
+                  const endYear = years[years.length - 1];
+                  const endMonthNum = extractMonthNumber(endMonth);
+                  
+                  rawEndDate = `${endMonth} ${endYear}`;
+                  
+                  if (endMonthNum) {
+                    const lastDay = getLastDayOfMonth(parseInt(endYear), endMonthNum);
+                    endDate = `${endYear}-${endMonthNum.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`;
+                  }
+                } else if (years.length > 1) {
+                  // If multiple years but only one month, use last year as end date with December
+                  const endYear = years[years.length - 1];
+                  rawEndDate = `Dec ${endYear}`;
+                  endDate = `${endYear}-12-31`;
+                }
+                
+                break;
+              }
+            }
+          }
+          
+          // Approach 4: Fallback to just year-year pattern if nothing else matched
+          if (!foundDatePattern) {
             const yearPattern = /\b(20\d{2}|19\d{2})\s*[-–—]\s*(20\d{2}|19\d{2}|Present)\b/i;
-            const yearMatch = lines[i].match(yearPattern);
+            const yearMatch = line.match(yearPattern);
             
             if (yearMatch) {
               dateLineIndex = i;
+              foundDatePattern = true;
               
               const startYear = yearMatch[1];
               rawStartDate = startYear;
@@ -386,6 +493,50 @@ function extractStructuredResumeData(text) {
               }
               
               break;
+            }
+          }
+        }
+        
+        // If we still couldn't find dates but have a location line with years, try to extract from there
+        if (!foundDatePattern && location) {
+          const years = location.match(/\b(20\d{2}|19\d{2})\b/g);
+          if (years && years.length > 0) {
+            const startYear = years[0];
+            rawStartDate = startYear;
+            startDate = `${startYear}-01-01`;
+            
+            if (years.length > 1) {
+              const endYear = years[years.length - 1];
+              rawEndDate = endYear;
+              endDate = `${endYear}-12-31`;
+            } else if (location.toLowerCase().includes('present')) {
+              rawEndDate = 'Present';
+              const now = new Date();
+              endDate = now.toISOString().split('T')[0];
+            }
+          }
+        }
+        
+        // If still no dates found after all attempts, check entire entry
+        if (!startDate || !endDate) {
+          // Look for any year patterns across all lines
+          let allText = lines.join(' ');
+          const years = allText.match(/\b(20\d{2}|19\d{2})\b/g);
+          
+          if (years && years.length > 0) {
+            // Just use the years if found
+            const startYear = years[0];
+            rawStartDate = startYear;
+            startDate = `${startYear}-01-01`;
+            
+            if (years.length > 1) {
+              const endYear = years[years.length - 1];
+              rawEndDate = endYear;
+              endDate = `${endYear}-12-31`;
+            } else if (allText.toLowerCase().includes('present')) {
+              rawEndDate = 'Present';
+              const now = new Date();
+              endDate = now.toISOString().split('T')[0];
             }
           }
         }
