@@ -264,6 +264,8 @@ function extractStructuredResumeData(text) {
         let jobTitle = '';
         let startDate = '';
         let endDate = '';
+        let rawStartDate = '';
+        let rawEndDate = '';
         
         // Simple approach - first line is likely company name, second line is job title
         companyName = firstLine;
@@ -279,42 +281,140 @@ function extractStructuredResumeData(text) {
           companyName = firstLine.substring(0, locationMatch.index).trim();
         }
         
-        // Look for date ranges in first two lines
-        for (let i = 0; i < Math.min(2, lines.length); i++) {
-          // Look for year patterns
-          const yearMatches = lines[i].match(/\b(19|20)\d{2}\b/g);
-          if (yearMatches && yearMatches.length >= 1) {
-            startDate = yearMatches[0];
+        // Enhanced date extraction with month names
+        const monthNames = {
+          'january': 1, 'jan': 1,
+          'february': 2, 'feb': 2,
+          'march': 3, 'mar': 3,
+          'april': 4, 'apr': 4,
+          'may': 5,
+          'june': 6, 'jun': 6,
+          'july': 7, 'jul': 7,
+          'august': 8, 'aug': 8,
+          'september': 9, 'sep': 9, 'sept': 9,
+          'october': 10, 'oct': 10,
+          'november': 11, 'nov': 11,
+          'december': 12, 'dec': 12
+        };
+        
+        // Function to get last day of month
+        const getLastDayOfMonth = (year, month) => {
+          return new Date(year, month, 0).getDate();
+        };
+        
+        // Look for date patterns in first few lines
+        let dateLineIndex = -1;
+        let foundMonthYearPattern = false;
+        
+        for (let i = 0; i < Math.min(3, lines.length); i++) {
+          // Look for month name + year pattern
+          const monthYearPattern = /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})\s*[-–—]\s*((?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})|Present)/i;
+          
+          const monthYearMatch = lines[i].match(monthYearPattern);
+          if (monthYearMatch) {
+            dateLineIndex = i;
+            foundMonthYearPattern = true;
             
-            // Look for end date or "Present"
-            if (yearMatches.length >= 2) {
-              endDate = yearMatches[1];
-            } else if (lines[i].toLowerCase().includes('present')) {
-              endDate = 'Present';
+            // Extract month and year for start date
+            const startMonth = monthYearMatch[1].toLowerCase();
+            const startYear = monthYearMatch[2];
+            const startMonthNum = monthNames[startMonth.toLowerCase()] || monthNames[startMonth.substring(0, 3).toLowerCase()];
+            
+            // Format raw dates (Month Year)
+            rawStartDate = `${monthYearMatch[1]} ${startYear}`;
+            
+            // Create formatted date (YYYY-MM-DD)
+            if (startMonthNum && startYear) {
+              // Use 1st day of month for start date
+              startDate = `${startYear}-${startMonthNum.toString().padStart(2, '0')}-01`;
             }
             
-            // If we found dates, and this is the first line, it might be part of the company info
-            if (i === 0) {
-              // Try to extract company name without the date part
-              const dateIndex = lines[i].indexOf(startDate);
-              if (dateIndex > 0) {
-                companyName = lines[i].substring(0, dateIndex).trim();
+            // Handle end date
+            if (monthYearMatch[3].toLowerCase() === 'present') {
+              rawEndDate = 'Present';
+              // Use current date for "Present"
+              const now = new Date();
+              const currentYear = now.getFullYear();
+              const currentMonth = now.getMonth() + 1;
+              const currentDay = now.getDate();
+              endDate = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
+            } else {
+              // Extract end month and year
+              const endMonthMatch = monthYearMatch[3].match(/\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})/i);
+              
+              if (endMonthMatch) {
+                const endMonth = endMonthMatch[1];
+                const endYear = endMonthMatch[2];
+                const endMonthNum = monthNames[endMonth.toLowerCase()] || monthNames[endMonth.substring(0, 3).toLowerCase()];
                 
-                // If there's a dash before the date, it might separate company and location
-                const dashBeforeDateMatch = companyName.match(/^(.*?)[-–—]\s*([^-–—]+)$/);
-                if (dashBeforeDateMatch) {
-                  companyName = dashBeforeDateMatch[1].trim();
-                  location = dashBeforeDateMatch[2].trim();
+                rawEndDate = `${endMonth} ${endYear}`;
+                
+                if (endMonthNum && endYear) {
+                  // Use last day of month for end date
+                  const lastDay = getLastDayOfMonth(parseInt(endYear), endMonthNum);
+                  endDate = `${endYear}-${endMonthNum.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`;
                 }
               }
             }
             
             break;
           }
+          
+          // Fallback: Look for year-year pattern if no month names found
+          if (!foundMonthYearPattern) {
+            const yearPattern = /\b(20\d{2}|19\d{2})\s*[-–—]\s*(20\d{2}|19\d{2}|Present)\b/i;
+            const yearMatch = lines[i].match(yearPattern);
+            
+            if (yearMatch) {
+              dateLineIndex = i;
+              
+              const startYear = yearMatch[1];
+              rawStartDate = startYear;
+              // Default to January 1st if only year is available
+              startDate = `${startYear}-01-01`;
+              
+              if (yearMatch[2].toLowerCase() === 'present') {
+                rawEndDate = 'Present';
+                // Use current date for "Present"
+                const now = new Date();
+                endDate = now.toISOString().split('T')[0];
+              } else {
+                const endYear = yearMatch[2];
+                rawEndDate = endYear;
+                // Default to December 31st if only year is available
+                endDate = `${endYear}-12-31`;
+              }
+              
+              break;
+            }
+          }
         }
         
-        // Create description by joining all lines
-        const description = entry;
+        // Create a clean description by removing lines with redundant information
+        let descriptionLines = [...lines];
+        
+        // Remove first lines if they contain company name, job title, or date info
+        const linesToRemove = new Set();
+        
+        // Remove the company/location line
+        if (lines.length > 0) {
+          linesToRemove.add(0);
+        }
+        
+        // Remove the job title line if it exists
+        if (lines.length > 1 && jobTitle === lines[1]) {
+          linesToRemove.add(1);
+        }
+        
+        // Remove the date line if we found it
+        if (dateLineIndex >= 0) {
+          linesToRemove.add(dateLineIndex);
+        }
+        
+        // Build the clean description without removed lines
+        const cleanDescription = descriptionLines
+          .filter((_, index) => !linesToRemove.has(index))
+          .join('\n');
         
         structuredData.workExperience.push({
           company: companyName,
@@ -322,7 +422,9 @@ function extractStructuredResumeData(text) {
           location: location,
           startDate: startDate,
           endDate: endDate,
-          description: description
+          rawStartDate: rawStartDate,
+          rawEndDate: rawEndDate,
+          description: cleanDescription
         });
       }
     }
