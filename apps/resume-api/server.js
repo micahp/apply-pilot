@@ -129,82 +129,59 @@ function extractStructuredResumeData(text) {
     }
   }
   
-  // Extract work experience
+  // Extract work experience - simpler approach to avoid regex hanging
   if (sections.experience) {
     const experienceText = sections.experience;
     
-    // Improved approach to detect job entries - look for company/location and date patterns
-    // This regex matches patterns like "Company Name – Location     Date - Date"
-    const jobEntryRegex = /^([^–\n]+)(?:\s+[-–—]\s+([^–\n]+))(?:\s+)([A-Za-z]+\s+\d{4}\s+[-–—]\s+(?:\w+\s+\d{4}|Present))/gm;
-    let match;
+    // Split by newline groups to identify potential job entries
+    const experienceLines = experienceText.split('\n');
     let experienceEntries = [];
+    let currentEntry = [];
     
-    // First try to find well-formatted job entries with the regex
-    while ((match = jobEntryRegex.exec(experienceText)) !== null) {
-      const startPos = match.index;
-      let endPos;
+    // Identify potential job entries by looking for patterns that typically indicate a new job
+    // such as a company name followed by a date or a job title
+    for (let i = 0; i < experienceLines.length; i++) {
+      const line = experienceLines[i].trim();
       
-      // Look for the start of the next job entry or end of text
-      const nextMatch = jobEntryRegex.exec(experienceText);
-      if (nextMatch) {
-        endPos = nextMatch.index;
-        // Reset regex to previous position to not skip entries
-        jobEntryRegex.lastIndex = nextMatch.index;
-      } else {
-        endPos = experienceText.length;
+      // Skip empty lines
+      if (line.length === 0) {
+        continue;
       }
       
-      const entryText = experienceText.substring(startPos, endPos).trim();
-      experienceEntries.push(entryText);
+      // Potential indicators of a new job entry:
+      // 1. A line that contains a year (likely a date range)
+      // 2. A line that contains a dash or hyphen (often separates company and location or dates)
+      // 3. A line that looks like a company name (first letter capitalized)
+      const hasYear = /\b(19|20)\d{2}\b/.test(line);
+      const hasDash = /[-–—]/.test(line);
+      const looksLikeCompanyName = /^[A-Z]/.test(line) && line.length > 5;
+      const hasJobTitleKeyword = /engineer|developer|manager|director|analyst|designer|consultant|lead|architect|owner|specialist/i.test(line);
+      
+      const isLikelyNewJobEntry = (
+        ((hasYear && hasDash) || (looksLikeCompanyName && i < experienceLines.length - 1)) &&
+        (i === 0 || experienceLines[i-1].trim().length === 0)
+      );
+      
+      if (isLikelyNewJobEntry && currentEntry.length > 0) {
+        experienceEntries.push(currentEntry.join('\n'));
+        currentEntry = [];
+      }
+      
+      currentEntry.push(line);
     }
     
-    // If regex approach didn't find entries, fall back to splitting by multiple newlines
-    if (experienceEntries.length === 0) {
-      // Try to split by triple newlines (common in resumes) or double newlines as fallback
-      experienceEntries = experienceText.split(/\n\n\n+/) 
+    // Don't forget the last entry
+    if (currentEntry.length > 0) {
+      experienceEntries.push(currentEntry.join('\n'));
+    }
+    
+    // If we couldn't identify entries this way, fall back to simpler splitting
+    if (experienceEntries.length < 2) {
+      experienceEntries = experienceText.split(/\n\n+/)
                         .filter(entry => entry.trim().length > 0);
-      
-      // If we still don't have enough entries, try double newlines
-      if (experienceEntries.length < 3) {
-        experienceEntries = experienceText.split(/\n\n+/)
-                          .filter(entry => entry.trim().length > 0);
-      }
     }
     
-    // Alternative: identify job entries by looking for date ranges
-    if (experienceEntries.length < 3) {
-      // Look for date patterns that often indicate start of job entries
-      const dateRangeRegex = /(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s+\d{4}\s+[-–—]\s+(?:\w+\.?\s+\d{4}|Present)/gi;
-      
-      let lines = experienceText.split('\n');
-      let currentEntry = [];
-      let entries = [];
-      
-      for (let i = 0; i < lines.length; i++) {
-        if (
-          // New entry if line contains a date range
-          (i === 0 || lines[i].match(dateRangeRegex)) ||
-          // Or if it starts with a company-like pattern (caps followed by location)
-          (i === 0 || /^[A-Z][^–]*[-–—]/.test(lines[i]))
-        ) {
-          if (currentEntry.length > 0) {
-            entries.push(currentEntry.join('\n'));
-            currentEntry = [];
-          }
-        }
-        currentEntry.push(lines[i]);
-      }
-      
-      if (currentEntry.length > 0) {
-        entries.push(currentEntry.join('\n'));
-      }
-      
-      if (entries.length >= 3) {
-        experienceEntries = entries;
-      }
-    }
-    
-    // Process all job entries without arbitrary limits
+    // Process each job entry
     for (const entry of experienceEntries) {
       const lines = entry.split('\n').map(line => line.trim()).filter(line => line.length > 0);
       
@@ -212,122 +189,84 @@ function extractStructuredResumeData(text) {
         // First line typically contains company and location
         const firstLine = lines[0];
         
-        // Try to extract company name, location, and date range from the first line
+        // Attempt to parse company, location, and date information
         let companyName = '';
         let location = '';
-        let dateRange = '';
-        
-        // Look for company name and location pattern: "Company Name – Location"
-        const companyLocationMatch = firstLine.match(/^([^–\n]+)(?:\s+[-–—]\s+([^–\n]+))/);
-        if (companyLocationMatch) {
-          companyName = companyLocationMatch[1].trim();
-          // If there's another dash after location, it might be separating location from date
-          const remainingPart = firstLine.substring(companyLocationMatch[0].length).trim();
-          if (remainingPart) {
-            // This might contain the date range
-            dateRange = remainingPart;
-          }
-        } else {
-          companyName = firstLine;
-        }
-        
-        // Look for job title, typically the second line
         let jobTitle = '';
+        let startDate = '';
+        let endDate = '';
+        
+        // Simple approach - first line is likely company name, second line is job title
+        companyName = firstLine;
         if (lines.length >= 2) {
           jobTitle = lines[1];
         }
         
-        // Extract date range if not already found
-        if (!dateRange) {
-          // Look for date patterns in the first or second line
-          const datePatterns = [
-            // Month Year - Month Year
-            /(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s+\d{4}\s+[-–—]\s+(?:\w+\.?\s+\d{4}|Present)/i,
-            // Year - Year or Year - Present
-            /\b(\d{4})\s+[-–—]\s+(\d{4}|Present|Current)\b/i
-          ];
-          
-          for (const pattern of datePatterns) {
-            for (let i = 0; i < Math.min(3, lines.length); i++) {
-              const match = lines[i].match(pattern);
-              if (match) {
-                dateRange = match[0];
-                break;
+        // Try to extract location if present in the company line
+        const locationMatch = firstLine.match(/\s+[-–—]\s+([^-–—\d]+)(?=\s|$)/);
+        if (locationMatch) {
+          location = locationMatch[1].trim();
+          // Update company name to remove location
+          companyName = firstLine.substring(0, locationMatch.index).trim();
+        }
+        
+        // Look for date ranges in first two lines
+        for (let i = 0; i < Math.min(2, lines.length); i++) {
+          // Look for year patterns
+          const yearMatches = lines[i].match(/\b(19|20)\d{2}\b/g);
+          if (yearMatches && yearMatches.length >= 1) {
+            startDate = yearMatches[0];
+            
+            // Look for end date or "Present"
+            if (yearMatches.length >= 2) {
+              endDate = yearMatches[1];
+            } else if (lines[i].toLowerCase().includes('present')) {
+              endDate = 'Present';
+            }
+            
+            // If we found dates, and this is the first line, it might be part of the company info
+            if (i === 0) {
+              // Try to extract company name without the date part
+              const dateIndex = lines[i].indexOf(startDate);
+              if (dateIndex > 0) {
+                companyName = lines[i].substring(0, dateIndex).trim();
+                
+                // If there's a dash before the date, it might separate company and location
+                const dashBeforeDateMatch = companyName.match(/^(.*?)[-–—]\s*([^-–—]+)$/);
+                if (dashBeforeDateMatch) {
+                  companyName = dashBeforeDateMatch[1].trim();
+                  location = dashBeforeDateMatch[2].trim();
+                }
               }
             }
-            if (dateRange) break;
+            
+            break;
           }
         }
         
-        // Extract start and end dates from date range
-        let startDate = '';
-        let endDate = '';
-        
-        if (dateRange) {
-          // Extract all years from the date range
-          const yearMatches = dateRange.match(/\b\d{4}\b/g) || [];
-          if (yearMatches.length >= 1) {
-            startDate = yearMatches[0];
-          }
-          if (yearMatches.length >= 2) {
-            endDate = yearMatches[1];
-          } else if (dateRange.toLowerCase().includes('present') || dateRange.toLowerCase().includes('current')) {
-            endDate = 'Present';
-          }
-          
-          // Try to extract months too if present
-          const monthMatches = dateRange.match(/\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\b/gi);
-          if (monthMatches && monthMatches.length >= 1) {
-            if (startDate) {
-              startDate = `${monthMatches[0]} ${startDate}`;
-            }
-            if (monthMatches.length >= 2 && endDate && endDate !== 'Present') {
-              endDate = `${monthMatches[1]} ${endDate}`;
-            }
-          }
-        }
-        
-        // If we couldn't identify a job title, look for common job title patterns
-        if (!jobTitle || jobTitle === companyName) {
-          const titleKeywords = [
-            'engineer', 'developer', 'manager', 'director', 'analyst', 
-            'designer', 'consultant', 'specialist', 'lead', 'head', 
-            'architect', 'administrator', 'coordinator', 'associate',
-            'product', 'project', 'program', 'owner', 'assistant'
-          ];
-          
-          for (let i = 1; i < Math.min(4, lines.length); i++) {
-            const line = lines[i].toLowerCase();
-            if (titleKeywords.some(keyword => line.includes(keyword))) {
-              jobTitle = lines[i];
-              break;
-            }
-          }
-        }
-        
-        // Create a description that excludes the already extracted information
-        let description = entry;
+        // Create description by joining all lines
+        const description = entry;
         
         structuredData.workExperience.push({
           company: companyName,
           title: jobTitle,
-          location,
-          startDate,
-          endDate,
-          description
+          location: location,
+          startDate: startDate,
+          endDate: endDate,
+          description: description
         });
       }
     }
   }
   
-  // Extract education
+  // Extract education - simplified to avoid performance issues
   if (sections.education) {
     const educationText = sections.education;
     
-    // Find education entries
-    const educationEntries = educationText.split(/\n\n+/);
+    // Find education entries - simple split
+    const educationEntries = educationText.split(/\n\n+/).filter(entry => entry.trim().length > 0);
     
-    for (const entry of educationEntries) { // Remove the limit
+    for (const entry of educationEntries) {
       const lines = entry.split('\n').map(line => line.trim()).filter(line => line.length > 0);
       
       if (lines.length >= 1) {
@@ -338,10 +277,16 @@ function extractStructuredResumeData(text) {
         
         const degreeLine = lines.find(line => 
           /bachelor|master|phd|bs|ba|ms|ma|degree/i.test(line)
-        ) || lines[1] || '';
+        ) || (lines.length > 1 ? lines[1] : '');
         
-        // Extract dates if available
-        const dates = entry.match(/\b\d{4}\b/g) || [];
+        // Extract dates if available - simple approach
+        const dates = [];
+        for (const line of lines) {
+          const yearMatches = line.match(/\b(19|20)\d{2}\b/g);
+          if (yearMatches) {
+            dates.push(...yearMatches);
+          }
+        }
         
         structuredData.education.push({
           institution: institutionLine,
@@ -354,53 +299,36 @@ function extractStructuredResumeData(text) {
     }
   }
   
-  // Extract skills
+  // Extract skills - simplified approach
   if (sections.skills) {
     const skillsText = sections.skills;
     
     // Split by common separators and clean up
     const skillItems = skillsText.split(/[,|•;\n]/).map(s => s.trim()).filter(s => s.length > 2 && s.length < 30);
     
-    // Filter out common non-skill words
-    const filteredSkills = skillItems.filter(skill => {
-      const lowerSkill = skill.toLowerCase();
-      return !['and', 'the', 'with', 'for', 'experience', 'years', 'using', 'including'].includes(lowerSkill);
-    });
-    
     // Add skills (limit to reasonable number)
-    for (const skill of filteredSkills.slice(0, 30)) { // Increased limit
-      structuredData.skills.push({ name: skill });
-    }
-    
-    // If we couldn't find skills, check for common tech skills in the entire document
-    if (structuredData.skills.length === 0) {
-      const techSkills = [
-        'JavaScript', 'TypeScript', 'Python', 'Java', 'C#', 'C++', 'Ruby', 'PHP', 'Swift',
-        'React', 'Angular', 'Vue', 'Node.js', 'Express', 'Django', 'Flask', 'Spring',
-        'HTML', 'CSS', 'SASS', 'SCSS', 'Bootstrap', 'Tailwind', 'React Native',
-        'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'Git', 'REST', 'GraphQL',
-        'SQL', 'NoSQL', 'PostgreSQL', 'MySQL', 'MongoDB', 'Redis',
-        'Machine Learning', 'AI', 'Data Science', 'Big Data', 'Hadoop', 'Spark',
-        'Agile', 'Scrum', 'DevOps', 'CI/CD', 'TDD', 'Jenkins'
-      ];
-      
-      for (const tech of techSkills) {
-        if (text.includes(tech)) {
-          structuredData.skills.push({ name: tech });
-        }
+    const uniqueSkills = new Set();
+    for (const skill of skillItems.slice(0, 30)) {
+      if (!uniqueSkills.has(skill.toLowerCase())) {
+        uniqueSkills.add(skill.toLowerCase());
+        structuredData.skills.push({ name: skill });
       }
     }
+  }
+  
+  // If no skills were found, extract some from the entire document
+  if (structuredData.skills.length === 0) {
+    const techSkills = [
+      'JavaScript', 'TypeScript', 'Python', 'Java', 'C#', 'C++', 'Ruby', 'PHP', 'Swift',
+      'React', 'Angular', 'Vue', 'Node.js', 'Express', 'Django', 'Flask', 'Spring',
+      'HTML', 'CSS', 'SASS', 'SCSS', 'Bootstrap', 'Tailwind', 'React Native',
+      'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'Git', 'REST', 'GraphQL',
+      'SQL', 'NoSQL', 'PostgreSQL', 'MySQL', 'MongoDB', 'Redis'
+    ];
     
-    // Check for projects section to potentially extract more skills
-    if (sections.projects) {
-      const projectsText = sections.projects;
-      const projectSkillMatches = projectsText.match(/\b(?:React|Node\.js|JavaScript|Python|AWS|Azure|SQL|NoSQL|[\w.#]+)\b/g) || [];
-      const projectSkills = [...new Set(projectSkillMatches)]; // Unique values
-      
-      for (const skill of projectSkills) {
-        if (!structuredData.skills.some(s => s.name.toLowerCase() === skill.toLowerCase())) {
-          structuredData.skills.push({ name: skill });
-        }
+    for (const tech of techSkills) {
+      if (text.includes(tech)) {
+        structuredData.skills.push({ name: tech });
       }
     }
   }
