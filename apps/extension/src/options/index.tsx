@@ -3,7 +3,9 @@ import { createRoot } from 'react-dom/client';
 import { Profile, PartialProfile } from '../types/profile';
 import { ProfileForm } from '../components/ProfileForm';
 import { parseResumeFile } from '../utils/enhancedPdfParser';
+import JobListings from '../components/JobListings';
 import './styles.css';
+import '../components/JobListings.css';
 
 // Add this tooltip component to show resume format guidance
 function ResumeFormatTip() {
@@ -38,6 +40,7 @@ function ResumeFormatTip() {
 
 function Options() {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [activeTab, setActiveTab] = useState<'profile' | 'settings' | 'findJobs'>('profile');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [resumeUploading, setResumeUploading] = useState(false);
@@ -48,11 +51,17 @@ function Options() {
 
   useEffect(() => {
     // Load profile from storage
+    // Load profile from storage
     chrome.storage.local.get('profile', (result) => {
       console.log('Loaded profile from storage:', result.profile);
       setProfile(result.profile || null);
       setLoading(false);
     });
+
+    // Check URL hash for initial tab
+    if (window.location.hash === '#findJobs') {
+      setActiveTab('findJobs');
+    }
   }, []);
 
   const handleSaveProfile = (updatedProfile: Partial<Profile>) => {
@@ -216,10 +225,17 @@ Review your profile to verify the information and make any necessary corrections
         <div className="main-content">
           {error && <div className="error-message">{error}</div>}
 
-          <div className="profile-container">
-            <div className="profile-header">
-              <div>
-                <h2>Your Profile</h2>
+          <div className="tabs-navigation">
+            <button onClick={() => setActiveTab('profile')} className={activeTab === 'profile' ? 'active' : ''}>Profile</button>
+            <button onClick={() => setActiveTab('settings')} className={activeTab === 'settings' ? 'active' : ''}>Settings</button>
+            <button onClick={() => setActiveTab('findJobs')} className={activeTab === 'findJobs' ? 'active' : ''}>Find Jobs</button>
+          </div>
+
+          {activeTab === 'profile' && (
+            <div className="profile-container">
+              <div className="profile-header">
+                <div>
+                  <h2>Your Profile</h2>
                 <p className="section-description">
                   Complete your profile to enable automatic application filling. 
                   This information will be used to fill out job applications.
@@ -269,12 +285,14 @@ Review your profile to verify the information and make any necessary corrections
               onSubmit={handleSaveProfile}
               onClear={handleClearProfile}
             />
-          </div>
+            </div>
+          )}
           
-          <div className="settings-container">
-            <h2>Extension Settings</h2>
-            <div className="setting-group">
-              <div className="setting-row">
+          {activeTab === 'settings' && (
+            <div className="settings-container">
+              <h2>Extension Settings</h2>
+              <div className="setting-group">
+                <div className="setting-row">
                 <div className="setting-label">
                   <h3>Auto-detect ATS</h3>
                   <p>Automatically detect Application Tracking Systems</p>
@@ -313,7 +331,14 @@ Review your profile to verify the information and make any necessary corrections
                 </div>
               </div>
             </div>
-          </div>
+            </div>
+          )}
+
+          {activeTab === 'findJobs' && (
+            <div className="find-jobs-container">
+              <JobListings />
+            </div>
+          )}
         </div>
       </div>
 

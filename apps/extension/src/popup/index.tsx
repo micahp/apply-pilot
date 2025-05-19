@@ -43,6 +43,10 @@ const Popup: React.FC = () => {
     chrome.runtime.openOptionsPage();
   };
 
+  const openFindJobsPage = () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('options/index.html#findJobs') });
+  };
+
   if (loading) {
     return <div className="loading">Loading profile...</div>;
   }
@@ -61,6 +65,12 @@ const Popup: React.FC = () => {
             onClick={openOptionsPage}
           >
             Full Settings
+          </button>
+          <button 
+            className="find-jobs-btn" 
+            onClick={openFindJobsPage}
+          >
+            Find Jobs
           </button>
         </div>
       </div>

@@ -1,0 +1,61 @@
+.job-listings-container {
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+}
+
+.job-listings-container h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+  color: #333;
+}
+
+.job-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.job-item {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.job-item h4 {
+  margin: 0 0 5px 0;
+  font-size: 1.1em;
+}
+
+.job-item h4 a {
+  text-decoration: none;
+  color: #007bff; /* Standard link color */
+}
+
+.job-item h4 a:hover {
+  text-decoration: underline;
+}
+
+.job-item p {
+  margin: 0;
+  font-size: 0.9em;
+  color: #555;
+}
+
+.job-listings-loading,
+.job-listings-error,
+.job-listings-empty {
+  padding: 20px;
+  text-align: center;
+  font-size: 1em;
+  color: #777;
+}
+
+.job-listings-error {
+  color: #d9534f; /* Bootstrap danger color */
+}
