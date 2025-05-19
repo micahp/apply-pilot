@@ -585,6 +585,29 @@ function extractStructuredResumeData(text) {
   if (sections.education) {
     const educationText = sections.education;
     
+    // Define known degree types for standardization
+    const degreeTypes = {
+      'GED': 'GED',
+      'HIGH SCHOOL': 'High School',
+      'ASSOCIATE': 'Associates',
+      'ASSOCIATES': 'Associates',
+      'AA': 'Associates',
+      'AS': 'Associates',
+      'BACHELOR': 'Bachelors',
+      'BACHELORS': 'Bachelors',
+      'BS': 'Bachelors',
+      'BA': 'Bachelors',
+      'BSC': 'Bachelors',
+      'MASTER': 'Masters',
+      'MASTERS': 'Masters',
+      'MS': 'Masters',
+      'MA': 'Masters',
+      'MSC': 'Masters',
+      'PHD': 'Doctorate',
+      'DOCTORATE': 'Doctorate',
+      'MD': 'Doctorate'
+    };
+
     // Find education entries - simple split
     const educationEntries = educationText.split(/\n\n+/).filter(entry => entry.trim().length > 0);
     
@@ -592,30 +615,134 @@ function extractStructuredResumeData(text) {
       const lines = entry.split('\n').map(line => line.trim()).filter(line => line.length > 0);
       
       if (lines.length >= 1) {
-        // Look for institution name and degree
+        // Initialize education entry fields
+        let institution = '';
+        let degreeType = '';
+        let fieldOfStudy = '';
+        let gpa = '';
+        let graduationDate = '';
+        let startDate = '';
+        let endDate = '';
+        let isExpectedDate = false;
+
+        // Look for institution name
         const institutionLine = lines.find(line => 
           /university|college|institute|school/i.test(line)
         ) || lines[0] || '';
-        
-        const degreeLine = lines.find(line => 
-          /bachelor|master|phd|bs|ba|ms|ma|degree/i.test(line)
-        ) || (lines.length > 1 ? lines[1] : '');
-        
-        // Extract dates if available - simple approach
-        const dates = [];
-        for (const line of lines) {
-          const yearMatches = line.match(/\b(19|20)\d{2}\b/g);
-          if (yearMatches) {
-            dates.push(...yearMatches);
+
+        // Clean institution name by removing any dates
+        institution = institutionLine.replace(/\b(19|20)\d{2}\b/g, '').trim();
+        institution = institution.replace(/\s+[-–—]\s+.*$/, '').trim(); // Remove anything after dash
+
+        // Look for degree and field of study
+        const degreeLines = lines.filter(line => 
+          /bachelor|master|phd|bs|ba|ms|ma|degree|major|study|gpa/i.test(line)
+        );
+
+        if (degreeLines.length > 0) {
+          // Try to extract degree type and field of study
+          for (const line of degreeLines) {
+            // First try to find a known degree type
+            const degreeParts = line.split(/\s+(?:in|of)\s+/i);
+            const upperLine = line.toUpperCase();
+            
+            // Look for known degree types
+            for (const [key, value] of Object.entries(degreeTypes)) {
+              if (upperLine.includes(key)) {
+                degreeType = value;
+                // Extract field of study - everything after the degree type
+                const afterDegree = line.substring(line.toUpperCase().indexOf(key) + key.length).trim();
+                if (afterDegree && !fieldOfStudy) {
+                  fieldOfStudy = afterDegree.replace(/^(?:in|of)\s+/i, '').trim();
+                }
+                break;
+              }
+            }
+
+            // If we found a degree type but no field of study, check the rest of the line
+            if (degreeType && !fieldOfStudy && degreeParts.length > 1) {
+              fieldOfStudy = degreeParts[1].trim();
+            }
+
+            // Look for GPA
+            const gpaMatch = line.match(/(?:GPA|Grade Point Average|G\.P\.A\.)\s*(?:[:-])?\s*([\d.]+)/i);
+            if (gpaMatch) {
+              gpa = gpaMatch[1];
+            }
           }
         }
-        
+
+        // Extract dates
+        let dates = [];
+        for (const line of lines) {
+          // Look for dates in various formats
+          const yearMatches = line.match(/\b(19|20)\d{2}\b/g);
+          if (yearMatches) {
+            dates = dates.concat(yearMatches);
+          }
+        }
+
+        // Process dates
+        if (dates.length > 0) {
+          // Sort dates chronologically
+          dates.sort();
+          
+          const now = new Date();
+          const currentYear = now.getFullYear();
+          
+          if (dates.length >= 2) {
+            // If we have multiple dates, use first as start and last as end
+            startDate = `${dates[0]}-09-01`; // Assume September start
+            endDate = `${dates[dates.length-1]}-05-31`; // Assume May end
+            isExpectedDate = parseInt(dates[dates.length-1]) >= currentYear;
+          } else {
+            // If we have only one date
+            const year = parseInt(dates[0]);
+            if (year >= currentYear) {
+              // Future date - expected graduation
+              endDate = `${year}-05-31`;
+              isExpectedDate = true;
+              startDate = `${year-4}-09-01`; // Assume 4-year program
+            } else {
+              // Past date - actual graduation
+              endDate = `${year}-05-31`;
+              startDate = `${year-4}-09-01`; // Assume 4-year program
+            }
+          }
+          
+          // Set graduation date for display
+          graduationDate = endDate;
+        }
+
+        // If we couldn't determine a degree type but found field of study
+        if (!degreeType && fieldOfStudy) {
+          // Look for common degree indicators in the field of study
+          if (/computer|engineering|science|mathematics|physics/i.test(fieldOfStudy)) {
+            degreeType = 'Bachelors'; // Assume Bachelor's for technical fields
+          } else if (/arts|literature|history|philosophy/i.test(fieldOfStudy)) {
+            degreeType = 'Bachelors'; // Assume Bachelor's for liberal arts
+          }
+        }
+
+        // Clean up field of study
+        if (fieldOfStudy) {
+          // Remove common prefixes and degree indicators
+          fieldOfStudy = fieldOfStudy
+            .replace(/^(?:in|of)\s+/i, '')
+            .replace(/bachelor'?s?|master'?s?|phd|doctorate|degree/i, '')
+            .replace(/\([^)]*\)/g, '') // Remove parenthetical content
+            .trim();
+        }
+
         structuredData.education.push({
-          institution: institutionLine,
-          degree: degreeLine,
-          fieldOfStudy: '',
-          startDate: dates.length >= 1 ? dates[0] : '',
-          endDate: dates.length >= 2 ? dates[1] : ''
+          institution,
+          degreeType,
+          fieldOfStudy,
+          gpa,
+          startDate,
+          endDate,
+          isExpectedDate,
+          graduationDate
         });
       }
     }
@@ -633,24 +760,24 @@ function extractStructuredResumeData(text) {
     for (const skill of skillItems.slice(0, 30)) {
       if (!uniqueSkills.has(skill.toLowerCase())) {
         uniqueSkills.add(skill.toLowerCase());
-        structuredData.skills.push({ name: skill });
+      structuredData.skills.push({ name: skill });
       }
     }
-  }
-  
-  // If no skills were found, extract some from the entire document
-  if (structuredData.skills.length === 0) {
-    const techSkills = [
-      'JavaScript', 'TypeScript', 'Python', 'Java', 'C#', 'C++', 'Ruby', 'PHP', 'Swift',
-      'React', 'Angular', 'Vue', 'Node.js', 'Express', 'Django', 'Flask', 'Spring',
-      'HTML', 'CSS', 'SASS', 'SCSS', 'Bootstrap', 'Tailwind', 'React Native',
-      'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'Git', 'REST', 'GraphQL',
-      'SQL', 'NoSQL', 'PostgreSQL', 'MySQL', 'MongoDB', 'Redis'
-    ];
+    }
     
-    for (const tech of techSkills) {
-      if (text.includes(tech)) {
-        structuredData.skills.push({ name: tech });
+  // If no skills were found, extract some from the entire document
+    if (structuredData.skills.length === 0) {
+      const techSkills = [
+        'JavaScript', 'TypeScript', 'Python', 'Java', 'C#', 'C++', 'Ruby', 'PHP', 'Swift',
+        'React', 'Angular', 'Vue', 'Node.js', 'Express', 'Django', 'Flask', 'Spring',
+      'HTML', 'CSS', 'SASS', 'SCSS', 'Bootstrap', 'Tailwind', 'React Native',
+        'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'Git', 'REST', 'GraphQL',
+      'SQL', 'NoSQL', 'PostgreSQL', 'MySQL', 'MongoDB', 'Redis'
+      ];
+      
+      for (const tech of techSkills) {
+        if (text.includes(tech)) {
+          structuredData.skills.push({ name: tech });
       }
     }
   }
