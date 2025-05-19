@@ -6,7 +6,8 @@
   "permissions": [
     "storage",
     "activeTab",
-    "scripting"
+    "scripting",
+    "tabs"
   ],
   "host_permissions": [
     "https://*.workday.com/*",
@@ -14,7 +15,8 @@
     "https://*.lever.co/*",
     "https://*.ashbyhq.com/*",
     "https://*.icims.com/*",
-    "https://*.workable.com/*"
+    "https://*.workable.com/*",
+    "https://*/*"
   ],
   "action": {
     "default_popup": "src/popup/index.html",
@@ -53,7 +55,12 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["assets/*", "pdf.worker.min.js"],
+      "resources": [
+        "assets/*",
+        "pdf.worker.min.js",
+        "src/jobs/index.html",
+        "src/jobs/job_listings.js"
+      ],
       "matches": ["<all_urls>"]
     }
   ]
