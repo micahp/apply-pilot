@@ -11,11 +11,20 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url'; // Needed for __dirname in ES modules
-import pg from 'pg';
-import got from 'got';
 import * as cheerio from 'cheerio';
-import crypto from 'crypto';
 import pLimit from 'p-limit';
+
+import { 
+  pool, 
+  // sha256, // Not directly used in jobCrawler.js after refactor, processJobPosting uses its own import
+  fetchHTML, 
+  // addJobPostingVersion, // Not directly used in jobCrawler.js, processJobPosting uses its own import
+  processJobPosting,
+  CRAWLER_CONCURRENCY, 
+  // CRAWLER_REQUEST_TIMEOUT, // Not directly used by jobCrawler.js, fetchHTML uses it
+  // USER_AGENT_STRING, // Not directly used by jobCrawler.js, fetchHTML uses it
+  RATE_LIMIT_ERROR_MARKER 
+} from './crawlerUtils.js';
 
 // --- BEGIN INSTRUMENTATION --- (Commented out as these are locally scoped in runJobCrawler)
 // // Initialized in runJobCrawler
@@ -36,186 +45,69 @@ const COMMON_PATHS = [
   '/joblisting',
 ];
 
-const CONCURRENCY = 4;            // politeness
-const REQUEST_TIMEOUT = 8000;     // ms
-const MINIMUM_JOB_LINKS_PER_PAGE = 3; // Minimum job links to consider a page valid
-const MAX_CONSECUTIVE_LISTING_ERRORS = 3; // Number of allowed consecutive 429/403 errors on listing pages
-const RATE_LIMIT_ERROR_MARKER = Symbol('RATE_LIMIT_ERROR'); // Unique marker for these errors
+// Constants moved to crawlerUtils.js or locally scoped if specific
+// const CONCURRENCY = 4; // Now CRAWLER_CONCURRENCY from crawlerUtils
+// const REQUEST_TIMEOUT = 8000; // Now CRAWLER_REQUEST_TIMEOUT from crawlerUtils
+const MINIMUM_JOB_LINKS_PER_PAGE = 3; 
+const MAX_CONSECUTIVE_LISTING_ERRORS = 3; 
+// const RATE_LIMIT_ERROR_MARKER = Symbol('RATE_LIMIT_ERROR'); // Now from crawlerUtils
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+// const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL }); // Now from crawlerUtils
 
 async function getActiveHosts() {
-  const { rows } = await pool.query(
+  const { rows } = await pool.query( // Uses imported pool
     `SELECT id, domain, ats_type
        FROM ats_hosts
       WHERE is_active = true`
   );
-  return rows;                    // [{ id, domain, ats_type }]
+  return rows;
 }
 
-function sha256(str) {
-  return crypto.createHash('sha256').update(str).digest('hex');
-}
+// sha256 moved to crawlerUtils.js
 
 function looksLikeJobLink(href) {
   // Super-simple heuristics; refine later per-ATS
   return /\/job(s)?\/|\/jobs\/\d|\/positions?\/|jobid=/i.test(href);
 }
 
-async function fetchHTML(url, domain, httpErrorsByHost) { // Added domain, httpErrorsByHost
-  try {
-    const res = await got(url, { timeout: { request: REQUEST_TIMEOUT } });
-    return res.body;
-  } catch (error) {
-    const errorMessage = error instanceof got.HTTPError && error.response ? error.response.statusMessage : error.message;
-    // console.error(`Error fetching ${url} (Domain: ${domain}): ${errorMessage}`); // Refined logging
+// fetchHTML moved to crawlerUtils.js
+// processJobPosting moved to crawlerUtils.js
+// addJobPostingVersion moved to crawlerUtils.js
 
-    if (domain && httpErrorsByHost) { // Ensure httpErrorsByHost is passed and available
-        httpErrorsByHost[domain] = (httpErrorsByHost[domain] || 0) + 1;
-    }
-
-    if (error instanceof got.HTTPError && error.response && (error.response.statusCode === 429 || error.response.statusCode === 403)) {
-      // console.warn(`Rate limit or forbidden error for ${url} (Domain: ${domain}). Status: ${error.response.statusCode}`);
-      return RATE_LIMIT_ERROR_MARKER; // Specific marker for these errors
-    }
-    return null; // For all other errors
-  }
-}
-
-// Removed upsertPosting and replaced with processJobPosting
-async function processJobPosting({ hostId, url: originalUrl, html, title, location }) {
-  if (!html) {
-    // console.warn(`processJobPosting: HTML content is missing for URL ${originalUrl}. Skipping.`);
-    return false; // Return a status indicating failure/skip
-  }
-
-  const newHtmlHash = sha256(html);
-  let normalizedUrlObj = new URL(originalUrl);
-  let paramsToDelete = [];
-  for (const [key] of normalizedUrlObj.searchParams) {
-    if (key.toLowerCase() !== 'gh_jid' && key.toLowerCase() !== 'jobid') {
-      paramsToDelete.push(key);
-    }
-  }
-  paramsToDelete.forEach(key => normalizedUrlObj.searchParams.delete(key));
-  // Ensure pathname starts with a / if it's not empty, or defaults to / if originally empty
-  const pathname = normalizedUrlObj.pathname && normalizedUrlObj.pathname.startsWith('/') ? normalizedUrlObj.pathname : (normalizedUrlObj.pathname ? `/${normalizedUrlObj.pathname}` : '/');
-  const normalizedUrl = (pathname + normalizedUrlObj.search).toLowerCase();
-  const newUrlHash = sha256(normalizedUrl);
-
-  let jobPostingId = null;
-
-  try {
-    const { rows } = await pool.query(
-      `SELECT id, html_hash, job_title AS old_title, location AS old_location, initial_snapshot_done 
-       FROM job_postings 
-       WHERE url = $1`,
-      [originalUrl]
-    );
-
-    if (rows.length > 0) { // Job exists
-      const existingJob = rows[0];
-      jobPostingId = existingJob.id;
-      const currentDbHash = existingJob.html_hash;
-      const oldTitle = existingJob.old_title;
-      const oldLocation = existingJob.old_location;
-      const isInitialSnapshotDone = existingJob.initial_snapshot_done;
-
-      if (!isInitialSnapshotDone) {
-        await addJobPostingVersion(jobPostingId, currentDbHash, oldTitle, oldLocation);
-        await pool.query('UPDATE job_postings SET initial_snapshot_done = true WHERE id = $1', [jobPostingId]);
-      }
-
-      if (newHtmlHash !== currentDbHash) {
-        await addJobPostingVersion(jobPostingId, newHtmlHash, title, location);
-        await pool.query(
-          `UPDATE job_postings 
-           SET html_hash = $1, job_title = $2, location = $3, url_hash = $4, last_seen_at = NOW(), status = 'open'
-           WHERE id = $5`,
-          [newHtmlHash, title, location, newUrlHash, jobPostingId]
-        );
-      } else { // Hashes are the same
-        await pool.query(
-          `UPDATE job_postings 
-           SET last_seen_at = NOW(), status = 'open', job_title = $1, location = $2, url_hash = $3
-           WHERE id = $4`,
-          [title, location, newUrlHash, jobPostingId]
-        );
-      }
-    } else { // New job
-      const insertResult = await pool.query(
-        `INSERT INTO job_postings 
-           (ats_host_id, url, html_hash, job_title, location, url_hash, status, initial_snapshot_done, last_seen_at, discovered_at) 
-         VALUES ($1, $2, $3, $4, $5, $6, 'open', false, NOW(), NOW()) 
-         RETURNING id`,
-        [hostId, originalUrl, newHtmlHash, title, location, newUrlHash]
-      );
-      if (insertResult.rows.length > 0) {
-        jobPostingId = insertResult.rows[0].id;
-        await addJobPostingVersion(jobPostingId, newHtmlHash, title, location);
-        await pool.query('UPDATE job_postings SET initial_snapshot_done = true WHERE id = $1', [jobPostingId]);
-      } else {
-        console.error(`Failed to insert new job posting for URL ${originalUrl}. RETURNING id did not provide an id.`);
-        return false; // Indicate failure
-      }
-    }
-    return true; // Indicate success
-  } catch (error) {
-    console.error(`Error in processJobPosting for URL ${originalUrl}: ${error.message}`, error.stack);
-    return false; // Indicate failure
-  }
-}
-
-async function addJobPostingVersion(jobPostingId, htmlHash, title, location) {
-  if (!jobPostingId || !htmlHash) {
-    console.error('addJobPostingVersion: Missing jobPostingId or htmlHash. Skipping version insert.');
-    return;
-  }
-  try {
-    await pool.query(
-      `INSERT INTO job_posting_versions 
-         (job_posting_id, html_hash, job_title, location, snapshot_at)
-       VALUES ($1, $2, $3, $4, NOW())`,
-      [jobPostingId, htmlHash, title, location]
-    );
-    // console.log(`Added version for job_posting_id ${jobPostingId}: hash ${htmlHash.substring(0,7)}`); // Optional: for debugging
-  } catch (error) {
-    console.error(`Error adding job posting version for job_posting_id ${jobPostingId}: ${error.message}`);
-    // Consider if this error should be propagated or just logged. For now, just log.
-  }
-}
 
 // Updated signature to include atsConfig and hostErrorStreaks
 async function crawlHost(host, httpErrorsByHost, atsConfig, hostErrorStreaks) {
-  const { id: hostId, domain, ats_type } = host; // Deconstruct host
-  const limit = pLimit(CONCURRENCY);
+  const { id: hostId, domain, ats_type } = host;
+  const limit = pLimit(CRAWLER_CONCURRENCY); // Use imported CRAWLER_CONCURRENCY
   let localListingPagesHit = 0;
   let localJobUrlsStored = 0;
 
   for (const path of COMMON_PATHS) {
     const listingURL = `https://${domain}${path}`;
-    const html = await fetchHTML(listingURL, domain, httpErrorsByHost);
+    const fetchResult = await fetchHTML(listingURL, domain, httpErrorsByHost); // Use imported fetchHTML
 
-    if (html === RATE_LIMIT_ERROR_MARKER) {
+    let htmlContent = null;
+
+    if (fetchResult.body && fetchResult.status >= 200 && fetchResult.status < 300) {
+      htmlContent = fetchResult.body;
+      hostErrorStreaks[domain] = 0; // Reset streak on success
+      localListingPagesHit++;
+    } else if (fetchResult.marker === RATE_LIMIT_ERROR_MARKER || (fetchResult.errorStatus && (fetchResult.errorStatus === 429 || fetchResult.errorStatus === 403))) {
       hostErrorStreaks[domain] = (hostErrorStreaks[domain] || 0) + 1;
-      console.warn(`Host ${domain} encountered error streak: ${hostErrorStreaks[domain]}/${MAX_CONSECUTIVE_LISTING_ERRORS} on path ${path}`);
+      console.warn(`Host ${domain} encountered error streak: ${hostErrorStreaks[domain]}/${MAX_CONSECUTIVE_LISTING_ERRORS} on path ${path} (Status: ${fetchResult.errorStatus || 'Marker'})`);
       if (hostErrorStreaks[domain] >= MAX_CONSECUTIVE_LISTING_ERRORS) {
         console.error(`Host ${domain} reached max consecutive errors (${MAX_CONSECUTIVE_LISTING_ERRORS}). Skipping this host for the current run.`);
         return { localListingPagesHit, localJobUrlsStored }; // Return early
       }
       continue; // Skip this path, try next path
-    } else if (html) { // Successfully fetched HTML (not null, not the error marker)
-      hostErrorStreaks[domain] = 0; // Reset streak on success
-      localListingPagesHit++; // Increment successfully fetched listing pages
-    } else { // html is null (some other error)
-      // Optional: could also increment streak here, or handle differently.
-      // For now, only 429/403 on listing pages contribute to forced host skipping.
-      // Other errors are already counted in httpErrorsByHost.
-      continue; // if html is null, skip to next path
+    } else { // Other errors (network, non-2xx/429/403 status codes)
+      // fetchHTML already logs these if httpErrorsByHost is passed and domain is present.
+      // console.warn(`Failed to fetch ${listingURL}. Status: ${fetchResult.errorStatus}, Message: ${fetchResult.message}`);
+      continue; // if html is null or other error, skip to next path
     }
-
-    // If we reach here, html is valid content
-    const $ = cheerio.load(html);
+    
+    // If we reach here, htmlContent is valid
+    const $ = cheerio.load(htmlContent);
     const links = new Set();
 
     const selectors = atsConfig.listingPageSelectors && atsConfig.listingPageSelectors.length > 0 
@@ -262,10 +154,17 @@ async function crawlHost(host, httpErrorsByHost, atsConfig, hostErrorStreaks) {
     const tasks = Array.from(links).map((jobURL) =>
       limit(async () => {
         const jobDomain = new URL(jobURL).hostname; // Get domain from jobURL
-        const jobHTML = await fetchHTML(jobURL, jobDomain, httpErrorsByHost); // Pass jobDomain, httpErrorsByHost
-        if (!jobHTML) return;
+        const jobDetailFetchResult = await fetchHTML(jobURL, jobDomain, httpErrorsByHost); // Use imported fetchHTML
 
-        const $$ = cheerio.load(jobHTML);
+        if (!(jobDetailFetchResult.body && jobDetailFetchResult.status >= 200 && jobDetailFetchResult.status < 300)) {
+          // console.warn(`Skipping job URL ${jobURL} due to fetch error. Status: ${jobDetailFetchResult.errorStatus}, Message: ${jobDetailFetchResult.message}`);
+          // Note: Unlike listing pages, we don't apply error streak logic for individual job pages here.
+          // These errors are already counted in httpErrorsByHost by fetchHTML.
+          return; // Skip this job URL
+        }
+        const jobHTMLString = jobDetailFetchResult.body; // HTML content for this job
+
+        const $$ = cheerio.load(jobHTMLString);
         let title = null;
         let location = null;
 
@@ -335,7 +234,8 @@ async function crawlHost(host, httpErrorsByHost, atsConfig, hostErrorStreaks) {
         
         // Generic Fallback for Location (if not set by Workday/iCIMS specific logic)
         if (!location) {
-          const locMatchFallback = jobHTML.match(/[A-Z][a-zA-Z]+,\s?(AL|AK|AZ|AR|CA|CO|CT|DE|DC|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)/);
+          // Use jobHTMLString for regex match
+          const locMatchFallback = jobHTMLString.match(/[A-Z][a-zA-Z]+,\s?(AL|AK|AZ|AR|CA|CO|CT|DE|DC|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)/);
           if (locMatchFallback) {
             location = locMatchFallback[0];
           }
@@ -346,7 +246,8 @@ async function crawlHost(host, httpErrorsByHost, atsConfig, hostErrorStreaks) {
         location = location || null;
 
         try {
-          const processingSuccessful = await processJobPosting({ hostId, url: jobURL, html: jobHTML, title, location });
+          // Pass jobHTMLString to processJobPosting
+          const processingSuccessful = await processJobPosting({ hostId, url: jobURL, html: jobHTMLString, title, location, atsType: ats_type });
           if (processingSuccessful) {
             localJobUrlsStored++; // Increment only on successful processing
           }
