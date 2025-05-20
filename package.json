@@ -15,7 +15,8 @@
     "@fastify/cors": "^8.4.1",
     "fastify": "^4.24.3",
     "jose": "^4.15.4",
-    "pdf-parse": "^1.1.1"
+    "pdf-parse": "^1.1.1",
+    "webext-bridge": "^6.0.1"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "2.0.0-beta.18",

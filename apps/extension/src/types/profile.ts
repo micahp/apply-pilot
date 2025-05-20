@@ -65,4 +65,19 @@ export type PartialProfile = {
   eeo?: Partial<EEOData>;
   skills?: (Skill | string)[];
   documents?: Partial<Documents>;
+}
+
+// Added from user context and popup implementation needs
+export interface ATSFieldDescriptor {
+  selector: string; // CSS selector for the form field
+  tag: string;      // Tag name of the element (e.g., 'INPUT', 'SELECT')
+  type?: string;     // Type attribute, if applicable (e.g., 'text', 'email')
+  // Potentially other attributes like name, id, aria-label, etc.
+}
+
+export interface ATSMessageData {
+  ats: string;
+  fields?: ATSFieldDescriptor[] | null; // Null if not on an application page or no fields found
+  // onApplicationPage?: boolean; // This is handled by separate messages or popup state now
+  [key: string]: any; // Adding index signature to satisfy JsonObject constraint
 } 

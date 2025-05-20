@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
+import { onMessage } from 'webext-bridge/popup';
 import EditProfile from './EditProfile';
 import ProfileDisplay from './ProfileDisplay';
-import { PartialProfile } from '../types/profile';
+import { PartialProfile, ATSMessageData, ATSFieldDescriptor } from '../types/profile';
 import './styles.css';
 
 const Popup: React.FC = () => {
@@ -11,14 +12,51 @@ const Popup: React.FC = () => {
   const [profile, setProfile] = useState<PartialProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
+  const [detectedATS, setDetectedATS] = useState<string | null>(null);
+  const [isOnApplicationPage, setIsOnApplicationPage] = useState<boolean>(false);
+  const [showAutoApplyButton, setShowAutoApplyButton] = useState<boolean>(false);
+  const [atsFormFields, setAtsFormFields] = useState<ATSFieldDescriptor[] | null>(null);
+  const [isWorkExperienceOpen, setIsWorkExperienceOpen] = useState(false);
+
   useEffect(() => {
-    // Load profile from storage when component mounts
     chrome.storage.local.get(['profile'], (result) => {
       setLoading(false);
       if (result.profile) {
         setProfile(result.profile);
+      } else {
+        setIsEditing(true);
       }
     });
+
+    const cleanupAtsAppPage = onMessage<ATSMessageData, 'ats-application-page-detected'>('ats-application-page-detected', ({ data }) => {
+      console.log('Popup: ATS Application Page Detected:', data.ats, data.fields);
+      setDetectedATS(data.ats);
+      setIsOnApplicationPage(true);
+      setShowAutoApplyButton(true);
+      setAtsFormFields(data.fields || null);
+    });
+
+    const cleanupAtsSite = onMessage<ATSMessageData, 'ats-site-detected-not-app-page'>('ats-site-detected-not-app-page', ({ data }) => {
+      console.log('Popup: ATS Site Detected (not app page):', data.ats);
+      setDetectedATS(data.ats);
+      setIsOnApplicationPage(false);
+      setShowAutoApplyButton(false);
+      setAtsFormFields(null);
+    });
+
+    const cleanupNoAts = onMessage('no-ats-detected', () => {
+      console.log('Popup: No ATS Detected');
+      setDetectedATS(null);
+      setIsOnApplicationPage(false);
+      setShowAutoApplyButton(false);
+      setAtsFormFields(null);
+    });
+
+    return () => {
+      cleanupAtsAppPage();
+      cleanupAtsSite();
+      cleanupNoAts();
+    };
   }, []);
 
   const handleSaveProfile = (updatedProfile: PartialProfile) => {
@@ -28,13 +66,20 @@ const Popup: React.FC = () => {
     });
   };
 
-  const handleFillPage = () => {
+  const handleFillPageOrAutoApply = () => {
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
       if (tabs[0]?.id && profile) {
-        chrome.tabs.sendMessage(tabs[0].id, {
-          action: 'fillFields',
-          profileData: profile
-        });
+        const action = isOnApplicationPage && atsFormFields ? 'autoApplyWithATSFields' : 'fillFields';
+        const messagePayload: any = {
+          action,
+          profileData: profile,
+        };
+        if (action === 'autoApplyWithATSFields') {
+          messagePayload.atsFields = atsFormFields;
+          messagePayload.atsName = detectedATS;
+        }
+        chrome.tabs.sendMessage(tabs[0].id, messagePayload);
+        console.log(`Sent ${action} to tab ${tabs[0].id}`, messagePayload);
       }
     });
   };
@@ -50,11 +95,7 @@ const Popup: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="loading">Loading profile...</div>;
-  }
-
-  if (error) {
-    return <div className="error">{error}</div>;
+    return <div className="popup loading">Loading profile...</div>;
   }
 
   return (
@@ -65,17 +106,38 @@ const Popup: React.FC = () => {
           <button 
             className="options-btn" 
             onClick={openOptionsPage}
+            title="Open full settings page"
           >
-            Full Settings
+            Settings
           </button>
           <button 
             className="jobs-btn"
             onClick={openJobListingsPage}
+            title="Find job listings"
           >
             Find Jobs
           </button>
         </div>
       </div>
+
+      <div className="action-header">
+        {detectedATS && (
+          <p className="ats-info">
+            Detected: <strong>{detectedATS}</strong>
+            {isOnApplicationPage ? " (Application Page)" : detectedATS ? " (Site)" : ""}
+          </p>
+        )}
+        {showAutoApplyButton && profile && (
+          <button
+            className="fill-btn primary-action"
+            onClick={handleFillPageOrAutoApply}
+            title={isOnApplicationPage && atsFormFields ? `Auto-fill ${detectedATS} application with your profile` : "Fill page with your profile data"}
+          >
+            {isOnApplicationPage && detectedATS ? `Auto Apply to ${detectedATS}` : "Fill Current Page"}
+          </button>
+        )}
+      </div>
+
       <div className="content">
         {isEditing || !profile ? (
           <EditProfile 
@@ -87,7 +149,8 @@ const Popup: React.FC = () => {
           <ProfileDisplay 
             profile={profile} 
             onEdit={() => setIsEditing(true)}
-            onFillPage={handleFillPage}
+            isWorkExperienceOpen={isWorkExperienceOpen}
+            toggleWorkExperience={() => setIsWorkExperienceOpen(!isWorkExperienceOpen)}
           />
         )}
       </div>
@@ -96,4 +159,8 @@ const Popup: React.FC = () => {
 };
 
 const root = createRoot(document.getElementById('root')!);
-root.render(<Popup />); 
+root.render(
+  <React.StrictMode>
+    <Popup />
+  </React.StrictMode>
+); 

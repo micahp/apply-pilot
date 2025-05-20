@@ -5,10 +5,11 @@ import './styles.css';
 interface ProfileDisplayProps {
   profile: PartialProfile;
   onEdit: () => void;
-  onFillPage: () => void;
+  isWorkExperienceOpen: boolean;
+  toggleWorkExperience: () => void;
 }
 
-const ProfileDisplay: React.FC<ProfileDisplayProps> = ({ profile, onEdit, onFillPage }) => {
+const ProfileDisplay: React.FC<ProfileDisplayProps> = ({ profile, onEdit, isWorkExperienceOpen, toggleWorkExperience }) => {
   return (
     <div className="profile-display">
       <div className="profile-section">
@@ -66,24 +67,30 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({ profile, onEdit, onFill
       </div>
 
       {profile.workExperience && profile.workExperience.length > 0 && (
-        <div className="profile-section">
-          <h2>Work Experience</h2>
-          {profile.workExperience.map((exp, index) => (
-            <div key={index} className="experience-item">
-              <h3>{exp.title}</h3>
-              <div className="experience-details">
-                <div className="experience-company">{exp.company}</div>
-                {exp.startDate && (
-                  <div className="experience-dates">
-                    {exp.startDate} {exp.endDate ? `- ${exp.endDate}` : '- Present'}
+        <div className="profile-section work-experience-section">
+          <h2 onClick={toggleWorkExperience} className="collapsible-header">
+            Work Experience {isWorkExperienceOpen ? '\u25BC' /* ▼ */ : '\u25B6' /* ► */}
+          </h2>
+          {isWorkExperienceOpen && (
+            <div className="collapsible-content">
+              {profile.workExperience.map((exp, index) => (
+                <div key={index} className="experience-item">
+                  <h3>{exp.title}</h3>
+                  <div className="experience-details">
+                    <div className="experience-company">{exp.company}</div>
+                    {exp.startDate && (
+                      <div className="experience-dates">
+                        {exp.startDate} {exp.endDate ? `- ${exp.endDate}` : '- Present'}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              {exp.description && (
-                <div className="experience-description">{exp.description}</div>
-              )}
+                  {exp.description && (
+                    <div className="experience-description">{exp.description}</div>
+                  )}
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
 
@@ -125,9 +132,6 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({ profile, onEdit, onFill
       <div className="profile-actions">
         <button className="primary-btn" onClick={onEdit}>
           Edit Profile
-        </button>
-        <button className="secondary-btn" onClick={onFillPage}>
-          Fill Current Page
         </button>
       </div>
     </div>

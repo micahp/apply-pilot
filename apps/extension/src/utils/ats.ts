@@ -50,6 +50,20 @@ export interface ATSPlatform {
  */
 const supportedPlatforms: ATSPlatform[] = [
   {
+    name: 'Ashby',
+    slug: 'ashby',
+    description: 'Ashby application detected',
+    urlPatterns: [
+      /jobs\.ashbyhq\.com/
+    ],
+    selectors: {
+      firstName: 'input[name*="first_name"], input[id*="first_name"]',
+      lastName: 'input[name*="last_name"], input[id*="last_name"]',
+      email: 'input[type="email"], input[name*="email"]',
+      phone: 'input[type="tel"], input[name*="phone"]'
+    }
+  },
+  {
     name: 'Workday',
     slug: 'workday',
     description: 'Workday application detected',
@@ -74,7 +88,7 @@ const supportedPlatforms: ATSPlatform[] = [
     slug: 'greenhouse',
     description: 'Greenhouse application detected',
     urlPatterns: [
-      /boards\.greenhouse\.io/,
+      /\.greenhouse\.io/,
       /\/greenhouse\//
     ],
     selectors: {
@@ -118,6 +132,20 @@ const supportedPlatforms: ATSPlatform[] = [
       email: 'input#email, input[name="email"]',
       phone: 'input#phoneNumber, input[name="phone"]',
       linkedin: 'input[placeholder*="LinkedIn"]'
+    }
+  },
+  {
+    name: 'Workable',
+    slug: 'workable',
+    description: 'Workable application detected',
+    urlPatterns: [
+      /\.workable\.com/
+    ],
+    selectors: {
+      firstName: 'input[name*="first"], input[id*="first"]',
+      lastName: 'input[name*="last"], input[id*="last"]',
+      email: 'input[type="email"], input[name*="email"]',
+      phone: 'input[type="tel"], input[name*="phone"]'
     }
   }
 ];
