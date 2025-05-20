@@ -8,6 +8,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ error: error.message });
       });
     return true; // Will respond asynchronously
+  } else if (message.action === 'openOptionsPage') {
+    chrome.runtime.openOptionsPage();
+    sendResponse({ status: 'Options page opening process initiated.' });
+    return false; // Synchronous response
   }
 });
 

@@ -18,6 +18,17 @@ interface FloatingPanelOptions {
 export function initFloatingPanel(options: FloatingPanelOptions): HTMLElement {
   // Create panel container
   const panel = document.createElement('div');
+
+  // Create a dedicated status message area
+  const statusMessageArea = document.createElement('div');
+  statusMessageArea.id = 'autoapply-status-message-area'; // Unique ID for targeting
+  statusMessageArea.style.cssText = `
+    margin-top: 10px;
+    padding: 8px;
+    text-align: center;
+    font-size: 14px;
+    border-radius: 4px;
+  `;
   panel.id = 'autoapply-panel';
   panel.style.cssText = `
     position: fixed;
@@ -89,8 +100,6 @@ export function initFloatingPanel(options: FloatingPanelOptions): HTMLElement {
   atsDescription.textContent = 'Ready to autofill application fields';
   atsDescription.style.cssText = `
     margin: 0;
-    font-size: 12px;
-    color: #7f8c8d;
   `;
   
   atsInfo.appendChild(atsName);
@@ -127,46 +136,50 @@ export function initFloatingPanel(options: FloatingPanelOptions): HTMLElement {
   
   // When the fill button is clicked, fetch profile data and fill fields
   fillButton.addEventListener('click', async () => {
+    // Clear previous status messages
+    statusMessageArea.textContent = '';
+    statusMessageArea.style.color = 'inherit'; // Reset color
+
     try {
       // Fetch profile data from storage
       chrome.storage.local.get(['profile'], (result) => {
         if (result.profile) {
-          const statusText = document.createElement('p');
-          statusText.textContent = 'Filling application fields...';
-          statusText.style.cssText = `
-            margin: 8px 0;
-            font-size: 13px;
-            color: #2c3e50;
-          `;
-          
-          // Add below the button
-          actionsContainer.appendChild(statusText);
+          statusMessageArea.textContent = 'Filling application fields...';
+          statusMessageArea.style.color = '#2c3e50'; // Neutral color
           
           // Call the callback to fill fields
           options.onFillFields(result.profile);
           
-          // Update status after a delay
+          // Simulate success (in a real scenario, onFillFields might return a promise or send a message back)
+          // For now, we'll keep the setTimeout to show how to update the single status area.
+          // Ideally, the success/failure message would come from the actual filling logic.
           setTimeout(() => {
-            statusText.textContent = 'Fields filled successfully!';
-            statusText.style.color = '#27ae60';
-          }, 1000);
+            // This part should ideally be triggered by a callback or event from the actual filling process
+            // For example, if onFillFields returned a promise:
+            // options.onFillFields(result.profile).then(() => {
+            // statusMessageArea.textContent = 'Fields filled successfully!';
+            // statusMessageArea.style.color = '#27ae60';
+            // }).catch((fillError) => {
+            // statusMessageArea.textContent = `Error: ${fillError.message}`;
+            // statusMessageArea.style.color = '#e74c3c';
+            // });
+            statusMessageArea.textContent = 'Fields filled successfully!'; // Placeholder for actual success
+            statusMessageArea.style.color = '#27ae60';
+          }, 1000); 
         } else {
-          const errorText = document.createElement('p');
-          errorText.textContent = 'No profile found. Please create one in the extension popup.';
-          errorText.style.cssText = `
-            margin: 8px 0;
-            font-size: 13px;
-            color: #e74c3c;
-          `;
-          actionsContainer.appendChild(errorText);
+          statusMessageArea.textContent = 'No profile found. Please create one in the extension settings.';
+          statusMessageArea.style.color = '#e74c3c';
         }
       });
-    } catch (error) {
-      console.error('Error filling fields:', error);
+    } catch (error: any) {
+      console.error('Error in fillButton click handler:', error);
+      statusMessageArea.textContent = `Error: ${error.message || 'Unknown error'}`;
+      statusMessageArea.style.color = '#e74c3c';
     }
   });
   
   const settingsButton = document.createElement('button');
+  settingsButton.id = 'autoapply-panel-settings-button'; // Assign an ID
   settingsButton.textContent = 'Open Extension Settings';
   settingsButton.style.cssText = `
     background-color: transparent;
@@ -187,14 +200,22 @@ export function initFloatingPanel(options: FloatingPanelOptions): HTMLElement {
     settingsButton.style.color = '#7f8c8d';
   });
   
-  // Open extension popup when settings is clicked
+  // Open extension options page when settings is clicked
   settingsButton.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: 'openPopup' });
+    console.log('[AutoApply] Open Extension Settings button clicked');
+    chrome.runtime.sendMessage({ action: "openOptionsPage" }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('[AutoApply] Error sending openOptionsPage message:', chrome.runtime.lastError.message);
+      } else {
+        console.log('[AutoApply] openOptionsPage message response:', response);
+      }
+    });
   });
   
   actionsContainer.appendChild(fillButton);
   actionsContainer.appendChild(settingsButton);
   panel.appendChild(actionsContainer);
+  panel.appendChild(statusMessageArea); // Append the dedicated status message area
 
   // Add panel to page
   document.body.appendChild(panel);
