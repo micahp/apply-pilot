@@ -1,0 +1,48 @@
+{
+  "Workday": {
+    "listingPageSelectors": [
+      "a[data-automation-id='jobTitle']",
+      "a[data-automation-id*='jobTitle']",
+      "a[data-automation-id^='job']",
+      "section[data-automation-id='jobResults'] ul li a"
+    ],
+    "jobDetailLinkPatterns": ["/job/", "/jobs/"],
+    "atsType": "Workday"
+  },
+  "iCIMS": {
+    "listingPageSelectors": [
+      "a.iCIMS_Anchor[href*='/jobs/']",
+      "div.container-fluid div.row div.col-md-12 h2.title a",
+      "div.container-fluid div.row div.col-xs-12 h2.title a",
+      "div.icims-jobs-container div.icims-job-row a.iCIMS_JobLink",
+      "article.icims-accordion-item a"
+    ],
+    "jobDetailLinkPatterns": ["/jobs/", "/job/"],
+    "atsType": "iCIMS"
+  },
+  "Greenhouse": {
+    "listingPageSelectors": [
+      "div.opening a[data-mapped='true']",
+      "a[href*='/jobs/']"
+    ],
+    "jobDetailLinkPatterns": ["/jobs/", "/job/"],
+    "atsType": "Greenhouse"
+  },
+  "Lever": {
+    "listingPageSelectors": [
+      "a.posting-title[href*='/jobs/']",
+      "div.posting a"
+    ],
+    "jobDetailLinkPatterns": ["/jobs/", "/job/"],
+    "atsType": "Lever"
+  },
+  "Generic": {
+    "listingPageSelectors": [
+      "a[href*='job']",
+      "a[href*='career']",
+      "a[href*='position']"
+    ],
+    "jobDetailLinkPatterns": ["/job", "/career", "/position", "/posting"],
+    "atsType": "Generic"
+  }
+}

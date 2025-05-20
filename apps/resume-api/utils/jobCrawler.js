@@ -8,6 +8,9 @@
  * NO deep parsing of title/location yet – that’s Phase 2.
  */
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url'; // Needed for __dirname in ES modules
 import pg from 'pg';
 import got from 'got';
 import * as cheerio from 'cheerio';
@@ -35,16 +38,19 @@ const COMMON_PATHS = [
 
 const CONCURRENCY = 4;            // politeness
 const REQUEST_TIMEOUT = 8000;     // ms
+const MINIMUM_JOB_LINKS_PER_PAGE = 3; // Minimum job links to consider a page valid
+const MAX_CONSECUTIVE_LISTING_ERRORS = 3; // Number of allowed consecutive 429/403 errors on listing pages
+const RATE_LIMIT_ERROR_MARKER = Symbol('RATE_LIMIT_ERROR'); // Unique marker for these errors
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
 async function getActiveHosts() {
   const { rows } = await pool.query(
-    `SELECT id, domain
+    `SELECT id, domain, ats_type
        FROM ats_hosts
       WHERE is_active = true`
   );
-  return rows;                    // [{ id, domain }]
+  return rows;                    // [{ id, domain, ats_type }]
 }
 
 function sha256(str) {
@@ -60,12 +66,19 @@ async function fetchHTML(url, domain, httpErrorsByHost) { // Added domain, httpE
   try {
     const res = await got(url, { timeout: { request: REQUEST_TIMEOUT } });
     return res.body;
-  } catch (err) {
-    if (domain) { // Ensure domain is passed
-      httpErrorsByHost[domain] = (httpErrorsByHost[domain] || 0) + 1;
+  } catch (error) {
+    const errorMessage = error instanceof got.HTTPError && error.response ? error.response.statusMessage : error.message;
+    // console.error(`Error fetching ${url} (Domain: ${domain}): ${errorMessage}`); // Refined logging
+
+    if (domain && httpErrorsByHost) { // Ensure httpErrorsByHost is passed and available
+        httpErrorsByHost[domain] = (httpErrorsByHost[domain] || 0) + 1;
     }
-    console.error(`Error fetching ${url} for domain ${domain}: ${err.message}`);
-    return null;
+
+    if (error instanceof got.HTTPError && error.response && (error.response.statusCode === 429 || error.response.statusCode === 403)) {
+      // console.warn(`Rate limit or forbidden error for ${url} (Domain: ${domain}). Status: ${error.response.statusCode}`);
+      return RATE_LIMIT_ERROR_MARKER; // Specific marker for these errors
+    }
+    return null; // For all other errors
   }
 }
 
@@ -108,33 +121,78 @@ async function upsertPosting({ hostId, url, html, title, location }) { // No cha
   );
 }
 
-async function crawlHost({ id: hostId, domain }, httpErrorsByHost) { // Added httpErrorsByHost
+// Updated signature to include atsConfig and hostErrorStreaks
+async function crawlHost(host, httpErrorsByHost, atsConfig, hostErrorStreaks) {
+  const { id: hostId, domain, ats_type } = host; // Deconstruct host
   const limit = pLimit(CONCURRENCY);
   let localListingPagesHit = 0;
   let localJobUrlsStored = 0;
 
   for (const path of COMMON_PATHS) {
     const listingURL = `https://${domain}${path}`;
-    const html = await fetchHTML(listingURL, domain, httpErrorsByHost); // Pass domain, httpErrorsByHost
-    if (!html) continue;
-    localListingPagesHit++; // Increment for successful listing page fetch
+    const html = await fetchHTML(listingURL, domain, httpErrorsByHost);
 
+    if (html === RATE_LIMIT_ERROR_MARKER) {
+      hostErrorStreaks[domain] = (hostErrorStreaks[domain] || 0) + 1;
+      console.warn(`Host ${domain} encountered error streak: ${hostErrorStreaks[domain]}/${MAX_CONSECUTIVE_LISTING_ERRORS} on path ${path}`);
+      if (hostErrorStreaks[domain] >= MAX_CONSECUTIVE_LISTING_ERRORS) {
+        console.error(`Host ${domain} reached max consecutive errors (${MAX_CONSECUTIVE_LISTING_ERRORS}). Skipping this host for the current run.`);
+        return { localListingPagesHit, localJobUrlsStored }; // Return early
+      }
+      continue; // Skip this path, try next path
+    } else if (html) { // Successfully fetched HTML (not null, not the error marker)
+      hostErrorStreaks[domain] = 0; // Reset streak on success
+      localListingPagesHit++; // Increment successfully fetched listing pages
+    } else { // html is null (some other error)
+      // Optional: could also increment streak here, or handle differently.
+      // For now, only 429/403 on listing pages contribute to forced host skipping.
+      // Other errors are already counted in httpErrorsByHost.
+      continue; // if html is null, skip to next path
+    }
+
+    // If we reach here, html is valid content
     const $ = cheerio.load(html);
     const links = new Set();
 
-    $('a[href]').each((_, el) => {
-      const href = $(el).attr('href');
-      if (!href) return;
-      if (!looksLikeJobLink(href)) return;
+    const selectors = atsConfig.listingPageSelectors && atsConfig.listingPageSelectors.length > 0 
+                      ? atsConfig.listingPageSelectors 
+                      : ['a[href]']; // Default if no selectors provided
 
-      try {
-        // Resolve relative URLs
-        const absolute = new URL(href, listingURL).href;
-        links.add(absolute);
-      } catch (_) {
-        /* bad URL – skip */
-      }
+    selectors.forEach(selector => {
+      $(selector).each((_, el) => {
+        const href = $(el).attr('href');
+        if (!href) return;
+
+        let isLikelyJobLink = looksLikeJobLink(href); // Primary heuristic
+
+        if (!isLikelyJobLink && atsConfig.jobDetailLinkPatterns && atsConfig.jobDetailLinkPatterns.length > 0) {
+          // Secondary check using specific patterns from config
+          isLikelyJobLink = atsConfig.jobDetailLinkPatterns.some(pattern => {
+            try {
+              return new RegExp(pattern, 'i').test(href);
+            } catch (e) {
+              // console.warn(`Invalid regex pattern in atsConfig: ${pattern} for ${domain}`);
+              return false;
+            }
+          });
+        }
+
+        if (!isLikelyJobLink) return; // Skip if still not considered a job link
+
+        try {
+          const absolute = new URL(href, listingURL).href;
+          links.add(absolute);
+        } catch (_) {
+          // bad URL – skip
+        }
+      });
     });
+
+    // Check if enough links were found on this listing page
+    if (links.size < MINIMUM_JOB_LINKS_PER_PAGE) {
+      console.log(`Skipping listing page ${listingURL} - found only ${links.size} potential job links (less than minimum ${MINIMUM_JOB_LINKS_PER_PAGE}).`);
+      continue; // Skips to the next path in COMMON_PATHS for the current host
+    }
 
     // Crawl each candidate job page (shallow) in parallel
     const tasks = Array.from(links).map((jobURL) =>
@@ -173,13 +231,37 @@ export async function runJobCrawler() {
   let listingPagesHit = 0;
   let jobUrlsStored = 0;
   let httpErrorsByHost = {}; // Object to store error counts per host domain
+  let hostErrorStreaks = {}; // Initialize hostErrorStreaks
 
-  const hosts = await getActiveHosts();
+  // Load atsConfigs.json
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  let atsConfigs = {};
+  try {
+    const configPath = path.join(__dirname, 'atsConfigs.json');
+    const configFile = fs.readFileSync(configPath, 'utf8');
+    atsConfigs = JSON.parse(configFile);
+    console.log('Successfully loaded ATS configurations.');
+  } catch (error) {
+    console.error('Error loading atsConfigs.json:', error.message);
+    // Continue with empty atsConfigs, will use FallbackGeneric later.
+  }
+
+  const hosts = await getActiveHosts(); // Now returns { id, domain, ats_type }
   for (const host of hosts) {
     hostsVisited++; // Increment for each host processed
-    console.log(`Crawling host ${host.domain} (${hostsVisited}/${hosts.length})...`);
+    
+    const hostAtsType = host.ats_type || 'Generic';
+    const specificAtsConfig = atsConfigs[hostAtsType] || atsConfigs['Generic'];
+    const finalAtsConfig = specificAtsConfig || { 
+      listingPageSelectors: ['a[href]'], // Minimal fallback
+      jobDetailLinkPatterns: ['/job', '/career', '/position'], 
+      atsType: 'FallbackGeneric' 
+    };
+    
+    console.log(`Crawling host ${host.domain} (${hostsVisited}/${hosts.length}) using ATS config: ${finalAtsConfig.atsType}...`);
     try {
-      const { localListingPagesHit, localJobUrlsStored } = await crawlHost(host, httpErrorsByHost);
+      const { localListingPagesHit, localJobUrlsStored } = await crawlHost(host, httpErrorsByHost, finalAtsConfig, hostErrorStreaks);
       listingPagesHit += localListingPagesHit;
       jobUrlsStored += localJobUrlsStored;
     } catch (crawlError) {
