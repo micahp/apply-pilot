@@ -17,12 +17,12 @@ import * as cheerio from 'cheerio';
 import crypto from 'crypto';
 import pLimit from 'p-limit';
 
-// --- BEGIN INSTRUMENTATION ---
-// Initialized in runJobCrawler
-// let hostsVisited = 0;
-// let listingPagesHit = 0;
-// let jobUrlsStored = 0;
-// let httpErrorsByHost = {}; // Object to store error counts per host domain
+// --- BEGIN INSTRUMENTATION --- (Commented out as these are locally scoped in runJobCrawler)
+// // Initialized in runJobCrawler
+// // let hostsVisited = 0;
+// // let listingPagesHit = 0;
+// // let jobUrlsStored = 0;
+// // let httpErrorsByHost = {};
 // --- END INSTRUMENTATION ---
 
 const COMMON_PATHS = [
@@ -82,43 +82,107 @@ async function fetchHTML(url, domain, httpErrorsByHost) { // Added domain, httpE
   }
 }
 
-async function upsertPosting({ hostId, url, html, title, location }) { // No change to signature for counters based on revised plan
-  // Normalize URL
-  const originalUrl = url; // Keep original for conflict target
+// Removed upsertPosting and replaced with processJobPosting
+async function processJobPosting({ hostId, url: originalUrl, html, title, location }) {
+  if (!html) {
+    // console.warn(`processJobPosting: HTML content is missing for URL ${originalUrl}. Skipping.`);
+    return false; // Return a status indicating failure/skip
+  }
+
+  const newHtmlHash = sha256(html);
   let normalizedUrlObj = new URL(originalUrl);
   let paramsToDelete = [];
-  for (const [key, value] of normalizedUrlObj.searchParams) {
+  for (const [key] of normalizedUrlObj.searchParams) {
     if (key.toLowerCase() !== 'gh_jid' && key.toLowerCase() !== 'jobid') {
       paramsToDelete.push(key);
     }
   }
   paramsToDelete.forEach(key => normalizedUrlObj.searchParams.delete(key));
-  // Reconstruct, ensuring pathname starts with a slash if not empty, and all lowercase
-  let reconstructedPath = normalizedUrlObj.pathname;
-  if (reconstructedPath && !reconstructedPath.startsWith('/')) {
-    reconstructedPath = '/' + reconstructedPath;
-  } else if (!reconstructedPath && originalUrl.includes('?')) { // Handle cases like "domain.com?query" vs "domain.com/"
-      reconstructedPath = '/';
-  } else if (!reconstructedPath) {
-    reconstructedPath = '/';
+  // Ensure pathname starts with a / if it's not empty, or defaults to / if originally empty
+  const pathname = normalizedUrlObj.pathname && normalizedUrlObj.pathname.startsWith('/') ? normalizedUrlObj.pathname : (normalizedUrlObj.pathname ? `/${normalizedUrlObj.pathname}` : '/');
+  const normalizedUrl = (pathname + normalizedUrlObj.search).toLowerCase();
+  const newUrlHash = sha256(normalizedUrl);
+
+  let jobPostingId = null;
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, html_hash, job_title AS old_title, location AS old_location, initial_snapshot_done 
+       FROM job_postings 
+       WHERE url = $1`,
+      [originalUrl]
+    );
+
+    if (rows.length > 0) { // Job exists
+      const existingJob = rows[0];
+      jobPostingId = existingJob.id;
+      const currentDbHash = existingJob.html_hash;
+      const oldTitle = existingJob.old_title;
+      const oldLocation = existingJob.old_location;
+      const isInitialSnapshotDone = existingJob.initial_snapshot_done;
+
+      if (!isInitialSnapshotDone) {
+        await addJobPostingVersion(jobPostingId, currentDbHash, oldTitle, oldLocation);
+        await pool.query('UPDATE job_postings SET initial_snapshot_done = true WHERE id = $1', [jobPostingId]);
+      }
+
+      if (newHtmlHash !== currentDbHash) {
+        await addJobPostingVersion(jobPostingId, newHtmlHash, title, location);
+        await pool.query(
+          `UPDATE job_postings 
+           SET html_hash = $1, job_title = $2, location = $3, url_hash = $4, last_seen_at = NOW(), status = 'open'
+           WHERE id = $5`,
+          [newHtmlHash, title, location, newUrlHash, jobPostingId]
+        );
+      } else { // Hashes are the same
+        await pool.query(
+          `UPDATE job_postings 
+           SET last_seen_at = NOW(), status = 'open', job_title = $1, location = $2, url_hash = $3
+           WHERE id = $4`,
+          [title, location, newUrlHash, jobPostingId]
+        );
+      }
+    } else { // New job
+      const insertResult = await pool.query(
+        `INSERT INTO job_postings 
+           (ats_host_id, url, html_hash, job_title, location, url_hash, status, initial_snapshot_done, last_seen_at, discovered_at) 
+         VALUES ($1, $2, $3, $4, $5, $6, 'open', false, NOW(), NOW()) 
+         RETURNING id`,
+        [hostId, originalUrl, newHtmlHash, title, location, newUrlHash]
+      );
+      if (insertResult.rows.length > 0) {
+        jobPostingId = insertResult.rows[0].id;
+        await addJobPostingVersion(jobPostingId, newHtmlHash, title, location);
+        await pool.query('UPDATE job_postings SET initial_snapshot_done = true WHERE id = $1', [jobPostingId]);
+      } else {
+        console.error(`Failed to insert new job posting for URL ${originalUrl}. RETURNING id did not provide an id.`);
+        return false; // Indicate failure
+      }
+    }
+    return true; // Indicate success
+  } catch (error) {
+    console.error(`Error in processJobPosting for URL ${originalUrl}: ${error.message}`, error.stack);
+    return false; // Indicate failure
   }
-  const normalizedUrl = (reconstructedPath + normalizedUrlObj.search).toLowerCase();
+}
 
-  const urlHash = sha256(normalizedUrl); // Hash of the normalized URL
-  const htmlHash = sha256(html);         // Hash of the page content
-
-  await pool.query(
-    `INSERT INTO job_postings
-         (ats_host_id, url, html_hash, job_title, location, url_hash)
-     VALUES ($1, $2, $3, $4, $5, $6)
-     ON CONFLICT (url) DO
-       UPDATE SET html_hash = EXCLUDED.html_hash,
-                  job_title = EXCLUDED.job_title,      -- Also update title/location if they changed
-                  location = EXCLUDED.location,    -- for the same raw URL
-                  url_hash = EXCLUDED.url_hash,        -- Ensure url_hash is updated
-                  last_seen_at = NOW()`,
-    [hostId, originalUrl, htmlHash, title, location, urlHash] // Use originalUrl for the VALUES and conflict target
-  );
+async function addJobPostingVersion(jobPostingId, htmlHash, title, location) {
+  if (!jobPostingId || !htmlHash) {
+    console.error('addJobPostingVersion: Missing jobPostingId or htmlHash. Skipping version insert.');
+    return;
+  }
+  try {
+    await pool.query(
+      `INSERT INTO job_posting_versions 
+         (job_posting_id, html_hash, job_title, location, snapshot_at)
+       VALUES ($1, $2, $3, $4, NOW())`,
+      [jobPostingId, htmlHash, title, location]
+    );
+    // console.log(`Added version for job_posting_id ${jobPostingId}: hash ${htmlHash.substring(0,7)}`); // Optional: for debugging
+  } catch (error) {
+    console.error(`Error adding job posting version for job_posting_id ${jobPostingId}: ${error.message}`);
+    // Consider if this error should be propagated or just logged. For now, just log.
+  }
 }
 
 // Updated signature to include atsConfig and hostErrorStreaks
@@ -282,11 +346,14 @@ async function crawlHost(host, httpErrorsByHost, atsConfig, hostErrorStreaks) {
         location = location || null;
 
         try {
-          await upsertPosting({ hostId, url: jobURL, html: jobHTML, title, location });
-          localJobUrlsStored++; // Incremented on successful upsert attempt
-        } catch (upsertError) {
-          console.error(`Error upserting ${jobURL} (domain: ${jobDomain}): ${upsertError.message}`);
-          if (jobDomain) {
+          const processingSuccessful = await processJobPosting({ hostId, url: jobURL, html: jobHTML, title, location });
+          if (processingSuccessful) {
+            localJobUrlsStored++; // Increment only on successful processing
+          }
+          // If !processingSuccessful, processJobPosting already logged the error.
+        } catch (processingError) { // Catch any unexpected error from processJobPosting itself
+          console.error(`Critical error calling processJobPosting for ${jobURL}: ${processingError.message}`, processingError.stack);
+          if (jobDomain && httpErrorsByHost) {
             httpErrorsByHost[jobDomain] = (httpErrorsByHost[jobDomain] || 0) + 1;
           }
         }
