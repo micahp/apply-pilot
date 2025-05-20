@@ -2,10 +2,11 @@ import pg from 'pg'; // Keep pg for now, might be used by processJobPosting or o
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import pLimit from 'p-limit'; // Added p-limit
+import pLimit from 'p-limit';
 
 // Import the new searchGoogle function
 import { searchGoogle } from './googleClient.js';
+import jobKeywordsConfig from '../config/keywords.js'; // New import
 
 // Imports from the new shared utilities file
 import {
@@ -76,10 +77,11 @@ async function runGoogleSearchCrawler({
   atsTargets, 
   countryFilter, 
   hoursBack, 
-  batchSizePerATS = DEFAULT_BATCH_SIZE_PER_ATS 
+  batchSizePerATS = DEFAULT_BATCH_SIZE_PER_ATS,
+  targetJobFamilies = [] // New parameter for targeted job families
 }) {
   console.log(`Starting Google Search Crawler for ATS: ${atsTargets.join(', ')}...`);
-  console.log(`Country: ${countryFilter}, Hours Back: ${hoursBack}, Batch Size per ATS: ${batchSizePerATS}`);
+  console.log(`Country: ${countryFilter}, Hours Back: ${hoursBack}, Batch Size per ATS: ${batchSizePerATS}, Target Families: ${targetJobFamilies.length > 0 ? targetJobFamilies.join(', ') : 'All'}`);
 
   if (!atsTargets || atsTargets.length === 0) {
     console.error("googleSearchCrawler: No ATS targets specified. Exiting.");
@@ -94,150 +96,131 @@ async function runGoogleSearchCrawler({
     return;
   }
 
+  const familiesToProcess = targetJobFamilies.length > 0 
+    ? targetJobFamilies 
+    : Object.keys(jobKeywordsConfig);
+
   for (const atsName of atsTargets) {
-    const config = atsConfigs[atsName];
-    if (!config) {
+    const atsSpecificConfig = atsConfigs[atsName]; // Loaded globally in the file
+    if (!atsSpecificConfig) {
       console.warn(`googleSearchCrawler: No configuration found for ATS: ${atsName} in atsConfigs.json. Skipping.`);
       continue;
     }
-
-    const searchDomain = config.googleSearchDomain;
+    const searchDomain = atsSpecificConfig.googleSearchDomain;
     if (!searchDomain) {
       console.warn(`googleSearchCrawler: 'googleSearchDomain' not defined for ATS: ${atsName}. Skipping.`);
       continue;
     }
 
-    const keywords = config.searchKeywords;
-    if (!keywords || keywords.length === 0) {
-      console.warn(`googleSearchCrawler: 'searchKeywords' not defined or empty for ATS: ${atsName}. Skipping.`);
-      continue;
-    }
-    // Format keywords for Google query: "keyword one" OR "keyword two"
-    const keywordsString = `"${keywords.join('" OR "')}"`;
-    const countryFilterString = `"${countryFilter}"`; // Enclose country in quotes
+    console.log(`googleSearchCrawler: Processing ATS: ${atsName} for domain: ${searchDomain}`);
 
-    const rawQueryParts = { 
-      site: searchDomain, 
-      keywordsString: keywordsString, 
-      countryFilterString: countryFilterString 
-    };
+    for (const familyName of familiesToProcess) {
+      const familyDetails = jobKeywordsConfig[familyName];
+      if (!familyDetails || !familyDetails.aliases || familyDetails.aliases.length === 0) {
+        console.warn(`googleSearchCrawler: No aliases found for job family "${familyName}". Skipping this family for ${atsName}.`);
+        continue;
+      }
 
-    console.log(`googleSearchCrawler: Preparing to search for ${atsName} on domain ${searchDomain} with keywords [${keywords.join(', ')}]`);
+      const keywordsForQuery = familyDetails.aliases;
+      // Format keywords for Google query: "keyword one" OR "keyword two"
+      const keywordsString = `"${keywordsForQuery.join('" OR "')}"`;
+      const countryFilterString = `"${countryFilter}"`;
 
-    try {
-      const results = await searchGoogle(rawQueryParts, { 
-        hoursBack, 
-        // apiKey and cx will be picked up from process.env by searchGoogle
-        maxResults: batchSizePerATS 
-      });
+      const rawQueryParts = { 
+        site: searchDomain, 
+        keywordsString: keywordsString, 
+        countryFilterString: countryFilterString 
+      };
 
-      console.log(`googleSearchCrawler: Mock search for ${atsName} returned ${results.length} results.`);
-      
-      const validJobUrls = [];
-      const jobDetailUrlRegexString = config.jobDetailUrlRegex;
+      console.log(`googleSearchCrawler: Searching for job family "${familyName}" (Keywords: ${keywordsForQuery.join(', ')}) on ${atsName}.`);
 
-      if (!jobDetailUrlRegexString) {
-        console.warn(`googleSearchCrawler: 'jobDetailUrlRegex' not defined for ATS: ${atsName}. Cannot validate URLs. Skipping further processing for this ATS.`);
-        // continue; // This would skip to the next atsName. If we want to process other ATSs, this is correct.
-      } else {
-        let regex;
-        try {
-          regex = new RegExp(jobDetailUrlRegexString);
-        } catch (e) {
-          console.error(`googleSearchCrawler: Invalid jobDetailUrlRegex for ${atsName}: "${jobDetailUrlRegexString}". Error: ${e.message}. Skipping further processing for this ATS.`);
-          // continue; // Skip to next atsName
-        }
-
-        if (regex && results && results.length > 0) {
-          results.forEach(result => {
-            // Ensure result and result.link are valid before testing
-            if (result && typeof result.link === 'string' && regex.test(result.link)) {
-              let jobUrl = result.link;
-              if (atsName === 'Workable') {
-                const normalized = normalizeWorkableUrl(jobUrl);
-                if (normalized !== jobUrl) {
-                  // console.log(`googleSearchCrawler: Workable URL normalized: ${jobUrl} -> ${normalized}`); // Optional debug log
-                  jobUrl = normalized;
-                }
-              }
-              validJobUrls.push(jobUrl);
-            } else if (result && typeof result.link === 'string') {
-              // console.log(`googleSearchCrawler: URL did not validate for ${atsName}: ${result.link} against regex ${jobDetailUrlRegexString}`); // Optional: for debugging non-matches
-            } else {
-              // console.log(`googleSearchCrawler: Invalid search result item for ${atsName}: ${JSON.stringify(result)}`); // Optional: for debugging bad items
-            }
-          });
-        }
-      } // End of else block for jobDetailUrlRegexString check
-
-      console.log(`googleSearchCrawler: Found ${validJobUrls.length} valid job URLs for ${atsName} (from ${results ? results.length : 0} search results).`);
-
-      if (validJobUrls.length > 0) {
-        console.log(`googleSearchCrawler: Processing ${validJobUrls.length} valid URLs for ${atsName}...`);
-        const limit = pLimit(CRAWLER_CONCURRENCY); // Use imported CRAWLER_CONCURRENCY
+      try {
+        const results = await searchGoogle(rawQueryParts, { 
+          hoursBack, 
+          maxResults: batchSizePerATS 
+        });
         
-        const tasks = validJobUrls.map(jobUrl => {
-          return limit(async () => {
-            try {
-              // De-duplication before fetch:
-              const urlForHashObj = new URL(jobUrl);
-              const pathnameForHash = urlForHashObj.pathname && urlForHashObj.pathname.startsWith('/') ? urlForHashObj.pathname : (urlForHashObj.pathname ? `/${urlForHashObj.pathname}` : '/');
-              const normalizedForHash = (pathnameForHash + urlForHashObj.search).toLowerCase();
-              const urlHash = sha256(normalizedForHash); // Use shared sha256
+        // console.log(`googleSearchCrawler: Mock search for ${atsName} / ${familyName} returned ${results.length} results.`);
+        
+        const validJobUrls = [];
+        const jobDetailUrlRegexString = atsSpecificConfig.jobDetailUrlRegex;
 
-              const duplicateCheck = await pool.query(
-                'SELECT id FROM job_postings WHERE url_hash = $1 OR url = $2',
-                [urlHash, jobUrl]
-              );
-
-              if (duplicateCheck.rowCount > 0) {
-                // console.log(`googleSearchCrawler: URL ${jobUrl} (hash: ${urlHash.substring(0,7)}) already exists or has same hash. Skipping fetch.`);
-                return; // Skip this URL
-              }
-
-              // Fetch HTML:
-              const jobUrlDomain = new URL(jobUrl).hostname;
-              const fetchResult = await fetchHTML(jobUrl, jobUrlDomain, {}); // Pass empty obj for httpErrorsByHost
-
-              if (fetchResult.errorStatus === 404 || fetchResult.errorStatus === 410) {
-                const updateRes = await pool.query(
-                  `UPDATE job_postings SET status = 'closed', last_seen_at = NOW() 
-                   WHERE (url = $1 OR url_hash = $2) AND status != 'closed'`,
-                  [jobUrl, urlHash]
-                );
-                if (updateRes.rowCount > 0) {
-                  // console.log(`googleSearchCrawler: Marked existing job ${jobUrl} as closed due to ${fetchResult.errorStatus}.`);
-                } else {
-                  // console.log(`googleSearchCrawler: URL ${jobUrl} returned ${fetchResult.errorStatus}, not found in DB or already closed.`);
-                }
-              } else if (fetchResult.body && fetchResult.status === 200) {
-                // Process successful fetch:
-                await processJobPosting({ 
-                  hostId: null, // No hostId for Google-sourced jobs
-                  url: jobUrl, 
-                  html: fetchResult.body, 
-                  title: null, // Let processJobPosting extract
-                  location: null, // Let processJobPosting extract
-                  atsType: config.atsType 
-                });
-              } else if (fetchResult.errorStatus || fetchResult.error) {
-                console.warn(`googleSearchCrawler: Failed to fetch ${jobUrl}. Status: ${fetchResult.errorStatus || 'N/A'}. Message: ${fetchResult.message || 'Unknown fetch error'}`);
-              }
-
-            } catch (e) {
-              console.error(`googleSearchCrawler: Unexpected error processing URL ${jobUrl} for ${atsName}: ${e.message}`, e.stack);
+        if (!jobDetailUrlRegexString) {
+          console.warn(`googleSearchCrawler: 'jobDetailUrlRegex' not defined for ATS: ${atsName} for family ${familyName}. Cannot validate URLs. Skipping.`);
+        } else {
+            let regex; 
+            try { 
+              regex = new RegExp(jobDetailUrlRegexString); 
+            } catch (e) { 
+              console.error(`googleSearchCrawler: Invalid jobDetailUrlRegex for ${atsName} ("${jobDetailUrlRegexString}"): ${e.message}. Skipping family ${familyName}.`);
             }
-          });
-        }); // End of validJobUrls.map
+            if (regex && results && results.length > 0) {
+                results.forEach(result => {
+                    if (result && typeof result.link === 'string' && regex.test(result.link)) {
+                        let jobUrl = result.link;
+                        if (atsName === 'Workable') { // Workable normalization
+                            jobUrl = normalizeWorkableUrl(jobUrl); 
+                        }
+                        validJobUrls.push(jobUrl);
+                    }
+                });
+            }
+        }
+        console.log(`googleSearchCrawler: Found ${validJobUrls.length} valid job URLs for ${atsName} / ${familyName}.`);
 
-        await Promise.allSettled(tasks);
-        console.log(`googleSearchCrawler: Finished processing URLs for ${atsName}.`);
-      } // End of if (validJobUrls.length > 0)
-    } catch (error) {
-      console.error(`googleSearchCrawler: Error during searchGoogle execution for ${atsName}: ${error.message}`, error.stack);
-      // Continue to the next ATS target
-    }
-  } // end of for loop over atsTargets
+        if (validJobUrls.length > 0) {
+          console.log(`googleSearchCrawler: Processing ${validJobUrls.length} valid URLs for ${atsName} / ${familyName}...`);
+          const limit = pLimit(CRAWLER_CONCURRENCY); 
+          
+          const tasks = validJobUrls.map(jobUrl => {
+            return limit(async () => {
+              try {
+                const urlForHashObj = new URL(jobUrl);
+                const pathnameForHash = urlForHashObj.pathname && urlForHashObj.pathname.startsWith('/') ? urlForHashObj.pathname : (urlForHashObj.pathname ? `/${urlForHashObj.pathname}` : '/');
+                const normalizedForHash = (pathnameForHash + urlForHashObj.search).toLowerCase();
+                const urlHash = sha256(normalizedForHash);
+
+                const duplicateCheck = await pool.query(
+                  'SELECT id FROM job_postings WHERE url_hash = $1 OR url = $2',
+                  [urlHash, jobUrl]
+                );
+
+                if (duplicateCheck.rowCount > 0) { return; }
+
+                const jobUrlDomain = new URL(jobUrl).hostname;
+                const fetchResult = await fetchHTML(jobUrl, jobUrlDomain, {});
+
+                if (fetchResult.errorStatus === 404 || fetchResult.errorStatus === 410) {
+                  await pool.query(
+                    `UPDATE job_postings SET status = 'closed', last_seen_at = NOW() 
+                     WHERE (url = $1 OR url_hash = $2) AND status != 'closed'`,
+                    [jobUrl, urlHash]
+                  );
+                } else if (fetchResult.body && fetchResult.status === 200) {
+                  await processJobPosting({ 
+                    hostId: null, 
+                    url: jobUrl, 
+                    html: fetchResult.body, 
+                    title: null, 
+                    location: null, 
+                    atsType: atsSpecificConfig.atsType 
+                  });
+                } else if (fetchResult.errorStatus || fetchResult.error) {
+                  console.warn(`googleSearchCrawler: Failed to fetch ${jobUrl}. Status: ${fetchResult.errorStatus || 'N/A'}. Message: ${fetchResult.message || 'Unknown fetch error'}`);
+                }
+              } catch (e) {
+                console.error(`googleSearchCrawler: Unexpected error processing URL ${jobUrl} for ${atsName} / ${familyName}: ${e.message}`, e.stack);
+              }
+            });
+          });
+          await Promise.allSettled(tasks);
+          console.log(`googleSearchCrawler: Finished processing URLs for ${atsName} / ${familyName}.`);
+        }
+      } catch (error) {
+        console.error(`googleSearchCrawler: Error during searchGoogle execution for ${atsName} / ${familyName}: ${error.message}`, error.stack);
+      }
+    } // End of job family loop
+  } // End of ATS target loop
 
   console.log('Google Search Crawler finished processing all ATS targets.');
   // Any final cleanup, like closing a DB pool if it were opened directly in this script.
@@ -249,28 +232,28 @@ async function runGoogleSearchCrawler({
 if (require.main === module) {
   const args = process.argv.slice(2);
   const atsArg = args.find(arg => arg.startsWith('--ats='));
-  const keywordsArg = args.find(arg => arg.startsWith('--keywords=')); // Note: keywords will come from atsConfigs now
+  // const keywordsArg = args.find(arg => arg.startsWith('--keywords=')); // Deprecated
+  const familiesArg = args.find(arg => arg.startsWith('--families=')); // New
   const countryArg = args.find(arg => arg.startsWith('--country='));
   const hoursArg = args.find(arg => arg.startsWith('--hours='));
   const batchSizeArg = args.find(arg => arg.startsWith('--batchSize='));
 
   const atsTargets = atsArg ? atsArg.split('=')[1].split(',') : ['Greenhouse', 'Lever', 'Ashby', 'Workable'];
-  // Keywords are now per-ATS in atsConfigs.json, so top-level keywords arg is less relevant.
-  // The crawler will use keywords from the config for each ATS it targets.
+  const targetJobFamilies = familiesArg ? familiesArg.split('=')[1].split(',') : []; // Empty means all
   const countryFilter = countryArg ? countryArg.split('=')[1] : "United States";
   const hoursBack = hoursArg ? parseInt(hoursArg.split('=')[1], 10) : 24;
   const batchSizePerATS = batchSizeArg ? parseInt(batchSizeArg.split('=')[1], 10) : DEFAULT_BATCH_SIZE_PER_ATS;
   
   if (isNaN(hoursBack)) {
-    console.error("Invalid --hours value. Must be a number.");
+    console.error("googleSearchCrawler: Invalid --hours value. Must be a number.");
     process.exit(1);
   }
-   if (isNaN(batchSizePerATS)) {
-    console.error("Invalid --batchSize value. Must be a number.");
+  if (isNaN(batchSizePerATS)) {
+    console.error("googleSearchCrawler: Invalid --batchSize value. Must be a number.");
     process.exit(1);
   }
 
-  runGoogleSearchCrawler({ atsTargets, countryFilter, hoursBack, batchSizePerATS })
+  runGoogleSearchCrawler({ atsTargets, countryFilter, hoursBack, batchSizePerATS, targetJobFamilies })
     .then(() => console.log("Google Search Crawler script run initiated."))
     .catch(error => {
       console.error("Error in Google Search Crawler script:", error);
@@ -279,4 +262,4 @@ if (require.main === module) {
 }
 
 // Export functions if they need to be used by other modules or for testing
-export { runGoogleSearchCrawler }; // Potentially buildGoogleQuery if it's made a separate utility
+export { runGoogleSearchCrawler };
