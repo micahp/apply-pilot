@@ -18,6 +18,16 @@
       "article.icims-accordion-item a"
     ],
     "jobDetailLinkPatterns": ["/jobs/", "/job/"],
+    "locationSelectors": [
+      "span.iCIMS_JobLocation", 
+      "div.fields > div[data-field='searchableLocation'] span",
+      "dd[data-field='searchableLocation']",
+      "li[title='Location'] span.details",
+      "div.jobLocation p",
+      "meta[property='og:latitude'] + meta[property='og:longitude'] ~ meta[property='og:locality']", // Example for meta tags
+      "div.job-location span", // Generic span within a job-location div
+      "span[itemprop='jobLocation']" // Schema.org itemprop
+    ],
     "atsType": "iCIMS"
   },
   "Greenhouse": {

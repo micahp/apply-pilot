@@ -201,12 +201,85 @@ async function crawlHost(host, httpErrorsByHost, atsConfig, hostErrorStreaks) {
         const jobHTML = await fetchHTML(jobURL, jobDomain, httpErrorsByHost); // Pass jobDomain, httpErrorsByHost
         if (!jobHTML) return;
 
-        // VERY rough title/location extraction (h1 + text containing a state abbrev)
         const $$ = cheerio.load(jobHTML);
-        const title = ($$('h1').first().text() || '').trim().slice(0, 140) || null;
-        const locMatch =
-          jobHTML.match(/[A-Z][a-zA-Z]+,\s?(AL|AK|AZ|AR|CA|CO|CT|DE|DC|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)/);
-        const location = locMatch ? locMatch[0] : null;
+        let title = null;
+        let location = null;
+
+        if (atsConfig.atsType === 'Workday') {
+          $$('script[type="application/ld+json"]').each((index, element) => {
+            const scriptContent = $$(element).html();
+            if (!scriptContent) return true;
+            try {
+              const jsonData = JSON.parse(scriptContent);
+              if (jsonData && jsonData['@context'] && jsonData['@context'].toLowerCase().includes('schema.org') && jsonData['@type'] === 'JobPosting') {
+                let ldTitle = jsonData.title;
+                let ldLocation = null;
+                if (jsonData.jobLocation) {
+                  const jobLoc = Array.isArray(jsonData.jobLocation) ? jsonData.jobLocation[0] : jsonData.jobLocation;
+                  if (jobLoc && jobLoc.address) {
+                    const address = jobLoc.address;
+                    if (typeof address === 'string') ldLocation = address;
+                    else if (typeof address === 'object') {
+                      let parts = [];
+                      if (address.addressLocality) parts.push(address.addressLocality);
+                      if (address.addressRegion) parts.push(address.addressRegion);
+                      if (parts.length > 0) ldLocation = parts.join(', ');
+                    }
+                  }
+                }
+                if (!ldLocation && jsonData.applicantLocationRequirements) {
+                  const appLocReq = jsonData.applicantLocationRequirements;
+                  if (typeof appLocReq === 'string') ldLocation = appLocReq;
+                  else if (typeof appLocReq === 'object' && appLocReq.name) ldLocation = appLocReq.name;
+                }
+                if (ldTitle && ldLocation) {
+                  title = (ldTitle.toString() || '').trim().slice(0, 140);
+                  location = (ldLocation.toString() || '').trim();
+                  if (location.length > 255) location = location.substring(0, 255);
+                  return false; // Exit .each loop
+                }
+              }
+            } catch (e) { /* console.warn(`Error parsing LD+JSON for ${jobURL}: ${e.message}`); */ }
+          });
+        } else if (atsConfig.atsType === 'iCIMS') {
+          title = ($$('h1').first().text() || '').trim().slice(0, 140);
+
+          if (atsConfig.locationSelectors && atsConfig.locationSelectors.length > 0) {
+            for (const selector of atsConfig.locationSelectors) {
+              const locElement = $$(selector).first();
+              let locText = '';
+              if (locElement.length) { // Check if element exists
+                if (locElement.is('meta')) {
+                  locText = locElement.attr('content');
+                } else {
+                  locText = locElement.text();
+                }
+              }
+              if (locText && locText.trim()) {
+                location = locText.trim();
+                if (location.length > 255) location = location.substring(0, 255);
+                break; // Found location, exit selector loop
+              }
+            }
+          }
+        }
+
+        // Generic Fallback for Title (if not set by Workday/iCIMS specific logic)
+        if (!title) {
+          title = ($$('h1').first().text() || '').trim().slice(0, 140);
+        }
+        
+        // Generic Fallback for Location (if not set by Workday/iCIMS specific logic)
+        if (!location) {
+          const locMatchFallback = jobHTML.match(/[A-Z][a-zA-Z]+,\s?(AL|AK|AZ|AR|CA|CO|CT|DE|DC|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)/);
+          if (locMatchFallback) {
+            location = locMatchFallback[0];
+          }
+        }
+        
+        // Ensure title and location are null if empty after all attempts
+        title = title || null;
+        location = location || null;
 
         try {
           await upsertPosting({ hostId, url: jobURL, html: jobHTML, title, location });
