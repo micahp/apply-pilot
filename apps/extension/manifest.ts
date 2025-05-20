@@ -18,7 +18,10 @@ export const manifest = defineManifest({
     '*://lever.co/*',
     '*://*.lever.co/*',
     '*://taleo.net/*',
-    '*://*.taleo.net/*'
+    '*://*.taleo.net/*',
+    '*://*.ashbyhq.com/*',
+    '*://*.workable.com/*',
+    '*://*.icims.com/*'
   ],
   action: {
     default_popup: 'src/popup/index.html',
@@ -48,7 +51,10 @@ export const manifest = defineManifest({
         '*://lever.co/*',
         '*://*.lever.co/*',
         '*://taleo.net/*',
-        '*://*.taleo.net/*'
+        '*://*.taleo.net/*',
+        '*://*.ashbyhq.com/*',
+        '*://*.workable.com/*',
+        '*://*.icims.com/*'
       ],
       js: ['src/content.ts'],
       css: ['content.css']

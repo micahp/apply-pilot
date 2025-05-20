@@ -2,14 +2,78 @@ import { defineConfig } from 'vite';
 import { crx } from '@crxjs/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
-import { manifest } from './manifest';
 import fs from 'fs';
 import path from 'path';
+
+const completeManifest = {
+  manifest_version: 3,
+  name: 'AutoApply',
+  version: '0.1.0',
+  description: 'Automatically fill out job applications on various ATS platforms',
+  permissions: [
+    'storage',
+    'activeTab',
+    'scripting'
+  ],
+  host_permissions: [
+    '*://workday.com/*',
+    '*://*.workday.com/*',
+    '*://greenhouse.io/*',
+    '*://*.greenhouse.io/*',
+    '*://lever.co/*',
+    '*://*.lever.co/*',
+    '*://taleo.net/*',
+    '*://*.taleo.net/*',
+    '*://*.ashbyhq.com/*',
+    '*://*.workable.com/*',
+    '*://*.icims.com/*'
+  ],
+  action: {
+    default_popup: 'src/popup/index.html',
+    default_icon: {
+      '16': 'assets/s1.png',
+      '48': 'assets/s2.png',
+      '128': 'assets/s3.png'
+    }
+  },
+  icons: {
+    '16': 'assets/s1.png',
+    '48': 'assets/s2.png',
+    '128': 'assets/s3.png'
+  },
+  options_page: 'src/options/index.html',
+  background: {
+    service_worker: 'src/background.ts', // Assuming CRXJS handles .ts -> .js for service worker
+    type: 'module'
+  },
+  content_scripts: [
+    {
+      matches: [
+        '*://workday.com/*',
+        '*://*.workday.com/*',
+        '*://greenhouse.io/*',
+        '*://*.greenhouse.io/*',
+        '*://lever.co/*',
+        '*://*.lever.co/*',
+        '*://taleo.net/*',
+        '*://*.taleo.net/*',
+        '*://*.ashbyhq.com/*',
+        '*://*.workable.com/*',
+        '*://*.icims.com/*'
+      ],
+      js: ['src/content.ts'], // Assuming CRXJS handles .ts -> .js for content scripts
+      css: ['content.css']
+    }
+  ]
+  // web_accessible_resources might be needed if not automatically handled by CRXJS
+  // based on content script output or other assets.
+  // Add it here if your build fails or if resources are not accessible.
+};
 
 export default defineConfig({
   plugins: [
     react(),
-    crx({ manifest }),
+    crx({ manifest: completeManifest as any }), // Use 'as any' if TS complains about complex manifest type
     {
       name: 'copy-assets',
       apply: 'build',
