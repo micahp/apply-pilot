@@ -201,9 +201,10 @@ async function runGoogleSearchCrawler({
                     hostId: null, 
                     url: jobUrl, 
                     html: fetchResult.body, 
-                    title: null, 
+                    title: null, // Or title from search result if available and relevant
                     location: null, 
-                    atsType: atsSpecificConfig.atsType 
+                    atsType: atsSpecificConfig.atsType,
+                    jobFamily: familyName // Pass the current familyName
                   });
                 } else if (fetchResult.errorStatus || fetchResult.error) {
                   console.warn(`googleSearchCrawler: Failed to fetch ${jobUrl}. Status: ${fetchResult.errorStatus || 'N/A'}. Message: ${fetchResult.message || 'Unknown fetch error'}`);

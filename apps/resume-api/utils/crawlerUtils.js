@@ -5,6 +5,7 @@ import * as cheerio from 'cheerio'; // Added cheerio
 import fs from 'fs'; // Added fs
 import path from 'path'; // Added path
 import { fileURLToPath } from 'url'; // Added fileURLToPath for __dirname
+import jobKeywordsConfig from '../config/keywords.js'; // Import jobKeywordsConfig
 
 // Load atsConfigs.json
 let atsConfigs = {};
@@ -149,7 +150,7 @@ export async function isDuplicate({ company, jobId, title, location /*, pool - p
   return false; // No duplicate found by these criteria
 }
 
-export async function processJobPosting({ hostId, url: originalUrl, html, title: initialTitle, location: initialLocation, atsType }) {
+export async function processJobPosting({ hostId, url: originalUrl, html, title: initialTitle, location: initialLocation, atsType, jobFamily: jobFamilyFromCaller }) {
     if (!html) { 
         // console.warn(`crawlerUtils.js: processJobPosting: HTML content is missing for URL ${originalUrl}. Skipping.`);
         return false; 
@@ -323,6 +324,17 @@ export async function processJobPosting({ hostId, url: originalUrl, html, title:
     finalCanonicalUrl = finalCanonicalUrl.slice(0, 1024);
     postingDate = postingDate || null; // Ensure it's null if not found
 
+    // New: Determine finalJobFamily
+    let finalJobFamily = jobFamilyFromCaller; // Use the passed-in family by default
+    if (!finalJobFamily || finalJobFamily === 'Unknown' || finalJobFamily === null || finalJobFamily === 'DIRECT') {
+        finalJobFamily = detectFamily(finalTitle, jobKeywordsConfig); 
+    }
+
+    // New: Logging Warning for 'Unknown' family for Google-sourced jobs
+    if (finalJobFamily === 'Unknown' && hostId === null) {
+        console.warn(`crawlerUtils.js: Job family resolved to 'Unknown' for potentially Google-sourced job. URL: ${originalUrl}, Title: "${finalTitle}"`);
+    }
+
     const newHtmlHash = sha256(html);
     const newUrlHash = sha256(finalCanonicalUrl); // Hash of the canonical URL
 
@@ -359,25 +371,25 @@ export async function processJobPosting({ hostId, url: originalUrl, html, title:
                 await pool.query(
                 `UPDATE job_postings 
                  SET html_hash = $1, job_title = $2, location = $3, url_hash = $4, last_seen_at = NOW(), status = 'open',
-                     job_id = $5, company = $6, posting_date = $7, canonical_url = $8, url = $9
-                 WHERE id = $10`, 
-                [newHtmlHash, finalTitle, finalLocation, newUrlHash, jobId, companyName, postingDate, finalCanonicalUrl, originalUrl, jobPostingDbId]);
+                     job_id = $5, company = $6, posting_date = $7, canonical_url = $8, url = $9, job_family = $10
+                 WHERE id = $11`, 
+                [newHtmlHash, finalTitle, finalLocation, newUrlHash, jobId, companyName, postingDate, finalCanonicalUrl, originalUrl, finalJobFamily, jobPostingDbId]);
             } else {
                 await pool.query(
                 `UPDATE job_postings 
                  SET last_seen_at = NOW(), status = 'open', job_title = $1, location = $2, url_hash = $3,
-                     job_id = $4, company = $5, posting_date = $6, canonical_url = $7, url = $8
-                 WHERE id = $9`,
-                [finalTitle, finalLocation, newUrlHash, jobId, companyName, postingDate, finalCanonicalUrl, originalUrl, jobPostingDbId]);
+                     job_id = $4, company = $5, posting_date = $6, canonical_url = $7, url = $8, job_family = $9
+                 WHERE id = $10`,
+                [finalTitle, finalLocation, newUrlHash, jobId, companyName, postingDate, finalCanonicalUrl, originalUrl, finalJobFamily, jobPostingDbId]);
             }
         } else {
             const insertResult = await pool.query(
             `INSERT INTO job_postings 
                 (ats_host_id, url, html_hash, job_title, location, url_hash, status, initial_snapshot_done, last_seen_at, discovered_at,
-                 job_id, company, posting_date, canonical_url) 
-             VALUES ($1, $2, $3, $4, $5, $6, 'open', false, NOW(), NOW(), $7, $8, $9, $10) 
+                 job_id, company, posting_date, canonical_url, job_family) 
+             VALUES ($1, $2, $3, $4, $5, $6, 'open', false, NOW(), NOW(), $7, $8, $9, $10, $11) 
              RETURNING id`,
-            [hostId, originalUrl, newHtmlHash, finalTitle, finalLocation, newUrlHash, jobId, companyName, postingDate, finalCanonicalUrl]);
+            [hostId, originalUrl, newHtmlHash, finalTitle, finalLocation, newUrlHash, jobId, companyName, postingDate, finalCanonicalUrl, finalJobFamily]);
             
             if (insertResult.rows.length > 0) {
                 jobPostingDbId = insertResult.rows[0].id;

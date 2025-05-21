@@ -247,7 +247,15 @@ async function crawlHost(host, httpErrorsByHost, atsConfig, hostErrorStreaks) {
 
         try {
           // Pass jobHTMLString to processJobPosting
-          const processingSuccessful = await processJobPosting({ hostId, url: jobURL, html: jobHTMLString, title, location, atsType: ats_type });
+          const processingSuccessful = await processJobPosting({ 
+            hostId: hostId,     // From const { id: hostId, ... } = host;
+            url: jobURL, 
+            html: jobHTMLString, 
+            title: title,       // The extracted title
+            location: location, // The extracted location
+            atsType: ats_type,  // From const { ..., ats_type } = host;
+            jobFamily: null     // Pass null for jobFamily for direct crawls
+          });
           if (processingSuccessful) {
             localJobUrlsStored++; // Increment only on successful processing
           }
