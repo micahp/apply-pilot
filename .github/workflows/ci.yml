@@ -1,0 +1,53 @@
+name: Node.js CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x] # As per playbook's Node 18 assumption
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        # Needed to wait for postgres to start
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'pnpm' # Assuming pnpm is used based on pnpm-lock.yaml
+
+    - name: Install dependencies
+      run: pnpm install # Assuming pnpm
+
+    - name: Run Migrations
+      env:
+        PG_HOST: localhost
+        PG_USER: testuser
+        PG_PASSWORD: testpassword # These credentials match the postgres service in the CI
+        PG_DATABASE: testdb
+      run: bash scripts/run-migrations.sh
+
+    - name: Run tests # Placeholder for actual test command
+      env:
+        DATABASE_URL: postgresql://testuser:testpassword@localhost:5432/testdb
+        # Add other necessary environment variables for tests
+      run: echo "No tests configured yet, but database is up." # Replace with actual test command e.g., pnpm test

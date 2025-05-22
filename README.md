@@ -121,3 +121,21 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Implement more detailed work experience form filling
 - Add ability to customize field mappings
 - Create cloud sync option (with encryption) 
+
+
+## Local Development Setup
+
+When running the `resume-api` service locally, you'll need to connect to a PostgreSQL database.
+The provided `docker-compose.yml` file can be used to start a local PostgreSQL instance:
+
+```bash
+docker compose up -d db
+```
+
+Once the database container is running, you need to set the `DATABASE_URL` environment variable in your shell session before starting the application. This URL should match the credentials and database name specified in the `docker-compose.yml` file:
+
+```bash
+export DATABASE_URL=postgres://devuser:dev@localhost:5432/applypilot
+```
+
+You can then start the application (e.g., `pnpm run dev` or similar, depending on your project's scripts).
