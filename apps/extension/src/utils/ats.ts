@@ -173,61 +173,35 @@ export function fillATSFields(
   let filledCount = 0;
   
   try {
-    // Personal information
-    if (profile.personal) {
-      if (platform.selectors.firstName && profile.personal.firstName) {
-        fillInputField(platform.selectors.firstName, profile.personal.firstName);
-        filledCount++;
-      }
-      
-      if (platform.selectors.lastName && profile.personal.lastName) {
-        fillInputField(platform.selectors.lastName, profile.personal.lastName);
-        filledCount++;
-      }
-      
-      // Special case for Lever which uses full name
-      if (platform.slug === 'lever' && platform.selectors.firstName && 
-          profile.personal.firstName && profile.personal.lastName) {
-        fillInputField(
-          platform.selectors.firstName, 
-          `${profile.personal.firstName} ${profile.personal.lastName}`
-        );
-        filledCount++;
-      }
-      
-      if (platform.selectors.email && profile.personal.email) {
-        fillInputField(platform.selectors.email, profile.personal.email);
-        filledCount++;
-      }
-      
-      if (platform.selectors.phone && profile.personal.phone) {
-        fillInputField(platform.selectors.phone, profile.personal.phone);
-        filledCount++;
-      }
+    // Map profile fields to selector keys
+    const fieldValues: Record<string, string | undefined> = {
+      firstName: profile.personal?.firstName,
+      lastName: profile.personal?.lastName,
+      email: profile.personal?.email,
+      phone: profile.personal?.phone,
+      address: profile.personal?.address,
+      city: profile.personal?.city,
+      state: profile.personal?.state,
+      zip: profile.personal?.zipCode,
+      linkedin: profile.personal?.linkedIn,
+      github: profile.personal?.github,
+      website: profile.personal?.website,
+      resume: profile.documents?.resume,
+      coverLetter: profile.documents?.coverLetter
+    };
+
+    // Special case for Lever which combines first and last name
+    if (platform.slug === 'lever' && profile.personal?.firstName && profile.personal?.lastName) {
+      fieldValues.firstName = `${profile.personal.firstName} ${profile.personal.lastName}`;
     }
-    
-    // LinkedIn URL if available in profile and platform supports it
-    if (platform.selectors.linkedin && profile.personal?.linkedIn) {
-      fillInputField(platform.selectors.linkedin, profile.personal.linkedIn);
-      filledCount++;
-    }
-    
-    // GitHub URL if available in profile and platform supports it
-    if (platform.selectors.github && profile.personal?.github) {
-      fillInputField(platform.selectors.github, profile.personal.github);
-      filledCount++;
-    }
-    
-    // Portfolio/website URL if available in profile and platform supports it
-    if (platform.selectors.website && profile.personal?.website) {
-      fillInputField(platform.selectors.website, profile.personal.website);
-      filledCount++;
-    }
-    
-    // Cover letter if applicable
-    if (platform.selectors.coverLetter && profile.documents?.coverLetter) {
-      fillInputField(platform.selectors.coverLetter, profile.documents.coverLetter);
-      filledCount++;
+
+    // Iterate over selectors and fill when data is available
+    for (const [key, selector] of Object.entries(platform.selectors)) {
+      const value = fieldValues[key];
+      if (selector && value) {
+        fillInputField(selector, value);
+        filledCount++;
+      }
     }
     
     // TODO: Handle more complex fields like education, experience, skills
