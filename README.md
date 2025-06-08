@@ -21,6 +21,19 @@ AutoApply is a Chrome extension that automates the job application process by fi
 
 More platforms will be added in future updates.
 
+### Auto Apply for Single Page Application ATS
+
+The extension supports automatic field filling on several modern single page application (SPA) job sites. When an application form is detected, the extension will populate all known fields from your saved profile.
+
+| ATS Platform | Fields Automatically Filled |
+|--------------|----------------------------|
+| Ashby | First Name, Last Name, Email, Phone |
+| Greenhouse | First Name, Last Name, Email, Phone, Resume, Cover Letter, LinkedIn |
+| Lever | Full Name, Email, Phone, Resume, LinkedIn, GitHub, Website, Cover Letter |
+| SmartRecruiters | First Name, Last Name, Email, Phone, LinkedIn |
+| Workable | First Name, Last Name, Email, Phone |
+
+
 ## Installation
 
 ### Development Installation
