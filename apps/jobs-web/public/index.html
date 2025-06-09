@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Listings</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    h1 { text-align: center; }
+    .job { border-bottom: 1px solid #ccc; padding: 1rem 0; }
+    .job a { color: #007acc; text-decoration: none; }
+    .job a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>Job Listings</h1>
+  <div id="jobs"></div>
+
+  <script>
+    async function loadJobs() {
+      const res = await fetch('/api/jobs');
+      const data = await res.json();
+      const container = document.getElementById('jobs');
+      data.jobs.forEach(job => {
+        const div = document.createElement('div');
+        div.className = 'job';
+        div.innerHTML = `<strong>${job.title}</strong> - ${job.location} (<em>${job.source}</em>) <br><a href="${job.url}" target="_blank">Apply</a>`;
+        container.appendChild(div);
+      });
+    }
+    loadJobs().catch(err => {
+      document.getElementById('jobs').textContent = 'Failed to load jobs';
+      console.error(err);
+    });
+  </script>
+</body>
+</html>

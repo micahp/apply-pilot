@@ -20,7 +20,9 @@
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "2.0.0-beta.18",
+    "@nx/eslint": "20.8.2",
     "@nx/eslint-plugin": "16.10.0",
+    "@nx/jest": "16.10.0",
     "@nx/js": "16.10.0",
     "@nx/vite": "16.10.0",
     "@nx/workspace": "16.10.0",

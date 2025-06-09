@@ -9,6 +9,7 @@ AutoApply is a Chrome extension that automates the job application process by fi
 - **Auto-Fill**: Fills in application forms with your stored profile information.
 - **Multiple ATS Support**: Works with popular ATS platforms including Workday, Greenhouse, Lever, and more.
 - **Privacy-First**: All your data is stored locally in your browser. No server-side storage of personal information.
+- **Jobs Web**: Standalone webpage that aggregates job openings from multiple ATS providers.
 
 ## Supported ATS Platforms
 
@@ -54,6 +55,16 @@ More platforms will be added in future updates.
 2. Enable "Developer mode" using the toggle in the top right
 3. Click "Load unpacked"
 4. Select the `dist/apps/extension` directory from this project
+
+### Jobs Web
+
+You can run a small server that aggregates job listings from multiple ATS providers and serves them on `http://localhost:3001`:
+
+```bash
+pnpm --filter jobs-web start
+```
+
+Environment variables `LEVER_SLUG`, `GREENHOUSE_SLUG` and `WORKABLE_SLUG` can be used to set company slugs.
 
 ## Usage
 
