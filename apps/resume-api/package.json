@@ -12,14 +12,15 @@
     "@fastify/cors": "^8.4.1",
     "@fastify/multipart": "^7.7.3",
     "@fastify/static": "^6.11.2",
+    "cheerio": "^1.0.0-rc.12",
     "fastify": "^4.24.3",
+    "got": "^13.0.0",
+    "p-limit": "^4.0.0",
     "pdf-parse": "^1.1.1",
     "pg": "^8.11.3",
-    "got": "^13.0.0",
-    "cheerio": "^1.0.0-rc.12",
-    "p-limit": "^4.0.0"
+    "playwright": "^1.53.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
   }
-} 
+}

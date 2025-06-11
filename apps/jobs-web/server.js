@@ -44,11 +44,11 @@ fastify.get('/api/jobs', async (request, reply) => {
         jp.job_family,
         jp.posting_date,
         jp.discovered_at,
-        ah.ats_type,
+        COALESCE(jp.ats_type, ah.ats_type) as ats_type,
         ah.domain
       FROM job_postings jp
-      JOIN ats_hosts ah ON jp.ats_host_id = ah.id
-      WHERE jp.status = 'open'
+      LEFT JOIN ats_hosts ah ON jp.ats_host_id = ah.id
+      WHERE jp.status IN ('open', 'active')
         AND jp.last_seen_at > NOW() - INTERVAL '${parseInt(hoursBack)} hours'
     `;
     
@@ -58,7 +58,7 @@ fastify.get('/api/jobs', async (request, reply) => {
     // Add filters
     if (atsType) {
       paramCount++;
-      query += ` AND ah.ats_type = $${paramCount}`;
+      query += ` AND (jp.ats_type = $${paramCount} OR ah.ats_type = $${paramCount})`;
       params.push(atsType);
     }
 
@@ -84,7 +84,52 @@ fastify.get('/api/jobs', async (request, reply) => {
         jp.job_title ILIKE '%backend%engineer%' OR
         jp.job_title ILIKE '%frontend%engineer%' OR
         jp.job_title ILIKE '%front%end%engineer%' OR
+        jp.job_title ILIKE '%front-end%engineer%' OR
         jp.job_title ILIKE '%azure%developer%' OR
+        jp.job_title ILIKE '%cloud%engineer%' OR
+        jp.job_title ILIKE '%cloud%developer%' OR
+        jp.job_title ILIKE '%devops%engineer%' OR
+        jp.job_title ILIKE '%dev%ops%engineer%' OR
+        jp.job_title ILIKE '%platform%engineer%' OR
+        jp.job_title ILIKE '%site%reliability%engineer%' OR
+        jp.job_title ILIKE '%sre%' OR
+        jp.job_title ILIKE '%qa%engineer%' OR
+        jp.job_title ILIKE '%quality%assurance%' OR
+        jp.job_title ILIKE '%test%engineer%' OR
+        jp.job_title ILIKE '%mobile%engineer%' OR
+        jp.job_title ILIKE '%mobile%developer%' OR
+        jp.job_title ILIKE '%ios%engineer%' OR
+        jp.job_title ILIKE '%ios%developer%' OR
+        jp.job_title ILIKE '%android%engineer%' OR
+        jp.job_title ILIKE '%android%developer%' OR
+        jp.job_title ILIKE '%react%developer%' OR
+        jp.job_title ILIKE '%javascript%developer%' OR
+        jp.job_title ILIKE '%node%developer%' OR
+        jp.job_title ILIKE '%python%developer%' OR
+        jp.job_title ILIKE '%java%developer%' OR
+        jp.job_title ILIKE '%c++%developer%' OR
+        jp.job_title ILIKE '%golang%developer%' OR
+        jp.job_title ILIKE '%go%developer%' OR
+        jp.job_title ILIKE '%rust%developer%' OR
+        jp.job_title ILIKE '%data%engineer%' OR
+        jp.job_title ILIKE '%ml%engineer%' OR
+        jp.job_title ILIKE '%machine%learning%engineer%' OR
+        jp.job_title ILIKE '%ai%engineer%' OR
+        jp.job_title ILIKE '%security%engineer%' OR
+        jp.job_title ILIKE '%infrastructure%engineer%' OR
+        jp.job_title ILIKE '%systems%engineer%' OR
+        jp.job_title ILIKE '%network%engineer%' OR
+        jp.job_title ILIKE '%embedded%engineer%' OR
+        jp.job_title ILIKE '%firmware%engineer%' OR
+        jp.job_title ILIKE '%hardware%engineer%' OR
+        jp.job_title ILIKE '%technical%lead%' OR
+        jp.job_title ILIKE '%tech%lead%' OR
+        jp.job_title ILIKE '%engineering%manager%' OR
+        jp.job_title ILIKE '%principal%engineer%' OR
+        jp.job_title ILIKE '%staff%engineer%' OR
+        jp.job_title ILIKE '%senior%engineer%' OR
+        jp.job_title ILIKE '%lead%engineer%' OR
+        jp.job_title ILIKE '%architect%' OR
         jp.job_title ILIKE '%developer%' OR
         jp.job_title ILIKE '%engineer%' OR
         jp.job_family = 'Engineering'

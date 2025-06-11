@@ -89,7 +89,7 @@
 
   <div class="controls">
     <div class="filters">
-      <select id="atsFilter">
+      <select id="atsFilter" onchange="loadJobs()">
         <option value="">All ATS Types</option>
         <option value="Greenhouse">Greenhouse</option>
         <option value="Lever">Lever</option>
@@ -99,7 +99,7 @@
         <option value="iCIMS">iCIMS</option>
       </select>
       
-      <select id="hoursFilter">
+      <select id="hoursFilter" onchange="loadJobs()">
         <option value="24">Last 24 hours</option>
         <option value="72" selected>Last 3 days</option>
         <option value="168">Last week</option>
@@ -109,6 +109,7 @@
       <button onclick="triggerCrawl()">Trigger Crawl</button>
       <button onclick="loadStats()">Show Stats</button>
     </div>
+    <div id="filterStatus" style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;"></div>
   </div>
 
   <div class="stats" id="stats" style="display: none;"></div>
@@ -122,10 +123,26 @@
 
     async function loadJobs() {
       const container = document.getElementById('jobs');
+      const filterStatus = document.getElementById('filterStatus');
       const atsType = document.getElementById('atsFilter').value;
       const hoursBack = document.getElementById('hoursFilter').value;
       
       container.innerHTML = '<div class="loading">Loading jobs...</div>';
+      
+      // Update filter status
+      let statusText = `Showing jobs from `;
+      if (atsType) {
+        statusText += `${atsType} `;
+      } else {
+        statusText += `all ATS platforms `;
+      }
+      statusText += `discovered in the last `;
+      if (hoursBack === '24') statusText += '24 hours';
+      else if (hoursBack === '72') statusText += '3 days';
+      else if (hoursBack === '168') statusText += 'week';
+      else statusText += `${hoursBack} hours`;
+      
+      filterStatus.textContent = statusText;
       
       try {
         const params = new URLSearchParams();
@@ -139,7 +156,10 @@
         currentJobs = data.jobs || [];
         
         if (currentJobs.length === 0) {
-          container.innerHTML = '<div class="error">No jobs found. Try running the crawler first!</div>';
+          const noJobsMessage = atsType 
+            ? `No ${atsType} jobs found in the selected time period. Try a different ATS type or time range.`
+            : 'No jobs found. Try running the crawler first or selecting a longer time period!';
+          container.innerHTML = `<div class="error">${noJobsMessage}</div>`;
           return;
         }
         
@@ -149,7 +169,7 @@
           div.className = 'job';
           
           const atsTypeBadge = job.atsType ? `<span class="badge">${job.atsType}</span>` : '';
-          const familyBadge = job.jobFamily ? `<span class="badge">${job.jobFamily}</span>` : '';
+          const familyBadge = job.jobFamily && job.jobFamily !== 'Unknown' ? `<span class="badge">${job.jobFamily}</span>` : '';
           
           div.innerHTML = `
             <div class="job-info">
@@ -166,11 +186,13 @@
           container.appendChild(div);
         });
         
-        // Update page title with count
-        document.title = `${currentJobs.length} Direct ATS Job Listings`;
+        // Update page title with count and filter info
+        const titleSuffix = atsType ? ` (${atsType})` : '';
+        document.title = `${currentJobs.length} Direct ATS Job Listings${titleSuffix}`;
         
       } catch (err) {
         container.innerHTML = '<div class="error">Failed to load jobs. Check if the server is running.</div>';
+        filterStatus.textContent = 'Error loading jobs';
         console.error(err);
       }
     }
