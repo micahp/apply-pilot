@@ -168,7 +168,8 @@ export function detectATS(url: string): ATSPlatform | null {
 export function fillATSFields(
   platform: ATSPlatform,
   profile: Profile
-): number {
+): Promise<number> {
+  return new Promise((resolve, reject) => {
   let filledCount = 0;
   
   try {
@@ -233,11 +234,12 @@ export function fillATSFields(
     // These usually require more complex interactions specific to each ATS
     
     console.log(`[AutoApply] Filled ${filledCount} fields on ${platform.name}`);
-    return filledCount;
+    resolve(filledCount);
   } catch (error) {
     console.error(`[AutoApply] Error filling fields:`, error);
-    return filledCount;
+    reject(error); // Reject the promise on error
   }
+  });
 }
 
 /**

@@ -17,6 +17,7 @@ const Popup: React.FC = () => {
   const [showAutoApplyButton, setShowAutoApplyButton] = useState<boolean>(false);
   const [atsFormFields, setAtsFormFields] = useState<ATSFieldDescriptor[] | null>(null);
   const [isWorkExperienceOpen, setIsWorkExperienceOpen] = useState(false);
+  const [isOnGreenhouseSite, setIsOnGreenhouseSite] = useState<boolean>(false);
 
   useEffect(() => {
     chrome.storage.local.get(['profile'], (result) => {
@@ -25,6 +26,13 @@ const Popup: React.FC = () => {
         setProfile(result.profile);
       } else {
         setIsEditing(true);
+      }
+    });
+
+    // Check if on Greenhouse for a specific button
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.url?.includes('greenhouse.io')) {
+        setIsOnGreenhouseSite(true);
       }
     });
 
@@ -127,7 +135,18 @@ const Popup: React.FC = () => {
             {isOnApplicationPage ? " (Application Page)" : detectedATS ? " (Site)" : ""}
           </p>
         )}
-        {showAutoApplyButton && profile && (
+        {/* Greenhouse-specific button */}
+        {isOnGreenhouseSite && profile && (
+          <button
+            className="fill-btn primary-action greenhouse-btn"
+            onClick={handleFillPageOrAutoApply}
+            title="Fill Greenhouse page with your profile data"
+          >
+            Autofill Greenhouse Page
+          </button>
+        )}
+        {/* Generic AutoApply button (will not show if Greenhouse button is shown and we hide it) */}
+        {!isOnGreenhouseSite && showAutoApplyButton && profile && (
           <button
             className="fill-btn primary-action"
             onClick={handleFillPageOrAutoApply}

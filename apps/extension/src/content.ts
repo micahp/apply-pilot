@@ -27,7 +27,7 @@ function initialize(): void {
         selectors: detectedATS.selectors
       },
       onFillFields: (profileData: Profile) => {
-        fillATSFields(detectedATS, profileData);
+        return fillATSFields(detectedATS, profileData);
       },
       onClose: () => {
         if (floatingPanel) {
