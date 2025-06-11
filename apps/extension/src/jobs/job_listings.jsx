@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import JobListings from '../components/JobListings.js';
+import JobListings from '../components/JobListings.tsx';
 import '../components/JobListings.css';
 
 // Add some basic styling for the jobs page
