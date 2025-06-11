@@ -30,7 +30,7 @@ async function markOldJobsAsClosed() {
 }
 
 // If invoked directly from CLI: node utils/markClosedJobs.js
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   markOldJobsAsClosed()
     .then(() => {
       console.log('markClosedJobs.js script finished successfully.');

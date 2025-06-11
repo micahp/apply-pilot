@@ -10,7 +10,8 @@
   "dependencies": {
     "@fastify/cors": "^8.4.1",
     "@fastify/static": "^6.11.2",
-    "fastify": "^4.24.3"
+    "fastify": "^4.24.3",
+    "pg": "^8.11.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

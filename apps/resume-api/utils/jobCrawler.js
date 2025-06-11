@@ -339,7 +339,7 @@ export async function runJobCrawler() {
 }
 
 // If invoked directly from CLI:  `node utils/jobCrawler.js`
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runJobCrawler()
     .then(() => {
       console.log('Job crawl finished');

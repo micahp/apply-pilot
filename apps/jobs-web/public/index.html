@@ -3,35 +3,232 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Job Listings</title>
+  <title>Direct ATS Job Listings</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 2rem; }
-    h1 { text-align: center; }
-    .job { border-bottom: 1px solid #ccc; padding: 1rem 0; }
-    .job a { color: #007acc; text-decoration: none; }
-    .job a:hover { text-decoration: underline; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+      margin: 0; 
+      padding: 2rem; 
+      background-color: #f5f5f5;
+    }
+    .header {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 { text-align: center; margin: 0; color: #333; }
+    .subtitle { text-align: center; color: #666; margin: 0.5rem 0 0 0; }
+    .controls {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .filters { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+    select, button { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; }
+    button { background: #007acc; color: white; cursor: pointer; }
+    button:hover { background: #005a8b; }
+    .stats {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .job-container {
+      background: white;
+      border-radius: 8px;
+      padding: 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .job { 
+      border-bottom: 1px solid #eee; 
+      padding: 1rem 0; 
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .job:last-child { border-bottom: none; }
+    .job-info { flex: 1; }
+    .job-title { font-weight: bold; color: #333; margin-bottom: 0.25rem; }
+    .job-meta { color: #666; font-size: 0.9rem; }
+    .job-actions { margin-left: 1rem; }
+    .job a { 
+      background: #007acc; 
+      color: white; 
+      padding: 0.5rem 1rem; 
+      text-decoration: none; 
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    .job a:hover { background: #005a8b; }
+    .loading { text-align: center; padding: 2rem; color: #666; }
+    .error { text-align: center; padding: 2rem; color: #d32f2f; }
+    .badge { 
+      background: #e3f2fd; 
+      color: #1976d2; 
+      padding: 0.25rem 0.5rem; 
+      border-radius: 12px; 
+      font-size: 0.8rem;
+      margin-left: 0.5rem;
+    }
   </style>
 </head>
 <body>
-  <h1>Job Listings</h1>
-  <div id="jobs"></div>
+  <div class="header">
+    <h1>Direct ATS Job Listings</h1>
+    <p class="subtitle">Jobs crawled directly from ATS platforms - no Google required!</p>
+  </div>
+
+  <div class="controls">
+    <div class="filters">
+      <select id="atsFilter">
+        <option value="">All ATS Types</option>
+        <option value="Greenhouse">Greenhouse</option>
+        <option value="Lever">Lever</option>
+        <option value="Ashby">Ashby</option>
+        <option value="Workable">Workable</option>
+        <option value="Workday">Workday</option>
+        <option value="iCIMS">iCIMS</option>
+      </select>
+      
+      <select id="hoursFilter">
+        <option value="24">Last 24 hours</option>
+        <option value="72" selected>Last 3 days</option>
+        <option value="168">Last week</option>
+      </select>
+      
+      <button onclick="loadJobs()">Refresh Jobs</button>
+      <button onclick="triggerCrawl()">Trigger Crawl</button>
+      <button onclick="loadStats()">Show Stats</button>
+    </div>
+  </div>
+
+  <div class="stats" id="stats" style="display: none;"></div>
+  
+  <div class="job-container">
+    <div id="jobs" class="loading">Loading jobs...</div>
+  </div>
 
   <script>
+    let currentJobs = [];
+
     async function loadJobs() {
-      const res = await fetch('/api/jobs');
-      const data = await res.json();
       const container = document.getElementById('jobs');
-      data.jobs.forEach(job => {
-        const div = document.createElement('div');
-        div.className = 'job';
-        div.innerHTML = `<strong>${job.title}</strong> - ${job.location} (<em>${job.source}</em>) <br><a href="${job.url}" target="_blank">Apply</a>`;
-        container.appendChild(div);
-      });
+      const atsType = document.getElementById('atsFilter').value;
+      const hoursBack = document.getElementById('hoursFilter').value;
+      
+      container.innerHTML = '<div class="loading">Loading jobs...</div>';
+      
+      try {
+        const params = new URLSearchParams();
+        if (atsType) params.append('atsType', atsType);
+        params.append('hoursBack', hoursBack);
+        params.append('limit', '100');
+        
+        const res = await fetch(`/api/jobs?${params}`);
+        const data = await res.json();
+        
+        currentJobs = data.jobs || [];
+        
+        if (currentJobs.length === 0) {
+          container.innerHTML = '<div class="error">No jobs found. Try running the crawler first!</div>';
+          return;
+        }
+        
+        container.innerHTML = '';
+        currentJobs.forEach(job => {
+          const div = document.createElement('div');
+          div.className = 'job';
+          
+          const atsTypeBadge = job.atsType ? `<span class="badge">${job.atsType}</span>` : '';
+          const familyBadge = job.jobFamily ? `<span class="badge">${job.jobFamily}</span>` : '';
+          
+          div.innerHTML = `
+            <div class="job-info">
+              <div class="job-title">${job.title}${atsTypeBadge}${familyBadge}</div>
+              <div class="job-meta">
+                ${job.company} • ${job.location || 'Remote'} 
+                ${job.discoveredAt ? `• Found ${new Date(job.discoveredAt).toLocaleDateString()}` : ''}
+              </div>
+            </div>
+            <div class="job-actions">
+              <a href="${job.url}" target="_blank">Apply</a>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+        
+        // Update page title with count
+        document.title = `${currentJobs.length} Direct ATS Job Listings`;
+        
+      } catch (err) {
+        container.innerHTML = '<div class="error">Failed to load jobs. Check if the server is running.</div>';
+        console.error(err);
+      }
     }
-    loadJobs().catch(err => {
-      document.getElementById('jobs').textContent = 'Failed to load jobs';
-      console.error(err);
-    });
+
+    async function loadStats() {
+      const statsContainer = document.getElementById('stats');
+      
+      try {
+        const res = await fetch('/api/ats/stats');
+        const data = await res.json();
+        
+        let statsHtml = '<h3>ATS Crawler Statistics</h3>';
+        
+        if (data.ats_hosts?.length) {
+          statsHtml += '<h4>ATS Hosts:</h4><ul>';
+          data.ats_hosts.forEach(host => {
+            statsHtml += `<li>${host.ats_type}: ${host.active_hosts}/${host.host_count} active hosts</li>`;
+          });
+          statsHtml += '</ul>';
+        }
+        
+        if (data.job_stats?.length) {
+          statsHtml += '<h4>Job Statistics:</h4><ul>';
+          data.job_stats.forEach(stat => {
+            statsHtml += `<li>${stat.ats_type}: ${stat.open_jobs} open / ${stat.total_jobs} total (${stat.jobs_24h} in last 24h)</li>`;
+          });
+          statsHtml += '</ul>';
+        }
+        
+        statsContainer.innerHTML = statsHtml;
+        statsContainer.style.display = 'block';
+        
+      } catch (err) {
+        console.error('Failed to load stats:', err);
+      }
+    }
+
+    async function triggerCrawl() {
+      try {
+        const res = await fetch('/api/ats/crawl', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ runCrawling: true, runDiscovery: false })
+        });
+        
+        const data = await res.json();
+        alert(`Crawling ${data.status}! Check back in a few minutes.`);
+        
+      } catch (err) {
+        alert('Failed to trigger crawl: ' + err.message);
+      }
+    }
+
+    // Load jobs on page load
+    loadJobs();
+    
+    // Auto-refresh every 5 minutes
+    setInterval(loadJobs, 5 * 60 * 1000);
   </script>
 </body>
 </html>

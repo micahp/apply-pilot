@@ -243,8 +243,11 @@ async function runDomainEnumeration() {
   await pool.end();
 }
 
+// Export for use in other modules
+export { runDomainEnumeration };
+
 // If invoked directly from CLI: `node utils/domainEnumerator.js`
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runDomainEnumeration()
     .then(() => {
       console.log('Domain enumeration script finished successfully.');

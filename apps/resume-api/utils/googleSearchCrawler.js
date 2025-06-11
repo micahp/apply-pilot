@@ -230,7 +230,7 @@ async function runGoogleSearchCrawler({
 }
 
 // CLI Execution Block (can be adapted from the previous version of this file)
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
   const atsArg = args.find(arg => arg.startsWith('--ats='));
   // const keywordsArg = args.find(arg => arg.startsWith('--keywords=')); // Deprecated
