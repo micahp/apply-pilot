@@ -1,60 +1,65 @@
-console.log("job_listings.js loaded successfully.");
-console.log("Current URL:", window.location.href);
-// console.log("Extension ID:", chrome.runtime.id);
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import JobListings from '../components/JobListings.js';
+import '../components/JobListings.css';
 
-document.addEventListener('DOMContentLoaded', async () => {
-  console.log("DOM Content Loaded event fired");
-  const jobListingsContainer = document.getElementById('job-listings-container');
-  
-  if (jobListingsContainer) {
-    console.log("Found job listings container");
-    // Clear initial placeholder content
-    jobListingsContainer.innerHTML = ''; 
+// Add some basic styling for the jobs page
+const styles = `
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f5f5f5;
+  }
+  .jobs-header {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .jobs-header h1 {
+    margin: 0;
+    color: #333;
+  }
+  .jobs-header p {
+    margin: 5px 0 0 0;
+    color: #666;
+  }
+  .jobs-content {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+  }
+`;
 
-    // Get any stored data
-    const result = await chrome.storage.local.get(['jobSearchData']);
-    console.log("Retrieved stored data:", result);
+// Add styles to the page
+const styleSheet = document.createElement('style');
+styleSheet.textContent = styles;
+document.head.appendChild(styleSheet);
 
-    const atsSearchQueries = [
-      {
-        name: "Workable",
-        url: 'https://www.google.com/search?q=site:apply.workable.com+"software+engineer"'
-      },
-      {
-        name: "Ashby",
-        url: 'https://www.google.com/search?q=site:jobs.ashbyhq.com+"software+engineer"'
-      },
-      {
-        name: "Greenhouse",
-        url: 'https://www.google.com/search?q=site:boards.greenhouse.io+"software+engineer"'
-      },
-      {
-        name: "Lever",
-        url: 'https://www.google.com/search?q=site:jobs.lever.co+"software+engineer"'
-      }
-    ];
-
-    console.log("Creating search links for ATS:", atsSearchQueries.map(q => q.name).join(', '));
-
-    const list = document.createElement('ul');
-    list.className = 'ats-search-links'; // For potential styling
-
-    atsSearchQueries.forEach(ats => {
-      const listItem = document.createElement('li');
-      const link = document.createElement('a');
-      link.href = ats.url;
-      link.textContent = `Find Software Engineer jobs on ${ats.name}`;
-      link.target = "_blank"; // Open in a new tab
-      link.rel = "noopener noreferrer"; // Security best practice for target="_blank"
+// Render the page
+function JobsPage() {
+  return (
+    <div>
+      <div className="jobs-header">
+        <h1>Job Listings</h1>
+        <p>Discover job opportunities from various companies and ATS platforms</p>
+      </div>
       
-      listItem.appendChild(link);
-      list.appendChild(listItem);
-    });
+      <div className="jobs-content">
+        <JobListings />
+      </div>
+    </div>
+  );
+}
 
-    jobListingsContainer.appendChild(list);
-    console.log("Search links added to page");
-
-  } else {
-    console.error('Error: Job listings container not found in job_listings.html');
+// Wait for DOM to be ready
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('job-listings-container');
+  if (container) {
+    const root = createRoot(container);
+    root.render(<JobsPage />);
   }
 }); 
