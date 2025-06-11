@@ -1,0 +1,85 @@
+{
+  "Workday": {
+    "listingPageSelectors": [
+      "a[data-automation-id='jobTitle']",
+      "a[data-automation-id*='jobTitle']",
+      "a[data-automation-id^='job']",
+      "section[data-automation-id='jobResults'] ul li a"
+    ],
+    "jobDetailLinkPatterns": ["/job/", "/jobs/"],
+    "jobDetailUrlRegex": "^https://[^/]+\\.myworkdayjobs\\.com/([^/]+)/job/([^/]+)/([^/]+)(/.*)?$",
+    "atsType": "Workday"
+  },
+  "iCIMS": {
+    "listingPageSelectors": [
+      "a.iCIMS_Anchor[href*='/jobs/']",
+      "div.container-fluid div.row div.col-md-12 h2.title a",
+      "div.container-fluid div.row div.col-xs-12 h2.title a",
+      "div.icims-jobs-container div.icims-job-row a.iCIMS_JobLink",
+      "article.icims-accordion-item a"
+    ],
+    "jobDetailLinkPatterns": ["/jobs/", "/job/"],
+    "jobDetailUrlRegex": "^https://[^/]+\\.icims\\.com/jobs/(\\d+)/([^/]+)/job$",
+    "locationSelectors": [
+      "span.iCIMS_JobLocation",
+      "div.fields > div[data-field='searchableLocation'] span",
+      "dd[data-field='searchableLocation']",
+      "li[title='Location'] span.details",
+      "div.jobLocation p",
+      "meta[property='og:latitude'] + meta[property='og:longitude'] ~ meta[property='og:locality']",
+      "div.job-location span",
+      "span[itemprop='jobLocation']"
+    ],
+    "atsType": "iCIMS"
+  },
+  "Greenhouse": {
+    "listingPageSelectors": [
+      "div.opening a[data-mapped='true']",
+      "a[href*='/jobs/']"
+    ],
+    "jobDetailLinkPatterns": ["/jobs/", "/job/"],
+    "jobDetailUrlRegex": "^https://boards\\.greenhouse\\.io/([^/]+)/jobs/(\\d+)$",
+    "googleSearchDomain": "boards.greenhouse.io",
+    "searchKeywords": ["Software Engineer", "Software Developer", "Backend Developer", "Frontend Developer", "SRE", "Engineering Manager"],
+    "atsType": "Greenhouse"
+  },
+  "Lever": {
+    "listingPageSelectors": [
+      "a.posting-title[href*='/jobs/']",
+      "div.posting a"
+    ],
+    "jobDetailLinkPatterns": ["/jobs/", "/job/"],
+    "jobDetailUrlRegex": "^https://jobs\\.lever\\.co/([^/]+)/([^/]+)$",
+    "googleSearchDomain": "jobs.lever.co",
+    "searchKeywords": ["Software Engineer", "Product Manager", "Data Scientist", "UX Designer", "QA Engineer", "Technical Lead"],
+    "atsType": "Lever"
+  },
+  "Ashby": {
+    "atsType": "Ashby",
+    "jobDetailUrlRegex": "^https://jobs\\.ashbyhq\\.com/([^/]+)/([^/]+)$",
+    "listingPageSelectors": ["div[class*='_job_'] a"],
+    "jobDetailLinkPatterns": ["jobs.ashbyhq.com"],
+    "locationSelectors": ["div[class*='_job_'] p[class*='_location_']"],
+    "googleSearchDomain": "jobs.ashbyhq.com",
+    "searchKeywords": ["Software Engineer", "Backend Engineer", "Frontend Engineer", "Full Stack Developer", "Platform Engineer", "DevOps Engineer"]
+  },
+  "Workable": {
+    "atsType": "Workable",
+    "jobDetailUrlRegex": "^https://(jobs\\.workable\\.com/view/|apply\\.workable\\.com/([^/]+)/j/)([^/]+)$",
+    "listingPageSelectors": ["a[data-ui='job']"],
+    "jobDetailLinkPatterns": ["jobs.workable.com", "apply.workable.com"],
+    "locationSelectors": ["dd[data-ui='job-location']", "span[data-ui='job-location']", "div[class*='job-details'] dl:nth-of-type(2) dd"],
+    "googleSearchDomain": "jobs.workable.com",
+    "searchKeywords": ["Software Engineer", "Java Developer", "Python Developer", "React Developer", "Cloud Engineer", "Site Reliability Engineer"]
+  },
+  "Generic": {
+    "listingPageSelectors": [
+      "a[href*='job']",
+      "a[href*='career']",
+      "a[href*='position']"
+    ],
+    "jobDetailLinkPatterns": ["/job", "/career", "/position", "/posting"],
+    "jobDetailUrlRegex": "/job(s|id|posting|opening|description|detail)[=/]([^/?#]+)",
+    "atsType": "Generic"
+  }
+}
