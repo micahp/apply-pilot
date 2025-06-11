@@ -77,7 +77,7 @@ fastify.post('/parse-resume', async (request, reply) => {
     return {
       filename: data.filename,
       pages: result.numpages,
-      version: result.info.PDFFormatVersion,
+      version: result.info ? result.info.PDFFormatVersion : undefined,
       text: result.text,
       // You can add more structured data extraction here
     };
