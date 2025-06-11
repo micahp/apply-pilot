@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 
 interface Job {
+  id: string;
   title: string;
+  company: string;
+  location?: string;
   url: string;
-  location: string;
-  source: string;
 }
 
 // Define a type for the component props, if any are needed in the future.
@@ -28,8 +29,16 @@ const JobListings: React.FC = () => {
         }
         const data = await response.json();
         
-        // Our jobs-web API returns { jobs: [...] }
-        setJobs(data.jobs || []); 
+        // Our jobs-web API returns { jobs: [...] } - map to enhanced interface
+        const jobsData = data.jobs || [];
+        const enhancedJobs = jobsData.map((job: any, index: number) => ({
+          id: job.id || `${job.source}-${index}`,
+          title: job.title,
+          company: job.source, // Use source as company for now
+          location: job.location,
+          url: job.url
+        }));
+        setJobs(enhancedJobs); 
       } catch (e) {
         if (e instanceof Error) {
           setError(`Failed to fetch jobs: ${e.message}`);
@@ -43,7 +52,7 @@ const JobListings: React.FC = () => {
     };
 
     fetchJobs();
-  }, []);
+  }, []); // Empty dependency array means this effect runs once on mount
 
   if (loading) {
     return <div className="job-listings-loading">Loading job listings...</div>;
@@ -68,10 +77,10 @@ const JobListings: React.FC = () => {
     <div className="job-listings-container">
       <h3>Available Jobs ({jobs.length})</h3>
       <ul className="job-list">
-        {jobs.map((job, index) => (
-          <li key={`${job.source}-${index}`} className="job-item">
+        {jobs.map(job => (
+          <li key={job.id} className="job-item">
             <h4><a href={job.url} target="_blank" rel="noopener noreferrer">{job.title}</a></h4>
-            <p>{job.location} • <span style={{ fontWeight: 'bold', color: '#007bff' }}>{job.source}</span></p>
+            <p>{job.company}{job.location ? ` - ${job.location}` : ''}</p>
           </li>
         ))}
       </ul>
