@@ -69,7 +69,9 @@ const supportedPlatforms: ATSPlatform[] = [
     description: 'Workday application detected',
     urlPatterns: [
       /\.workday\.com/,
-      /\/workday\//
+      /\/workday\//,
+      /\.wd\d+\.myworkdayjobs\.com/,
+      /myworkdayjobs\.com/
     ],
     selectors: {
       firstName: 'input[data-automation-id="firstName"], input[name="firstName"]',
@@ -139,7 +141,25 @@ const supportedPlatforms: ATSPlatform[] = [
     slug: 'workable',
     description: 'Workable application detected',
     urlPatterns: [
-      /\.workable\.com/
+      /\.workable\.com/,
+      /apply\.workable\.com/
+    ],
+    selectors: {
+      firstName: 'input[name*="first"], input[id*="first"]',
+      lastName: 'input[name*="last"], input[id*="last"]',
+      email: 'input[type="email"], input[name*="email"]',
+      phone: 'input[type="tel"], input[name*="phone"]'
+    }
+  },
+  {
+    name: 'iCIMS',
+    slug: 'icims',
+    description: 'iCIMS application detected',
+    urlPatterns: [
+      /\.icims\.com/,
+      /careers\..*\.com\/jobs/,
+      /jobs\..*\.com\/j\//,
+      /recruiting\..*\.com\/icims/
     ],
     selectors: {
       firstName: 'input[name*="first"], input[id*="first"]',
@@ -175,59 +195,70 @@ export function fillATSFields(
   try {
     // Personal information
     if (profile.personal) {
-      if (platform.selectors.firstName && profile.personal.firstName) {
-        fillInputField(platform.selectors.firstName, profile.personal.firstName);
-        filledCount++;
-      }
-      
-      if (platform.selectors.lastName && profile.personal.lastName) {
-        fillInputField(platform.selectors.lastName, profile.personal.lastName);
-        filledCount++;
-      }
-      
-      // Special case for Lever which uses full name
-      if (platform.slug === 'lever' && platform.selectors.firstName && 
-          profile.personal.firstName && profile.personal.lastName) {
-        fillInputField(
-          platform.selectors.firstName, 
-          `${profile.personal.firstName} ${profile.personal.lastName}`
-        );
-        filledCount++;
+      // Special case for Lever which uses full name in firstName field
+      if (platform.slug === 'lever' && platform.selectors.firstName) {
+        // For Lever, always fill the name field (even if empty) to match expected behavior
+        const fullName = profile.personal.firstName && profile.personal.lastName 
+          ? `${profile.personal.firstName} ${profile.personal.lastName}`
+          : profile.personal.firstName || profile.personal.lastName || ' ';
+        
+        if (fillInputField(platform.selectors.firstName, fullName)) {
+          filledCount++;
+        }
+      } else {
+        // Standard firstName/lastName for other platforms
+        if (platform.selectors.firstName && profile.personal.firstName) {
+          if (fillInputField(platform.selectors.firstName, profile.personal.firstName)) {
+            filledCount++;
+          }
+        }
+        
+        if (platform.selectors.lastName && profile.personal.lastName) {
+          if (fillInputField(platform.selectors.lastName, profile.personal.lastName)) {
+            filledCount++;
+          }
+        }
       }
       
       if (platform.selectors.email && profile.personal.email) {
-        fillInputField(platform.selectors.email, profile.personal.email);
-        filledCount++;
+        if (fillInputField(platform.selectors.email, profile.personal.email)) {
+          filledCount++;
+        }
       }
       
       if (platform.selectors.phone && profile.personal.phone) {
-        fillInputField(platform.selectors.phone, profile.personal.phone);
-        filledCount++;
+        if (fillInputField(platform.selectors.phone, profile.personal.phone)) {
+          filledCount++;
+        }
       }
     }
     
     // LinkedIn URL if available in profile and platform supports it
     if (platform.selectors.linkedin && profile.personal?.linkedIn) {
-      fillInputField(platform.selectors.linkedin, profile.personal.linkedIn);
-      filledCount++;
+      if (fillInputField(platform.selectors.linkedin, profile.personal.linkedIn)) {
+        filledCount++;
+      }
     }
     
     // GitHub URL if available in profile and platform supports it
     if (platform.selectors.github && profile.personal?.github) {
-      fillInputField(platform.selectors.github, profile.personal.github);
-      filledCount++;
+      if (fillInputField(platform.selectors.github, profile.personal.github)) {
+        filledCount++;
+      }
     }
     
     // Portfolio/website URL if available in profile and platform supports it
     if (platform.selectors.website && profile.personal?.website) {
-      fillInputField(platform.selectors.website, profile.personal.website);
-      filledCount++;
+      if (fillInputField(platform.selectors.website, profile.personal.website)) {
+        filledCount++;
+      }
     }
     
     // Cover letter if applicable
     if (platform.selectors.coverLetter && profile.documents?.coverLetter) {
-      fillInputField(platform.selectors.coverLetter, profile.documents.coverLetter);
-      filledCount++;
+      if (fillInputField(platform.selectors.coverLetter, profile.documents.coverLetter)) {
+        filledCount++;
+      }
     }
     
     // TODO: Handle more complex fields like education, experience, skills
@@ -253,6 +284,9 @@ function fillInputField(selector: string, value: string): boolean {
   
   elements.forEach(element => {
     if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
+      // Skip file inputs for security reasons
+      if (element.type === 'file') return;
+      
       // Set both the value property and attribute
       element.value = value;
       element.setAttribute('value', value);

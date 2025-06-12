@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
   "dependencies": {
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^3.10.111",
@@ -11,8 +16,11 @@
   },
   "devDependencies": {
     "@types/chrome": "^0.0.246",
+    "@types/jest": "^29.5.14",
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "^18.2.37",
-    "@types/react-dom": "^18.2.15"
+    "@types/react-dom": "^18.2.15",
+    "jest-environment-jsdom": "^30.0.0",
+    "ts-jest": "^29.3.4"
   }
 }
