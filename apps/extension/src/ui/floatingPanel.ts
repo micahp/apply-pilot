@@ -1,12 +1,14 @@
 import { ATS } from '../utils/ats';
 import { Profile } from '../types/profile';
 
+import { EnhancedFillResult } from '../utils/ats-enhanced';
+
 /**
  * Interface for panel configuration options
  */
 interface FloatingPanelOptions {
   ats: ATS;
-  onFillFields: (profileData: Profile) => void;
+  onFillFields: (profileData: Profile) => Promise<EnhancedFillResult>;
   onClose: () => void;
 }
 
@@ -142,30 +144,44 @@ export function initFloatingPanel(options: FloatingPanelOptions): HTMLElement {
 
     try {
       // Fetch profile data from storage
-      chrome.storage.local.get(['profile'], (result) => {
+      chrome.storage.local.get(['profile', 'playwrightEnabled'], async (result) => {
         if (result.profile) {
           statusMessageArea.textContent = 'Filling application fields...';
           statusMessageArea.style.color = '#2c3e50'; // Neutral color
           
-          // Call the callback to fill fields
-          options.onFillFields(result.profile);
-          
-          // Simulate success (in a real scenario, onFillFields might return a promise or send a message back)
-          // For now, we'll keep the setTimeout to show how to update the single status area.
-          // Ideally, the success/failure message would come from the actual filling logic.
-          setTimeout(() => {
-            // This part should ideally be triggered by a callback or event from the actual filling process
-            // For example, if onFillFields returned a promise:
-            // options.onFillFields(result.profile).then(() => {
-            // statusMessageArea.textContent = 'Fields filled successfully!';
-            // statusMessageArea.style.color = '#27ae60';
-            // }).catch((fillError) => {
-            // statusMessageArea.textContent = `Error: ${fillError.message}`;
-            // statusMessageArea.style.color = '#e74c3c';
-            // });
-            statusMessageArea.textContent = 'Fields filled successfully!'; // Placeholder for actual success
-            statusMessageArea.style.color = '#27ae60';
-          }, 1000); 
+                      try {
+              // Call the enhanced callback that returns full result information
+              const fillResult = await options.onFillFields(result.profile);
+              
+              if (fillResult.success) {
+                const playwrightText = fillResult.usedPlaywright 
+                  ? ` (${fillResult.contentScriptFields} basic + ${fillResult.playwrightFields} complex)` 
+                  : '';
+                statusMessageArea.textContent = `✅ Filled ${fillResult.totalFieldsFilled} fields${playwrightText}!`;
+                statusMessageArea.style.color = '#27ae60';
+                
+                // Show warnings if any (with delay)
+                if (fillResult.warnings.length > 0) {
+                  setTimeout(() => {
+                    statusMessageArea.innerHTML = `✅ Filled ${fillResult.totalFieldsFilled} fields${playwrightText}!<br><span style="font-size: 12px; color: #f39c12;">⚠️ ${fillResult.warnings[0]}</span>`;
+                  }, 2000);
+                }
+                
+                // Show first recommendation if any (with longer delay)
+                if (fillResult.recommendations.length > 0) {
+                  setTimeout(() => {
+                    statusMessageArea.innerHTML = `✅ Filled ${fillResult.totalFieldsFilled} fields${playwrightText}!<br><span style="font-size: 11px; color: #3498db;">💡 ${fillResult.recommendations[0]}</span>`;
+                  }, 5000);
+                }
+              } else {
+                statusMessageArea.innerHTML = `❌ Fill failed: ${fillResult.errors[0] || 'Unknown error'}<br><span style="font-size: 11px; color: #e67e22;">💡 ${fillResult.recommendations[0] || 'Try refreshing the page'}</span>`;
+                statusMessageArea.style.color = '#e74c3c';
+              }
+            } catch (fillError: any) {
+              console.error('Error during field filling:', fillError);
+              statusMessageArea.innerHTML = `❌ Error: ${fillError.message || 'Fill operation failed'}<br><span style="font-size: 11px; color: #e67e22;">💡 Check console for details</span>`;
+              statusMessageArea.style.color = '#e74c3c';
+            }
         } else {
           statusMessageArea.textContent = 'No profile found. Please create one in the extension settings.';
           statusMessageArea.style.color = '#e74c3c';

@@ -1,4 +1,5 @@
 import { detectATS, fillATSFields } from './utils/ats';
+import { EnhancedATSFiller } from './utils/ats-enhanced';
 import { initFloatingPanel } from './ui/floatingPanel';
 import { Profile } from './types/profile';
 
@@ -20,14 +21,97 @@ function initialize(): void {
   if (detectedATS) {
     console.log(`[AutoApply] Detected ATS: ${detectedATS.name}. Initializing panel...`);
     
+    // Create enhanced ATS filler for better handling of complex scenarios
+    const enhancedFiller = new EnhancedATSFiller();
+    
     floatingPanel = initFloatingPanel({
       ats: {
         name: detectedATS.name,
         domain: new URL(currentUrl).hostname,
         selectors: detectedATS.selectors
       },
-      onFillFields: (profileData: Profile) => {
-        return fillATSFields(detectedATS, profileData);
+      onFillFields: async (profileData: Profile) => {
+        console.log('[AutoApply] Starting enhanced field filling...');
+        
+        try {
+          // Use enhanced filler that combines content script + Playwright
+          const result = await enhancedFiller.fillATSFieldsEnhanced(detectedATS, profileData, {
+            debugMode: true, // Enable detailed logging
+            usePlaywrightForComplex: true,
+            enableFileUploads: true,
+            enableLocationAutocomplete: true,
+            enableMultiStepFlow: true
+          });
+          
+          console.log(`[AutoApply] Enhanced fill completed:`, result);
+          console.log(`[AutoApply] Strategy used: ${result.usedPlaywright ? 'Hybrid/Playwright' : 'Content Script Only'}`);
+          console.log(`[AutoApply] Fields filled: ${result.totalFieldsFilled} (CS: ${result.contentScriptFields}, PW: ${result.playwrightFields})`);
+          
+          if (result.warnings.length > 0) {
+            console.warn('[AutoApply] Warnings:', result.warnings);
+          }
+          
+          if (result.recommendations.length > 0) {
+            console.info('[AutoApply] Recommendations:', result.recommendations);
+          }
+          
+          if (result.platformSpecificInfo) {
+            console.info('[AutoApply] Platform info:', result.platformSpecificInfo);
+          }
+          
+          // Always return the full result for enhanced UI display
+          return result;
+          
+        } catch (error: any) {
+          console.error('[AutoApply] Enhanced fill critical error:', error);
+          
+          // Create fallback result with basic content script
+          try {
+            console.log('[AutoApply] Attempting fallback to basic content script...');
+            const basicFieldsFilled = await fillATSFields(detectedATS, profileData);
+            
+            return {
+              success: basicFieldsFilled > 0,
+              totalFieldsFilled: basicFieldsFilled,
+              contentScriptFields: basicFieldsFilled,
+              playwrightFields: 0,
+              errors: basicFieldsFilled === 0 ? ['Basic content script also failed'] : [],
+              warnings: ['Enhanced filling failed, used basic fallback'],
+              usedPlaywright: false,
+              recommendations: [
+                'Enhanced mode failed - check console for details',
+                'Consider refreshing page and trying again'
+              ],
+              platformSpecificInfo: {
+                platform: detectedATS.slug,
+                detectedComplexFields: [],
+                requiresManualSteps: false
+              }
+            };
+          } catch (fallbackError: any) {
+            console.error('[AutoApply] Fallback also failed:', fallbackError);
+            
+            return {
+              success: false,
+              totalFieldsFilled: 0,
+              contentScriptFields: 0,
+              playwrightFields: 0,
+              errors: [error.message, fallbackError.message],
+              warnings: ['Both enhanced and basic filling failed'],
+              usedPlaywright: false,
+              recommendations: [
+                'All filling methods failed',
+                'Check form is loaded and extension has latest updates',
+                'Try manual form filling'
+              ],
+              platformSpecificInfo: {
+                platform: detectedATS.slug,
+                detectedComplexFields: [],
+                requiresManualSteps: true
+              }
+            };
+          }
+        }
       },
       onClose: () => {
         if (floatingPanel) {

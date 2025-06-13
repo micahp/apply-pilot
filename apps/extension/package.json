@@ -13,7 +13,8 @@
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^3.10.111",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "playwright": "^1.40.0"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.246",
@@ -22,6 +23,7 @@
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
     "jest-environment-jsdom": "^30.0.0",
-    "ts-jest": "^29.3.4"
+    "ts-jest": "^29.3.4",
+    "@playwright/test": "^1.40.0"
   }
 }
