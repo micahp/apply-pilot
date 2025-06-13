@@ -10,20 +10,21 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
+    "@types/node": "^20.17.48",
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^3.10.111",
+    "playwright": "^1.53.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "playwright": "^1.40.0"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
     "@types/chrome": "^0.0.246",
     "@types/jest": "^29.5.14",
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
     "jest-environment-jsdom": "^30.0.0",
-    "ts-jest": "^29.3.4",
-    "@playwright/test": "^1.40.0"
+    "ts-jest": "^29.3.4"
   }
 }

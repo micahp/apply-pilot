@@ -1,4 +1,5 @@
-import { detectATS, fillATSFields } from '../utils/ats';
+import { detectATS } from '../utils/ats';
+import { fillATSFieldsEnhanced } from '../utils/ats-enhanced';
 import { initFloatingPanel } from '../ui/floatingPanel';
 import { initTestResumeParser } from '../utils/testResumeParsing';
 import { Profile } from '../types/profile';
@@ -24,8 +25,8 @@ import { Profile } from '../types/profile';
         domain: new URL(window.location.href).hostname,
         selectors: ats.selectors
       },
-      onFillFields: (profileData: Profile) => {
-        fillATSFields(ats, profileData);
+      onFillFields: async (profileData: Profile) => {
+        return await fillATSFieldsEnhanced(ats, profileData);
       },
       onClose: () => {
         if (floatingPanel) {

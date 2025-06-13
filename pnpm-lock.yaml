@@ -38,7 +38,7 @@ importers:
         version: 16.10.0(@babel/traverse@7.27.1)(@types/node@20.17.48)(nx@16.10.0)(typescript@5.8.3)
       '@nx/vite':
         specifier: 16.10.0
-        version: 16.10.0(@babel/traverse@7.27.1)(@types/node@20.17.48)(nx@16.10.0)(typescript@5.8.3)(vite@4.5.14(@types/node@20.17.48))(vitest@0.34.6(jsdom@26.1.0))
+        version: 16.10.0(@babel/traverse@7.27.1)(@types/node@20.17.48)(nx@16.10.0)(typescript@5.8.3)(vite@4.5.14(@types/node@20.17.48))(vitest@0.34.6(jsdom@26.1.0)(playwright@1.53.0))
       '@nx/workspace':
         specifier: 16.10.0
         version: 16.10.0
@@ -90,12 +90,18 @@ importers:
 
   apps/extension:
     dependencies:
+      '@types/node':
+        specifier: ^20.17.48
+        version: 20.17.48
       pdf-parse:
         specifier: ^1.1.1
         version: 1.1.1
       pdfjs-dist:
         specifier: ^3.10.111
         version: 3.11.174
+      playwright:
+        specifier: ^1.53.0
+        version: 1.53.0
       react:
         specifier: ^18.2.0
         version: 18.3.1
@@ -103,6 +109,9 @@ importers:
         specifier: ^18.2.0
         version: 18.3.1(react@18.3.1)
     devDependencies:
+      '@playwright/test':
+        specifier: ^1.40.0
+        version: 1.53.0
       '@types/chrome':
         specifier: ^0.0.246
         version: 0.0.246
@@ -1432,6 +1441,11 @@ packages:
     peerDependencies:
       typescript: ^3 || ^4 || ^5
 
+  '@playwright/test@1.53.0':
+    resolution: {integrity: sha512-15hjKreZDcp7t6TL/7jkAo6Df5STZN09jGiv5dbP9A6vMVncXRqE7/B2SncsyOwrkZRBH2i6/TPOL8BVmm3c7w==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   '@rollup/pluginutils@4.2.1':
     resolution: {integrity: sha512-iKnFXr7NkdZAIHiIWE+BX5ULi/ucVFYWD6TbAV+rZctiRTY2PL6tsIKhoIOaoskiWAkgu+VsbXgUVDNLHf+InQ==}
     engines: {node: '>= 8.0.0'}
@@ -2652,6 +2666,11 @@ packages:
   fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
 
+  fsevents@2.3.2:
+    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -3543,6 +3562,16 @@ packages:
 
   pkg-types@1.3.1:
     resolution: {integrity: sha512-/Jm5M4RvtBFVkKWRu2BLUTNP8/M2a+UwuAX+ae4770q1qVGtfjG+WTCupoZixokjmHiry8uI+dlY8KXYV5HVVQ==}
+
+  playwright-core@1.53.0:
+    resolution: {integrity: sha512-mGLg8m0pm4+mmtB7M89Xw/GSqoNC+twivl8ITteqvAndachozYe2ZA7srU6uleV1vEdAHYqjq+SV8SNxRRFYBw==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  playwright@1.53.0:
+    resolution: {integrity: sha512-ghGNnIEYZC4E+YtclRn4/p6oYbdPiASELBIYkBXfaTVKreQUYbMUYQDwS12a8F0/HtIjr/CkGjtwABeFPGcS4Q==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   postcss@8.5.3:
     resolution: {integrity: sha512-dle9A3yYxlBSrt8Fu+IpjGT8SY8hN0mlaA6GY8t0P5PjIOZemULz/E2Bnm/2dcUOena75OTNkHI76uZBNUUq3A==}
@@ -6143,9 +6172,9 @@ snapshots:
       - '@swc/core'
       - debug
 
-  '@nrwl/vite@16.10.0(@babel/traverse@7.27.1)(@types/node@20.17.48)(nx@16.10.0)(typescript@5.8.3)(vite@4.5.14(@types/node@20.17.48))(vitest@0.34.6(jsdom@26.1.0))':
+  '@nrwl/vite@16.10.0(@babel/traverse@7.27.1)(@types/node@20.17.48)(nx@16.10.0)(typescript@5.8.3)(vite@4.5.14(@types/node@20.17.48))(vitest@0.34.6(jsdom@26.1.0)(playwright@1.53.0))':
     dependencies:
-      '@nx/vite': 16.10.0(@babel/traverse@7.27.1)(@types/node@20.17.48)(nx@16.10.0)(typescript@5.8.3)(vite@4.5.14(@types/node@20.17.48))(vitest@0.34.6(jsdom@26.1.0))
+      '@nx/vite': 16.10.0(@babel/traverse@7.27.1)(@types/node@20.17.48)(nx@16.10.0)(typescript@5.8.3)(vite@4.5.14(@types/node@20.17.48))(vitest@0.34.6(jsdom@26.1.0)(playwright@1.53.0))
     transitivePeerDependencies:
       - '@babel/traverse'
       - '@swc-node/register'
@@ -6278,9 +6307,9 @@ snapshots:
   '@nx/nx-win32-x64-msvc@16.10.0':
     optional: true
 
-  '@nx/vite@16.10.0(@babel/traverse@7.27.1)(@types/node@20.17.48)(nx@16.10.0)(typescript@5.8.3)(vite@4.5.14(@types/node@20.17.48))(vitest@0.34.6(jsdom@26.1.0))':
+  '@nx/vite@16.10.0(@babel/traverse@7.27.1)(@types/node@20.17.48)(nx@16.10.0)(typescript@5.8.3)(vite@4.5.14(@types/node@20.17.48))(vitest@0.34.6(jsdom@26.1.0)(playwright@1.53.0))':
     dependencies:
-      '@nrwl/vite': 16.10.0(@babel/traverse@7.27.1)(@types/node@20.17.48)(nx@16.10.0)(typescript@5.8.3)(vite@4.5.14(@types/node@20.17.48))(vitest@0.34.6(jsdom@26.1.0))
+      '@nrwl/vite': 16.10.0(@babel/traverse@7.27.1)(@types/node@20.17.48)(nx@16.10.0)(typescript@5.8.3)(vite@4.5.14(@types/node@20.17.48))(vitest@0.34.6(jsdom@26.1.0)(playwright@1.53.0))
       '@nx/devkit': 16.10.0(nx@16.10.0)
       '@nx/js': 16.10.0(@babel/traverse@7.27.1)(@types/node@20.17.48)(nx@16.10.0)(typescript@5.8.3)
       '@phenomnomnominal/tsquery': 5.0.1(typescript@5.8.3)
@@ -6288,7 +6317,7 @@ snapshots:
       enquirer: 2.3.6
       tsconfig-paths: 4.2.0
       vite: 4.5.14(@types/node@20.17.48)
-      vitest: 0.34.6(jsdom@26.1.0)
+      vitest: 0.34.6(jsdom@26.1.0)(playwright@1.53.0)
     transitivePeerDependencies:
       - '@babel/traverse'
       - '@swc-node/register'
@@ -6326,6 +6355,10 @@ snapshots:
     dependencies:
       esquery: 1.6.0
       typescript: 5.8.3
+
+  '@playwright/test@1.53.0':
+    dependencies:
+      playwright: 1.53.0
 
   '@rollup/pluginutils@4.2.1':
     dependencies:
@@ -7820,6 +7853,9 @@ snapshots:
 
   fs.realpath@1.0.0: {}
 
+  fsevents@2.3.2:
+    optional: true
+
   fsevents@2.3.3:
     optional: true
 
@@ -8978,6 +9014,14 @@ snapshots:
       mlly: 1.7.4
       pathe: 2.0.3
 
+  playwright-core@1.53.0: {}
+
+  playwright@1.53.0:
+    dependencies:
+      playwright-core: 1.53.0
+    optionalDependencies:
+      fsevents: 2.3.2
+
   postcss@8.5.3:
     dependencies:
       nanoid: 3.3.11
@@ -9516,7 +9560,7 @@ snapshots:
       '@types/node': 20.17.48
       fsevents: 2.3.3
 
-  vitest@0.34.6(jsdom@26.1.0):
+  vitest@0.34.6(jsdom@26.1.0)(playwright@1.53.0):
     dependencies:
       '@types/chai': 4.3.20
       '@types/chai-subset': 1.3.6(@types/chai@4.3.20)
@@ -9544,6 +9588,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       jsdom: 26.1.0
+      playwright: 1.53.0
     transitivePeerDependencies:
       - less
       - lightningcss

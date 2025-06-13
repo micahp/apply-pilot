@@ -616,7 +616,7 @@ export class EnhancedATSFiller {
   }
 
   private detectAvailableFields(platform: ATSPlatform): string[] {
-    const fields = [];
+    const fields: string[] = [];
     Object.entries(platform.selectors).forEach(([key, selector]) => {
       if (selector && document.querySelector(selector)) {
         fields.push(key);
