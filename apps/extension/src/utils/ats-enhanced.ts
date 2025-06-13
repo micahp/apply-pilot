@@ -1,5 +1,6 @@
 import { Profile } from '../types/profile';
-import { ATSPlatform, fillATSFields } from './ats';
+import { ATSPlatform } from './ats-platforms';
+import { fillATSFields } from './ats-basic';
 import { 
   getPlaywrightService, 
   identifyComplexFields, 

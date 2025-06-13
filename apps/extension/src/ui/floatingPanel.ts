@@ -1,4 +1,4 @@
-import { ATS } from '../utils/ats';
+import { ATS } from '../utils/ats-platforms';
 import { Profile } from '../types/profile';
 
 import { EnhancedFillResult } from '../utils/ats-enhanced';

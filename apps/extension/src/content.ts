@@ -1,4 +1,5 @@
-import { detectATS, fillATSFields } from './utils/ats';
+import { detectATS } from './utils/ats-platforms';
+import { fillATSFields } from './utils/ats-basic';
 import { EnhancedATSFiller } from './utils/ats-enhanced';
 import { initFloatingPanel } from './ui/floatingPanel';
 import { Profile } from './types/profile';

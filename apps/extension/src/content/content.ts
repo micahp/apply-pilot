@@ -1,4 +1,4 @@
-import { detectATS, isAshbyJobListingPage, clickAshbyApplyButton } from '../utils/ats';
+import { detectATS, isAshbyJobListingPage, clickAshbyApplyButton, detectResumeImportFeatures } from '../utils/ats-platforms';
 import { fillATSFieldsEnhanced } from '../utils/ats-enhanced';
 import { initFloatingPanel } from '../ui/floatingPanel';
 import { initTestResumeParser } from '../utils/testResumeParsing';
@@ -17,6 +17,13 @@ import { Profile } from '../types/profile';
   
   if (ats) {
     console.log(`Detected ATS: ${ats.name}`);
+    
+    // Check for native resume import features
+    const resumeImport = detectResumeImportFeatures();
+    if (resumeImport.hasNativeImport) {
+      console.log('Native resume import detected:', resumeImport.importSelectors);
+      console.log('Recommendations:', resumeImport.recommendations);
+    }
     
     // Check if this is an Ashby job listing page
     const isJobListingPage = ats.slug === 'ashby' && isAshbyJobListingPage();
