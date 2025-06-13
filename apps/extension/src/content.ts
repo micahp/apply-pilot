@@ -1,4 +1,4 @@
-import { detectATS } from './utils/ats-platforms';
+import { detectATS, detectResumeImportFeatures } from './utils/ats-platforms';
 import { fillATSFields } from './utils/ats-basic';
 import { EnhancedATSFiller } from './utils/ats-enhanced';
 import { initFloatingPanel } from './ui/floatingPanel';
@@ -21,6 +21,13 @@ function initialize(): void {
   
   if (detectedATS) {
     console.log(`[AutoApply] Detected ATS: ${detectedATS.name}. Initializing panel...`);
+    
+    // Check for native resume import features
+    const resumeImport = detectResumeImportFeatures();
+    if (resumeImport.hasNativeImport) {
+      console.log('Native resume import detected:', resumeImport.importSelectors);
+      console.log('Recommendations:', resumeImport.recommendations);
+    }
     
     // Create enhanced ATS filler for better handling of complex scenarios
     const enhancedFiller = new EnhancedATSFiller();
