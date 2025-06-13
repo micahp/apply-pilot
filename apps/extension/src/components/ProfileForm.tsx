@@ -20,6 +20,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     education: [],
     skills: [],
     eeo: { gender: '', ethnicity: '' },
+    documents: { resume: '', coverLetter: '' },
     ...initialProfile
   });
 
@@ -69,7 +70,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       ...prev,
       workExperience: [
         ...(prev.workExperience || []),
-        { company: '', title: '', startDate: '', endDate: '', description: '' }
+        { company: '', title: '', startDate: '', endDate: '', description: '', location: '', current: false }
       ]
     }));
   };
@@ -86,7 +87,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       ...prev,
       education: [
         ...(prev.education || []),
-        { institution: '', degree: '', fieldOfStudy: '', startDate: '', endDate: '' }
+        { institution: '', degree: '', fieldOfStudy: '', startDate: '', endDate: '', gpa: '' }
       ]
     }));
   };
@@ -210,6 +211,68 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           </div>
         </section>
 
+        {/* Address Information Section */}
+        <section className="form-section">
+          <h2>Address Information</h2>
+          <div className="form-grid">
+            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+              <label htmlFor="address">Street Address</label>
+              <input
+                type="text"
+                id="address"
+                name="address"
+                value={profile.personal?.address || ''}
+                onChange={(e) => handleInputChange(e, 'personal')}
+                placeholder="Enter your street address"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="city">City</label>
+              <input
+                type="text"
+                id="city"
+                name="city"
+                value={profile.personal?.city || ''}
+                onChange={(e) => handleInputChange(e, 'personal')}
+                placeholder="Enter your city"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="state">State/Province</label>
+              <input
+                type="text"
+                id="state"
+                name="state"
+                value={profile.personal?.state || ''}
+                onChange={(e) => handleInputChange(e, 'personal')}
+                placeholder="Enter your state or province"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="zipCode">ZIP/Postal Code</label>
+              <input
+                type="text"
+                id="zipCode"
+                name="zipCode"
+                value={profile.personal?.zipCode || ''}
+                onChange={(e) => handleInputChange(e, 'personal')}
+                placeholder="Enter your ZIP or postal code"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="country">Country</label>
+              <input
+                type="text"
+                id="country"
+                name="country"
+                value={profile.personal?.country || ''}
+                onChange={(e) => handleInputChange(e, 'personal')}
+                placeholder="Enter your country"
+              />
+            </div>
+          </div>
+        </section>
+
         {/* Work Experience Section */}
         <section className="form-section">
           <h2>Work Experience</h2>
@@ -262,7 +325,41 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                     name="endDate"
                     value={exp.endDate || ''}
                     onChange={(e) => handleInputChange(e, 'workExperience', index)}
+                    disabled={exp.current}
                   />
+                </div>
+                <div className="form-group">
+                  <label htmlFor={`location-${index}`}>Location</label>
+                  <input
+                    type="text"
+                    id={`location-${index}`}
+                    name="location"
+                    value={exp.location || ''}
+                    onChange={(e) => handleInputChange(e, 'workExperience', index)}
+                    placeholder="City, State or Remote"
+                  />
+                </div>
+                <div className="form-group">
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input
+                      type="checkbox"
+                      name="current"
+                      checked={exp.current || false}
+                      onChange={(e) => {
+                        const updatedItems = [...(profile.workExperience || [])];
+                        updatedItems[index] = {
+                          ...updatedItems[index],
+                          current: e.target.checked,
+                          endDate: e.target.checked ? '' : updatedItems[index].endDate
+                        };
+                        setProfile(prev => ({
+                          ...prev,
+                          workExperience: updatedItems
+                        }));
+                      }}
+                    />
+                    Currently employed here
+                  </label>
                 </div>
                 <div className="form-group" style={{ gridColumn: 'span 2' }}>
                   <label htmlFor={`description-${index}`}>Description</label>
@@ -348,6 +445,17 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                     onChange={(e) => handleInputChange(e, 'education', index)}
                   />
                 </div>
+                <div className="form-group">
+                  <label htmlFor={`gpa-${index}`}>GPA (Optional)</label>
+                  <input
+                    type="text"
+                    id={`gpa-${index}`}
+                    name="gpa"
+                    value={edu.gpa || ''}
+                    onChange={(e) => handleInputChange(e, 'education', index)}
+                    placeholder="e.g., 3.8"
+                  />
+                </div>
               </div>
             </div>
           ))}
@@ -378,6 +486,58 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
             <button type="button" className="add-skill-btn" onClick={addSkill}>
               Add
             </button>
+          </div>
+        </section>
+
+        {/* Documents Section */}
+        <section className="form-section">
+          <h2>Documents</h2>
+          <div className="form-grid">
+            <div className="form-group">
+              <label htmlFor="resume">Resume File</label>
+              <input
+                type="file"
+                id="resume"
+                name="resume"
+                accept=".pdf,.doc,.docx"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    // Store file name or handle file upload
+                    setProfile(prev => ({
+                      ...prev,
+                      documents: {
+                        ...prev.documents,
+                        resume: file.name
+                      }
+                    }));
+                  }
+                }}
+              />
+              <small className="form-help">Upload your resume (.pdf, .doc, .docx)</small>
+              {profile.documents?.resume && (
+                <div className="file-info">Current: {profile.documents.resume}</div>
+              )}
+            </div>
+            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+              <label htmlFor="coverLetter">Cover Letter</label>
+              <textarea
+                id="coverLetter"
+                name="coverLetter"
+                value={profile.documents?.coverLetter || ''}
+                onChange={(e) => {
+                  setProfile(prev => ({
+                    ...prev,
+                    documents: {
+                      ...prev.documents,
+                      coverLetter: e.target.value
+                    }
+                  }));
+                }}
+                rows={8}
+                placeholder="Write your cover letter here or paste from another source..."
+              ></textarea>
+            </div>
           </div>
         </section>
 

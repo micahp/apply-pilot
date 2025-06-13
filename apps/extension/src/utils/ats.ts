@@ -114,6 +114,7 @@ const supportedPlatforms: ATSPlatform[] = [
       firstName: 'input[name="name"]', // Lever uses full name in one field
       email: 'input[name="email"]',
       phone: 'input[name="phone"]',
+      location: 'input[name="location"], input[name="current_location"], input[name="city"]',
       resume: 'input[name="resume"]',
       linkedin: 'input[name="urls[LinkedIn]"]',
       github: 'input[name="urls[GitHub]"]',
@@ -231,6 +232,56 @@ export function fillATSFields(
           filledCount++;
         }
       }
+      
+      // Address fields
+      if (platform.selectors.address && profile.personal.address) {
+        if (fillInputField(platform.selectors.address, profile.personal.address)) {
+          filledCount++;
+        }
+      }
+      
+      if (platform.selectors.city && profile.personal.city) {
+        if (fillInputField(platform.selectors.city, profile.personal.city)) {
+          filledCount++;
+        }
+      }
+      
+      if (platform.selectors.state && profile.personal.state) {
+        if (fillInputField(platform.selectors.state, profile.personal.state)) {
+          filledCount++;
+        }
+      }
+      
+      if (platform.selectors.zip && profile.personal.zipCode) {
+        if (fillInputField(platform.selectors.zip, profile.personal.zipCode)) {
+          filledCount++;
+        }
+      }
+      
+      // Location field - use city if available, otherwise construct from city + state
+      if (platform.selectors.location) {
+        let locationValue = '';
+        if (profile.personal.city && profile.personal.state) {
+          locationValue = `${profile.personal.city}, ${profile.personal.state}`;
+        } else if (profile.personal.city) {
+          locationValue = profile.personal.city;
+        } else if (profile.personal.address) {
+          locationValue = profile.personal.address;
+        }
+        
+        if (locationValue) {
+          // Special handling for Lever location fields which need autocomplete selection
+          if (platform.slug === 'lever') {
+            if (fillLeverLocationField(platform.selectors.location, locationValue)) {
+              filledCount++;
+            }
+          } else {
+            if (fillInputField(platform.selectors.location, locationValue)) {
+              filledCount++;
+            }
+          }
+        }
+      }
     }
     
     // LinkedIn URL if available in profile and platform supports it
@@ -254,71 +305,225 @@ export function fillATSFields(
       }
     }
     
-    // Cover letter if applicable
+    // Cover letter if available in profile and platform supports it
     if (platform.selectors.coverLetter && profile.documents?.coverLetter) {
       if (fillInputField(platform.selectors.coverLetter, profile.documents.coverLetter)) {
         filledCount++;
       }
     }
     
-    // TODO: Handle more complex fields like education, experience, skills
-    // These usually require more complex interactions specific to each ATS
+    // Wait a moment for all events to process, then validate form completion
+    setTimeout(() => {
+      const isFormReady = validateFormCompletion(platform);
+      if (!isFormReady) {
+        console.warn('AutoApply: Form may not be ready for submission. Submit button not enabled.');
+      }
+      resolve(filledCount);
+    }, process.env.NODE_ENV === 'test' ? 100 : 1000); // Shorter timeout for tests
     
-    console.log(`[AutoApply] Filled ${filledCount} fields on ${platform.name}`);
-    resolve(filledCount);
   } catch (error) {
-    console.error(`[AutoApply] Error filling fields:`, error);
-    reject(error); // Reject the promise on error
+    console.error('AutoApply: Error filling ATS fields:', error);
+    reject(error);
   }
   });
 }
 
 /**
- * Helper function to fill an input field
+ * Fill an input field with proper event handling for validation
  */
 function fillInputField(selector: string, value: string): boolean {
-  const elements = document.querySelectorAll(selector);
-  if (!elements || elements.length === 0) return false;
-  
-  let filled = false;
-  
-  elements.forEach(element => {
+  const element = document.querySelector(selector);
+  if (!element) return false;
+
+  try {
     if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
-      // Skip file inputs for security reasons
-      if (element.type === 'file') return;
+      // Focus the element first
+      element.focus();
       
-      // Set both the value property and attribute
+      // Clear existing value
+      element.value = '';
+      
+      // Set the new value
       element.value = value;
-      element.setAttribute('value', value);
       
-      // Trigger events to ensure the application recognizes the change
-      triggerInputEvents(element);
-      filled = true;
+      // Trigger comprehensive events for validation and form framework compatibility
+      const events = [
+        new Event('focus', { bubbles: true }),
+        new Event('input', { bubbles: true }),
+        new Event('change', { bubbles: true }),
+        new Event('keyup', { bubbles: true }),
+        new Event('blur', { bubbles: true })
+      ];
+      
+      // Fire events in sequence
+      events.forEach(event => {
+        element.dispatchEvent(event);
+      });
+      
+      // Additional events for React/Vue/Angular compatibility
+      const customEvents = [
+        new CustomEvent('input', { bubbles: true, detail: { value } }),
+        new CustomEvent('change', { bubbles: true, detail: { value } })
+      ];
+      
+      customEvents.forEach(event => {
+        element.dispatchEvent(event);
+      });
+      
+      return true;
     } else if (element instanceof HTMLSelectElement) {
-      // For select elements, find the option that matches the value
+      // Handle select elements
+      element.focus();
+      
+      // Try to find matching option by value or text
       const options = Array.from(element.options);
-      const option = options.find(opt => 
-        opt.value.toLowerCase() === value.toLowerCase() || 
-        opt.text.toLowerCase() === value.toLowerCase()
+      const matchingOption = options.find(option => 
+        option.value === value || 
+        option.text === value ||
+        option.text.toLowerCase().includes(value.toLowerCase())
       );
       
-      if (option) {
-        element.value = option.value;
-        triggerInputEvents(element);
-        filled = true;
+      if (matchingOption) {
+        element.selectedIndex = matchingOption.index;
+        
+        // Trigger events for select elements
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+        element.dispatchEvent(new Event('blur', { bubbles: true }));
+        
+        return true;
       }
     }
-  });
-  
-  return filled;
+    
+    return false;
+  } catch (error) {
+    console.error('AutoApply: Error filling input field:', error);
+    return false;
+  }
 }
 
 /**
- * Trigger necessary events for form validation
+ * Fill a Lever location field with autocomplete handling
+ * Lever location fields show suggestions after typing and require clicking one
  */
-function triggerInputEvents(element: HTMLElement): void {
-  ['input', 'change', 'blur'].forEach(eventType => {
-    const event = new Event(eventType, { bubbles: true });
-    element.dispatchEvent(event);
-  });
+function fillLeverLocationField(selector: string, value: string): boolean {
+  const element = document.querySelector(selector) as HTMLInputElement;
+  if (!element) return false;
+
+  try {
+    // Focus the input first
+    element.focus();
+    
+    // Clear any existing value
+    element.value = '';
+    
+    // Type the value character by character to trigger autocomplete
+    let currentValue = '';
+    for (let i = 0; i < value.length; i++) {
+      currentValue += value[i];
+      element.value = currentValue;
+      
+      // Trigger input event after each character to simulate typing
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+      element.dispatchEvent(new Event('keyup', { bubbles: true }));
+    }
+    
+    // Wait for autocomplete suggestions to appear, then try to click first suggestion
+    setTimeout(() => {
+      // Look for common autocomplete dropdown selectors used by various location services
+      const suggestionSelectors = [
+        '.pac-item:first-child', // Google Places API
+        '.pac-item:first-of-type',
+        '.pac-container .pac-item:first-child',
+        '.autocomplete-item:first-child',
+        '.autocomplete-suggestion:first-child', 
+        '.suggestion:first-child',
+        '.dropdown-item:first-child',
+        '[role="option"]:first-child',
+        '.location-suggestion:first-child',
+        '.typeahead-suggestion:first-child',
+        '.tt-suggestion:first-child',
+        '.ui-menu-item:first-child',
+        '.select2-result:first-child'
+      ];
+      
+      let suggestionClicked = false;
+      
+      for (const suggestionSelector of suggestionSelectors) {
+        const suggestion = document.querySelector(suggestionSelector) as HTMLElement;
+        if (suggestion && suggestion.offsetParent !== null) { // Check if visible
+          // Create and dispatch mouse events for proper interaction
+          const mouseDownEvent = new MouseEvent('mousedown', { bubbles: true });
+          const clickEvent = new MouseEvent('click', { bubbles: true });
+          const mouseUpEvent = new MouseEvent('mouseup', { bubbles: true });
+          
+          suggestion.dispatchEvent(mouseDownEvent);
+          suggestion.dispatchEvent(clickEvent);
+          suggestion.dispatchEvent(mouseUpEvent);
+          
+          suggestionClicked = true;
+          console.log(`AutoApply: Clicked suggestion: ${suggestion.textContent}`);
+          break;
+        }
+      }
+      
+      // If no autocomplete suggestion was found, try to trigger validation manually
+      if (!suggestionClicked) {
+        console.warn('AutoApply: No autocomplete suggestions found for location field');
+        // Trigger final validation events
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+        element.dispatchEvent(new Event('blur', { bubbles: true }));
+      }
+      
+      // Additional validation check after a short delay
+      setTimeout(() => {
+        const form = element.closest('form');
+        if (form) {
+          // Trigger form validation
+          form.dispatchEvent(new Event('change', { bubbles: true }));
+          
+          // Check if submit button is now enabled
+          const submitButton = form.querySelector('button[type="submit"], input[type="submit"]') as HTMLButtonElement;
+          if (submitButton && submitButton.disabled) {
+            console.warn('AutoApply: Submit button still disabled after location fill');
+          }
+        }
+      }, 200);
+      
+         }, process.env.NODE_ENV === 'test' ? 50 : 750); // Shorter timeout for tests
+    
+    return true;
+  } catch (error) {
+    console.error('AutoApply: Error filling Lever location field:', error);
+    return false;
+  }
+}
+
+/**
+ * General validation function to ensure forms are ready for submission
+ */
+function validateFormCompletion(platform: ATSPlatform): boolean {
+  // Look for submit buttons with various selectors
+  const submitSelectors = [
+    'button[type="submit"]',
+    'input[type="submit"]',
+    '[role="button"][type="submit"]',
+    'button[form]',
+    '.submit-button',
+    '.btn-submit',
+    '.apply-button'
+  ];
+  
+  for (const selector of submitSelectors) {
+    const submitButton = document.querySelector(selector);
+    if (submitButton) {
+      if (submitButton instanceof HTMLButtonElement) {
+        return !submitButton.disabled;
+      } else if (submitButton instanceof HTMLInputElement) {
+        return !submitButton.disabled;
+      }
+    }
+  }
+  
+  // If no submit button found, consider form complete
+  return true;
 } 
