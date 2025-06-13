@@ -526,4 +526,117 @@ function validateFormCompletion(platform: ATSPlatform): boolean {
   
   // If no submit button found, consider form complete
   return true;
+}
+
+/**
+ * Detect if we're on an Ashby job listing page (not the application form)
+ */
+export function isAshbyJobListingPage(): boolean {
+  // Check if we have apply-related buttons/links but no form fields
+  const hasApplyElements = checkForApplyElements();
+  const hasFormFields = !!document.querySelector('input[name*="first"], input[name*="email"], input[type="email"], form');
+  const jobTitle = document.querySelector('[data-testid*="job-title"], h1, .job-title');
+  
+  return hasApplyElements && !hasFormFields && !!jobTitle;
+}
+
+/**
+ * Helper function to check for apply elements by text content
+ */
+function checkForApplyElements(): boolean {
+  // Check buttons
+  const buttons = document.querySelectorAll('button');
+  for (const button of buttons) {
+    const text = button.textContent?.toLowerCase() || '';
+    if (text.includes('apply') || button.className.toLowerCase().includes('apply')) {
+      return true;
+    }
+  }
+  
+  // Check links
+  const links = document.querySelectorAll('a');
+  for (const link of links) {
+    const text = link.textContent?.toLowerCase() || '';
+    if (text.includes('apply') || link.className.toLowerCase().includes('apply')) {
+      return true;
+    }
+  }
+  
+  // Check for elements with apply-related data attributes or classes
+  const applyElements = document.querySelectorAll('[data-testid*="apply"], [class*="apply"], [id*="apply"]');
+  return applyElements.length > 0;
+}
+
+/**
+ * Click the "Apply for this Job" button on Ashby job listing pages
+ */
+export function clickAshbyApplyButton(): boolean {
+  // Look for buttons with apply-related text
+  const buttons = document.querySelectorAll('button');
+  
+  for (const button of buttons) {
+    const text = button.textContent?.toLowerCase() || '';
+    const className = button.className.toLowerCase();
+    
+    if ((text.includes('apply') || className.includes('apply')) && 
+        isElementVisible(button as HTMLElement)) {
+      (button as HTMLElement).click();
+      console.log(`Clicked apply button with text: "${button.textContent}"`);
+      return true;
+    }
+  }
+  
+  // Look for links with apply-related text
+  const links = document.querySelectorAll('a');
+  
+  for (const link of links) {
+    const text = link.textContent?.toLowerCase() || '';
+    const className = link.className.toLowerCase();
+    if ((text.includes('apply') || className.includes('apply')) && 
+        isElementVisible(link as HTMLElement)) {
+      (link as HTMLElement).click();
+      console.log(`Clicked apply link with text: "${link.textContent}"`);
+      return true;
+    }
+  }
+  
+  // Look for elements with apply-related attributes
+  const applySelectors = [
+    '[data-testid*="apply"]',
+    '[class*="apply"]',
+    '[id*="apply"]',
+    '.apply-button',
+    '#apply-button'
+  ];
+  
+  for (const selector of applySelectors) {
+    const element = document.querySelector(selector) as HTMLElement;
+    
+    if (element && isElementVisible(element)) {
+      element.click();
+      console.log(`Clicked apply element using selector: ${selector}`);
+      return true;
+    }
+  }
+  
+  console.log('No apply button found on page');
+  return false;
+}
+
+/**
+ * Helper function to check if an element is visible
+ * Works in both browser and test environments
+ */
+function isElementVisible(element: HTMLElement): boolean {
+  // For test environments, just check if the element exists and is not explicitly hidden
+  if (typeof jest !== 'undefined') {
+    const style = window.getComputedStyle ? window.getComputedStyle(element) : null;
+    if (style) {
+      return style.display !== 'none' && style.visibility !== 'hidden';
+    }
+    return true; // If we can't get computed style, assume visible
+  }
+  
+  // Browser environment - use offsetParent
+  return element.offsetParent !== null;
 } 

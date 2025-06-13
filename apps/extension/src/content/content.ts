@@ -1,4 +1,4 @@
-import { detectATS } from '../utils/ats';
+import { detectATS, isAshbyJobListingPage, clickAshbyApplyButton } from '../utils/ats';
 import { fillATSFieldsEnhanced } from '../utils/ats-enhanced';
 import { initFloatingPanel } from '../ui/floatingPanel';
 import { initTestResumeParser } from '../utils/testResumeParsing';
@@ -18,6 +18,15 @@ import { Profile } from '../types/profile';
   if (ats) {
     console.log(`Detected ATS: ${ats.name}`);
     
+    // Check if this is an Ashby job listing page
+    const isJobListingPage = ats.slug === 'ashby' && isAshbyJobListingPage();
+    
+    if (isJobListingPage) {
+      console.log('Detected Ashby job listing page - will show Apply button');
+    } else {
+      console.log('Detected ATS application form page - will show Autofill button');
+    }
+    
     // Initialize the floating control panel
     const floatingPanel = initFloatingPanel({
       ats: {
@@ -25,6 +34,10 @@ import { Profile } from '../types/profile';
         domain: new URL(window.location.href).hostname,
         selectors: ats.selectors
       },
+      isJobListingPage,
+      onApply: isJobListingPage ? () => {
+        return clickAshbyApplyButton();
+      } : undefined,
       onFillFields: async (profileData: Profile) => {
         return await fillATSFieldsEnhanced(ats, profileData);
       },

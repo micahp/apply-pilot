@@ -1,4 +1,4 @@
-import { detectATS, fillATSFields } from '../ats';
+import { detectATS, fillATSFields, isAshbyJobListingPage, clickAshbyApplyButton } from '../ats';
 import { Profile } from '../../types/profile';
 
 const mockProfile: Profile = {
@@ -440,6 +440,110 @@ describe('Ashby ATS Tests', () => {
       const firstNameField = document.querySelector('input[name*="first_name"]') as HTMLInputElement;
       expect(firstNameField.getAttribute('aria-label')).toBe('First Name');
       expect(firstNameField.getAttribute('aria-required')).toBe('true');
+    });
+  });
+
+  describe('Ashby Job Listing Detection', () => {
+    test('should detect Ashby job listing page with Apply button', () => {
+      document.body.innerHTML = `
+        <div class="job-page">
+          <h1>Senior Software Engineer</h1>
+          <div class="job-description">
+            <p>We are looking for a talented engineer...</p>
+          </div>
+          <button class="apply-button">Apply for this Job</button>
+        </div>
+      `;
+
+      const isJobListing = isAshbyJobListingPage();
+      expect(isJobListing).toBe(true);
+    });
+
+    test('should not detect job listing page when form fields are present', () => {
+      document.body.innerHTML = `
+        <div class="application-page">
+          <h1>Application Form</h1>
+          <form>
+            <input name="first_name" type="text" />
+            <input type="email" name="email" />
+          </form>
+          <button type="submit">Submit Application</button>
+        </div>
+      `;
+
+      const isJobListing = isAshbyJobListingPage();
+      expect(isJobListing).toBe(false);
+    });
+
+    test('should not detect job listing page without apply elements', () => {
+      document.body.innerHTML = `
+        <div class="general-page">
+          <h1>About Us</h1>
+          <p>Company information...</p>
+        </div>
+      `;
+
+      const isJobListing = isAshbyJobListingPage();
+      expect(isJobListing).toBe(false);
+    });
+
+    test('should click Apply button successfully', () => {
+      document.body.innerHTML = `
+        <div class="job-page">
+          <h1>Senior Software Engineer</h1>
+          <button class="apply-button" id="test-apply-btn">Apply for this Job</button>
+        </div>
+      `;
+
+      const applyButton = document.getElementById('test-apply-btn') as HTMLButtonElement;
+      let clicked = false;
+      applyButton.addEventListener('click', () => {
+        clicked = true;
+      });
+
+      const success = clickAshbyApplyButton();
+      expect(success).toBe(true);
+      expect(clicked).toBe(true);
+    });
+
+    test('should handle missing Apply button gracefully', () => {
+      document.body.innerHTML = `
+        <div class="job-page">
+          <h1>Senior Software Engineer</h1>
+          <p>No apply button here</p>
+        </div>
+      `;
+
+      const success = clickAshbyApplyButton();
+      expect(success).toBe(false);
+    });
+
+    test('should handle various Apply button text variations', () => {
+      const testCases = [
+        'Apply for this Job',
+        'Apply',
+        'APPLY NOW',
+        'Apply for this Position'
+      ];
+
+      testCases.forEach((buttonText, index) => {
+        document.body.innerHTML = `
+          <div class="job-page">
+            <h1>Test Job ${index}</h1>
+            <button class="apply-button" id="test-btn-${index}">${buttonText}</button>
+          </div>
+        `;
+
+        const button = document.getElementById(`test-btn-${index}`) as HTMLButtonElement;
+        let clicked = false;
+        button.addEventListener('click', () => {
+          clicked = true;
+        });
+
+        const success = clickAshbyApplyButton();
+        expect(success).toBe(true);
+        expect(clicked).toBe(true);
+      });
     });
   });
 }); 

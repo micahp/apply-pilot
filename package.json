@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "nx run-many --target=build && node scripts/create-icons.js",
+    "build": "nx run-many --target=build",
     "test": "nx run-many --target=test",
     "lint": "nx run-many --target=lint",
     "dev": "nx run-many --target=serve --parallel",
@@ -36,6 +36,7 @@
     "prettier": "^3.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "sharp": "^0.34.2",
     "ts-jest": "^29.1.1",
     "typescript": "^5.2.2",
     "vite": "^4.5.0"

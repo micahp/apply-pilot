@@ -26,15 +26,15 @@ export const manifest = defineManifest({
   action: {
     default_popup: 'src/popup/index.html',
     default_icon: {
-      '16': 'assets/s1.png',
-      '48': 'assets/s2.png',
-      '128': 'assets/s3.png'
+      '16': 'assets/icon-16.png',
+      '48': 'assets/icon-48.png',
+      '128': 'assets/icon-128.png'
     }
   },
   icons: {
-    '16': 'assets/s1.png',
-    '48': 'assets/s2.png',
-    '128': 'assets/s3.png'
+    '16': 'assets/icon-16.png',
+    '48': 'assets/icon-48.png',
+    '128': 'assets/icon-128.png'
   },
   options_page: 'src/options/index.html',
   background: {

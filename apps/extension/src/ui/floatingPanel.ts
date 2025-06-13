@@ -9,7 +9,9 @@ import { EnhancedFillResult } from '../utils/ats-enhanced';
 interface FloatingPanelOptions {
   ats: ATS;
   onFillFields: (profileData: Profile) => Promise<EnhancedFillResult>;
+  onApply?: () => boolean;
   onClose: () => void;
+  isJobListingPage?: boolean;
 }
 
 /**
@@ -99,7 +101,9 @@ export function initFloatingPanel(options: FloatingPanelOptions): HTMLElement {
   `;
   
   const atsDescription = document.createElement('p');
-  atsDescription.textContent = 'Ready to autofill application fields';
+  atsDescription.textContent = options.isJobListingPage 
+    ? 'Ready to apply to this job' 
+    : 'Ready to autofill application fields';
   atsDescription.style.cssText = `
     margin: 0;
   `;
@@ -117,7 +121,7 @@ export function initFloatingPanel(options: FloatingPanelOptions): HTMLElement {
   `;
   
   const fillButton = document.createElement('button');
-  fillButton.textContent = 'Autofill Application';
+  fillButton.textContent = options.isJobListingPage ? 'Apply' : 'Autofill Application';
   fillButton.style.cssText = `
     background-color: #3498db;
     color: white;
@@ -136,20 +140,41 @@ export function initFloatingPanel(options: FloatingPanelOptions): HTMLElement {
     fillButton.style.backgroundColor = '#3498db';
   });
   
-  // When the fill button is clicked, fetch profile data and fill fields
+  // When the fill button is clicked, either apply or autofill based on page type
   fillButton.addEventListener('click', async () => {
     // Clear previous status messages
     statusMessageArea.textContent = '';
     statusMessageArea.style.color = 'inherit'; // Reset color
 
-    try {
-      // Fetch profile data from storage
-      chrome.storage.local.get(['profile', 'playwrightEnabled'], async (result) => {
-        if (result.profile) {
-          statusMessageArea.textContent = 'Filling application fields...';
-          statusMessageArea.style.color = '#2c3e50'; // Neutral color
-          
-                      try {
+    if (options.isJobListingPage && options.onApply) {
+      // Job listing page - click the apply button
+      statusMessageArea.textContent = 'Clicking Apply button...';
+      statusMessageArea.style.color = '#2c3e50'; // Neutral color
+      
+      try {
+        const success = options.onApply();
+        if (success) {
+          statusMessageArea.textContent = '✅ Clicked Apply button! Redirecting to application...';
+          statusMessageArea.style.color = '#27ae60';
+        } else {
+          statusMessageArea.textContent = '❌ Could not find Apply button on this page';
+          statusMessageArea.style.color = '#e74c3c';
+        }
+      } catch (error: any) {
+        console.error('Error clicking apply button:', error);
+        statusMessageArea.textContent = `❌ Error: ${error.message || 'Failed to click apply button'}`;
+        statusMessageArea.style.color = '#e74c3c';
+      }
+    } else {
+      // Application form page - autofill fields
+      try {
+        // Fetch profile data from storage
+        chrome.storage.local.get(['profile', 'playwrightEnabled'], async (result) => {
+          if (result.profile) {
+            statusMessageArea.textContent = 'Filling application fields...';
+            statusMessageArea.style.color = '#2c3e50'; // Neutral color
+            
+            try {
               // Call the enhanced callback that returns full result information
               const fillResult = await options.onFillFields(result.profile);
               
@@ -182,15 +207,16 @@ export function initFloatingPanel(options: FloatingPanelOptions): HTMLElement {
               statusMessageArea.innerHTML = `❌ Error: ${fillError.message || 'Fill operation failed'}<br><span style="font-size: 11px; color: #e67e22;">💡 Check console for details</span>`;
               statusMessageArea.style.color = '#e74c3c';
             }
-        } else {
-          statusMessageArea.textContent = 'No profile found. Please create one in the extension settings.';
-          statusMessageArea.style.color = '#e74c3c';
-        }
-      });
-    } catch (error: any) {
-      console.error('Error in fillButton click handler:', error);
-      statusMessageArea.textContent = `Error: ${error.message || 'Unknown error'}`;
-      statusMessageArea.style.color = '#e74c3c';
+          } else {
+            statusMessageArea.textContent = 'No profile found. Please create one in the extension settings.';
+            statusMessageArea.style.color = '#e74c3c';
+          }
+        });
+      } catch (error: any) {
+        console.error('Error in fillButton click handler:', error);
+        statusMessageArea.textContent = `Error: ${error.message || 'Unknown error'}`;
+        statusMessageArea.style.color = '#e74c3c';
+      }
     }
   });
   
