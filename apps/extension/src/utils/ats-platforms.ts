@@ -96,7 +96,9 @@ export const supportedPlatforms: ATSPlatform[] = [
     description: 'Greenhouse application detected',
     urlPatterns: [
       /\.greenhouse\.io/,
-      /\/greenhouse\//
+      /\/greenhouse\//,
+      /job-boards\.greenhouse\.io/,
+      /boards\.greenhouse\.io/
     ],
     selectors: {
       firstName: 'input#first_name, input[name="first_name"]',

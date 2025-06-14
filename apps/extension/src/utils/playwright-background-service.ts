@@ -1,5 +1,5 @@
 import { Profile } from '../types/profile';
-import { ATSPlatform } from './ats';
+import { ATSPlatform } from './ats-platforms';
 
 export interface PlaywrightRequest {
   action: 'handle_complex_form' | 'handle_file_upload' | 'handle_location_autocomplete';

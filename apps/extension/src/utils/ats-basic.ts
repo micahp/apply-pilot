@@ -83,8 +83,8 @@ export function fillATSFields(
           }
         }
         
-        if (platform.selectors.zip && profile.personal.zip) {
-          if (fillInputField(platform.selectors.zip, profile.personal.zip)) {
+        if (platform.selectors.zip && profile.personal.zipCode) {
+          if (fillInputField(platform.selectors.zip, profile.personal.zipCode)) {
             filledCount++;
           }
         }

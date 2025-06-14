@@ -169,7 +169,8 @@ export function initFloatingPanel(options: FloatingPanelOptions): HTMLElement {
       // Application form page - autofill fields
       try {
         // Fetch profile data from storage
-        chrome.storage.local.get(['profile', 'playwrightEnabled'], async (result) => {
+        if (chrome?.storage?.local?.get) {
+          chrome.storage.local.get(['profile', 'playwrightEnabled'], async (result) => {
           if (result.profile) {
             statusMessageArea.textContent = 'Filling application fields...';
             statusMessageArea.style.color = '#2c3e50'; // Neutral color
@@ -211,7 +212,33 @@ export function initFloatingPanel(options: FloatingPanelOptions): HTMLElement {
             statusMessageArea.textContent = 'No profile found. Please create one in the extension settings.';
             statusMessageArea.style.color = '#e74c3c';
           }
-        });
+          });
+        } else {
+          // Chrome storage not available - create a mock profile for testing
+          console.log('[AutoApply] Chrome storage not available - using test mode with mock profile');
+          statusMessageArea.textContent = 'Filling application fields (test mode)...';
+          statusMessageArea.style.color = '#2c3e50';
+          
+          const mockProfile = {
+            personal: {
+              firstName: 'Test',
+              lastName: 'User',
+              email: 'test@example.com',
+              phone: '555-123-4567',
+              city: 'Test City',
+              state: 'Test State'
+            }
+          } as Profile;
+          
+          try {
+            const fillResult = await options.onFillFields(mockProfile);
+            statusMessageArea.textContent = `✅ Test mode: Filled ${fillResult.totalFieldsFilled} fields!`;
+            statusMessageArea.style.color = '#27ae60';
+          } catch (fillError: any) {
+            statusMessageArea.textContent = `❌ Test mode error: ${fillError.message}`;
+            statusMessageArea.style.color = '#e74c3c';
+          }
+        }
       } catch (error: any) {
         console.error('Error in fillButton click handler:', error);
         statusMessageArea.textContent = `Error: ${error.message || 'Unknown error'}`;
@@ -242,16 +269,20 @@ export function initFloatingPanel(options: FloatingPanelOptions): HTMLElement {
     settingsButton.style.color = '#7f8c8d';
   });
   
-  // Open extension options page when settings is clicked
+  // Open extension options page when settings is clicked  
   settingsButton.addEventListener('click', () => {
     console.log('[AutoApply] Open Extension Settings button clicked');
-    chrome.runtime.sendMessage({ action: "openOptionsPage" }, (response) => {
-      if (chrome.runtime.lastError) {
-        console.error('[AutoApply] Error sending openOptionsPage message:', chrome.runtime.lastError.message);
-      } else {
-        console.log('[AutoApply] openOptionsPage message response:', response);
-      }
-    });
+    if (chrome?.runtime?.sendMessage) {
+      chrome.runtime.sendMessage({ action: "openOptionsPage" }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error('[AutoApply] Error sending openOptionsPage message:', chrome.runtime.lastError.message);
+        } else {
+          console.log('[AutoApply] openOptionsPage message response:', response);
+        }
+      });
+    } else {
+      console.log('[AutoApply] Chrome runtime not available - cannot open options page (test mode)');
+    }
   });
   
   actionsContainer.appendChild(fillButton);

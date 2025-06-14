@@ -36,48 +36,83 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
-      name: 'chromium',
+      name: 'chrome-for-testing',
       use: { 
         ...devices['Desktop Chrome'],
-        // Chrome extension testing configuration
+        // Use Google Chrome for Testing for stable, reproducible testing
         launchOptions: {
+          executablePath: './chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
           args: [
-            `--disable-extensions-except=${path.resolve('./dist/extension')}`,
-            `--load-extension=${path.resolve('./dist/extension')}`,
+            // Extension loading flags
+            `--load-extension=${path.resolve('./dist/apps/extension')}`,
+            `--disable-extensions-except=${path.resolve('./dist/apps/extension')}`,
+            // Essential flags for extension support
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor',
             '--disable-dev-shm-usage',
             '--no-sandbox',
+            '--disable-background-timer-throttling',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-renderer-backgrounding',
+            '--no-first-run',
+            '--disable-default-apps',
+            '--enable-automation',
+            '--disable-blink-features=AutomationControlled',
+            '--remote-debugging-port=9222'
           ],
         },
       },
     },
     {
-      name: 'chromium-headless',
+      name: 'chrome-for-testing-headless',
       use: { 
         ...devices['Desktop Chrome'],
         launchOptions: {
+          executablePath: './chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
           args: [
-            `--disable-extensions-except=${path.resolve('./dist/extension')}`,
-            `--load-extension=${path.resolve('./dist/extension')}`,
+            `--load-extension=${path.resolve('./dist/apps/extension')}`,
+            `--disable-extensions-except=${path.resolve('./dist/apps/extension')}`,
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor',
             '--disable-dev-shm-usage',
             '--no-sandbox',
             '--headless=new',
+            '--disable-background-timer-throttling',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-renderer-backgrounding',
+            '--no-first-run',
+            '--disable-default-apps',
+            '--enable-automation',
+            '--disable-blink-features=AutomationControlled',
+            '--remote-debugging-port=9223'
           ],
         },
       },
     },
-    // Extension testing in different scenarios
+    // Extension testing in different scenarios with Chrome for Testing
     {
-      name: 'extension-debug',
+      name: 'chrome-for-testing-debug',
       use: { 
         ...devices['Desktop Chrome'],
         launchOptions: {
+          executablePath: './chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
           headless: false,
           devtools: true,
           args: [
-            `--disable-extensions-except=${path.resolve('./dist/extension')}`,
-            `--load-extension=${path.resolve('./dist/extension')}`,
+            `--load-extension=${path.resolve('./dist/apps/extension')}`,
+            `--disable-extensions-except=${path.resolve('./dist/apps/extension')}`,
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor',
             '--disable-dev-shm-usage',
             '--no-sandbox',
+            '--disable-background-timer-throttling',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-renderer-backgrounding',
+            '--no-first-run',
+            '--disable-default-apps',
+            '--enable-automation',
+            '--disable-blink-features=AutomationControlled',
+            '--remote-debugging-port=9224'
           ],
         },
       },

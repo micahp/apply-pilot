@@ -137,7 +137,8 @@ function initialize(): void {
     }
     
     // Listen for messages from the extension popup or background
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (chrome?.runtime?.onMessage) {
+      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.action === 'fillFields' && message.profileData) {
         console.log('[AutoApply] Received fillFields message.');
         fillATSFields(detectedATS, message.profileData);
@@ -162,12 +163,16 @@ function initialize(): void {
       // Default response for unhandled messages
       // sendResponse({ success: false, error: 'Unknown message' }); 
       // return true; // Keep channel open for other listeners if any
-    });
+      });
+    } else {
+      console.log('[AutoApply] Chrome runtime API not available - running in test mode');
+    }
   } else {
     console.log(`[AutoApply] No supported ATS detected on this page: ${currentUrl}`);
     
     // Still listen for check messages and ATS_PAGE_LOADED even if no ATS is detected initially
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (chrome?.runtime?.onMessage) {
+      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.action === 'checkATS') {
         console.log('[AutoApply] Received checkATS message (no ATS detected).');
         sendResponse({ 
@@ -189,7 +194,10 @@ function initialize(): void {
       // Default response for unhandled messages
       // sendResponse({ success: false, error: 'Unknown message' });
       // return true;
-    });
+      });
+    } else {
+      console.log('[AutoApply] Chrome runtime API not available - running in test mode (no ATS detected)');
+    }
   }
 }
 
