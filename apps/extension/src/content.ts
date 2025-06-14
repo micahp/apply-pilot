@@ -1,6 +1,5 @@
 import { detectATS, detectResumeImportFeatures } from './utils/ats-platforms';
-import { fillATSFields } from './utils/ats-basic';
-import { EnhancedATSFiller } from './utils/ats-enhanced';
+import { ComprehensiveFormAutomation, type UserProfile, type AutomationResult } from './utils/comprehensive-form-automation';
 import { initFloatingPanel } from './ui/floatingPanel';
 import { Profile } from './types/profile';
 
@@ -29,8 +28,8 @@ function initialize(): void {
       console.log('Recommendations:', resumeImport.recommendations);
     }
     
-    // Create enhanced ATS filler for better handling of complex scenarios
-    const enhancedFiller = new EnhancedATSFiller();
+    // Create comprehensive form automation for bot-resistant filling
+    const automationSystem = new ComprehensiveFormAutomation();
     
     floatingPanel = initFloatingPanel({
       ats: {
@@ -42,29 +41,44 @@ function initialize(): void {
         console.log('[AutoApply] Starting enhanced field filling...');
         
         try {
-          // Use enhanced filler that combines content script + Playwright
-          const result = await enhancedFiller.fillATSFieldsEnhanced(detectedATS, profileData, {
-            debugMode: true, // Enable detailed logging
-            usePlaywrightForComplex: true,
-            enableFileUploads: true,
-            enableLocationAutocomplete: true,
-            enableMultiStepFlow: true
-          });
+          // Convert Profile to UserProfile format
+          const userProfile: UserProfile = {
+            personal: {
+              firstName: profileData.personal?.firstName || '',
+              lastName: profileData.personal?.lastName || '',
+              email: profileData.personal?.email || '',
+              phone: profileData.personal?.phone || '',
+              address: profileData.personal?.address,
+              city: profileData.personal?.city,
+              state: profileData.personal?.state,
+              zipCode: profileData.personal?.zipCode,
+              linkedIn: profileData.personal?.linkedIn,
+              github: profileData.personal?.github,
+              website: profileData.personal?.website,
+            },
+                         documents: {
+               coverLetterText: profileData.documents?.coverLetter,
+             },
+            preferences: {
+              currentLocation: profileData.personal?.city,
+            }
+          };
+
+          // Use comprehensive automation system
+          const pageContext = await automationSystem.analyzePageContext();
+          const fields = await automationSystem.discoverAllFormElements(detectedATS);
+          const result = await automationSystem.fillFormWithProfile(userProfile, fields);
           
-          console.log(`[AutoApply] Enhanced fill completed:`, result);
-          console.log(`[AutoApply] Strategy used: ${result.usedPlaywright ? 'Hybrid/Playwright' : 'Content Script Only'}`);
-          console.log(`[AutoApply] Fields filled: ${result.totalFieldsFilled} (CS: ${result.contentScriptFields}, PW: ${result.playwrightFields})`);
+          console.log(`[AutoApply] Form automation completed:`, result);
+          console.log(`[AutoApply] Fields filled: ${result.fieldsFilled}`);
+          console.log(`[AutoApply] Success: ${result.success}`);
           
           if (result.warnings.length > 0) {
             console.warn('[AutoApply] Warnings:', result.warnings);
           }
           
-          if (result.recommendations.length > 0) {
-            console.info('[AutoApply] Recommendations:', result.recommendations);
-          }
-          
-          if (result.platformSpecificInfo) {
-            console.info('[AutoApply] Platform info:', result.platformSpecificInfo);
+          if (result.nextActions.length > 0) {
+            console.info('[AutoApply] Next actions:', result.nextActions);
           }
           
           // Always return the full result for enhanced UI display
@@ -73,52 +87,30 @@ function initialize(): void {
         } catch (error: any) {
           console.error('[AutoApply] Enhanced fill critical error:', error);
           
-          // Create fallback result with basic content script
-          try {
-            console.log('[AutoApply] Attempting fallback to basic content script...');
-            const basicFieldsFilled = await fillATSFields(detectedATS, profileData);
-            
-            return {
-              success: basicFieldsFilled > 0,
-              totalFieldsFilled: basicFieldsFilled,
-              contentScriptFields: basicFieldsFilled,
-              playwrightFields: 0,
-              errors: basicFieldsFilled === 0 ? ['Basic content script also failed'] : [],
-              warnings: ['Enhanced filling failed, used basic fallback'],
-              usedPlaywright: false,
-              recommendations: [
-                'Enhanced mode failed - check console for details',
-                'Consider refreshing page and trying again'
-              ],
-              platformSpecificInfo: {
-                platform: detectedATS.slug,
-                detectedComplexFields: [],
-                requiresManualSteps: false
-              }
-            };
-          } catch (fallbackError: any) {
-            console.error('[AutoApply] Fallback also failed:', fallbackError);
-            
-            return {
-              success: false,
-              totalFieldsFilled: 0,
-              contentScriptFields: 0,
-              playwrightFields: 0,
-              errors: [error.message, fallbackError.message],
-              warnings: ['Both enhanced and basic filling failed'],
-              usedPlaywright: false,
-              recommendations: [
-                'All filling methods failed',
-                'Check form is loaded and extension has latest updates',
-                'Try manual form filling'
-              ],
-              platformSpecificInfo: {
-                platform: detectedATS.slug,
-                detectedComplexFields: [],
-                requiresManualSteps: true
-              }
-            };
-          }
+          // Create fallback result
+          console.log('[AutoApply] Automation failed, returning error result');
+          return {
+            success: false,
+            pageContext: { 
+              pageType: 'application-form' as const,
+              ats: detectedATS,
+              url: window.location.href,
+              title: document.title,
+              hasProtection: false,
+              captchas: []
+            },
+            fieldsDiscovered: 0,
+            fieldsAttempted: 0,
+            fieldsFilled: 0,
+            captchasSolved: 0,
+            errors: [error.message],
+            warnings: ['Primary automation failed'],
+            nextActions: [
+              'Check console for details',
+              'Consider refreshing page and trying again'
+            ],
+            timeTaken: 0
+          };
         }
       },
       onClose: () => {
@@ -141,8 +133,9 @@ function initialize(): void {
       chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.action === 'fillFields' && message.profileData) {
         console.log('[AutoApply] Received fillFields message.');
-        fillATSFields(detectedATS, message.profileData);
-        sendResponse({ success: true });
+        // TODO: Implement fillFields message handler with comprehensive automation
+        console.warn('[AutoApply] fillFields message received but not yet implemented with new system');
+        sendResponse({ success: false, error: 'Not implemented with new automation system' });
         return true; // Indicates that the response will be sent asynchronously
       }
       

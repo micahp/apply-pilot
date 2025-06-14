@@ -1,0 +1,1125 @@
+
+Running 57 tests using 4 workers
+
+[1A[2K[1/57] [chrome-for-testing] › tests/e2e/content-script-debug.spec.ts:77:7 › Content Script Debug › verify extension files are accessible
+[1A[2K[2/57] [chrome-for-testing] › tests/e2e/content-script-debug.spec.ts:4:7 › Content Script Debug › verify content script execution
+[1A[2K[3/57] [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:29:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse career page form
+[1A[2K[4/57] [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:7:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse job application form
+[1A[2K[chrome-for-testing] › tests/e2e/content-script-debug.spec.ts:4:7 › Content Script Debug › verify content script execution
+Chrome API Info: {
+  hasChrome: [33mtrue[39m,
+  hasRuntime: [33mfalse[39m,
+  hasStorage: [33mfalse[39m,
+  extensionId: [1mnull[22m,
+  manifest: [1mnull[22m
+}
+
+[1A[2KTest variables: {
+  contentScriptLoaded: [33mtrue[39m,
+  chromeAvailable: [33mtrue[39m,
+  chromeRuntimeAvailable: [33mfalse[39m
+}
+
+[1A[2KTotal pages in context: [33m1[39m
+
+[1A[2KConsole messages:
+
+[1A[2K[5/57] [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:42:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect generic job site with application forms
+[1A[2K[chrome-for-testing] › tests/e2e/extension-detection.spec.ts:42:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect generic job site with application forms
+Panel found: false
+
+[1A[2K[6/57] [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:58:9 › Extension Page Detection & Resume Import Features › Resume Import Detection › should detect native resume import on Greenhouse
+[1A[2K[chrome-for-testing] › tests/e2e/extension-detection.spec.ts:58:9 › Extension Page Detection & Resume Import Features › Resume Import Detection › should detect native resume import on Greenhouse
+Found resume import element: input[type="file"][accept*="pdf"]
+
+[1A[2KExtension detection results: {
+  hasResumeImport: [33mtrue[39m,
+  allFileInputs: [33m2[39m,
+  hasResumeKeywords: [33mtrue[39m,
+  hasAttachKeywords: [33mtrue[39m
+}
+
+[1A[2K  1) [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:7:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse job application form 
+
+    Error: [31mTimed out 8000ms waiting for [39m[2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m()[22m
+
+    Locator: locator('#autoapply-panel')
+    Expected: visible
+    Received: <element(s) not found>
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 8000ms[22m
+    [2m  - waiting for locator('#autoapply-panel')[22m
+
+
+      14 |       // Check if the floating panel appeared
+      15 |       const panel = page.locator('#autoapply-panel');
+    > 16 |       await expect(panel).toBeVisible({ timeout: 8000 });
+         |                           ^
+      17 |       
+      18 |       // Check if the correct ATS was detected
+      19 |       const atsInfo = await page.evaluate(() => {
+        at /Users/micah/code/auto-apply/tests/e2e/extension-detection.spec.ts:16:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/extension-detection-Extens-f9b01-nhouse-job-application-form-chrome-for-testing/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/extension-detection-Extens-f9b01-nhouse-job-application-form-chrome-for-testing/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/extension-detection-Extens-f9b01-nhouse-job-application-form-chrome-for-testing/error-context.md
+
+
+[1A[2K[7/57] [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:125:9 › Extension Page Detection & Resume Import Features › Dynamic Content Detection › should detect form fields dynamically loaded
+[1A[2K[8/57] [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:100:9 › Extension Page Detection & Resume Import Features › Resume Import Detection › should detect application form elements
+[1A[2K[chrome-for-testing] › tests/e2e/extension-detection.spec.ts:100:9 › Extension Page Detection & Resume Import Features › Resume Import Detection › should detect application form elements
+Found form element: input[type="file"]
+
+[1A[2K[9/57] [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:152:9 › Extension Page Detection & Resume Import Features › Dynamic Content Detection › should handle pages without application forms
+[1A[2K[chrome-for-testing] › tests/e2e/extension-detection.spec.ts:125:9 › Extension Page Detection & Resume Import Features › Dynamic Content Detection › should detect form fields dynamically loaded
+Form analysis: {
+  formCount: [33m1[39m,
+  inputCount: [33m33[39m,
+  fieldTypes: [
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'first_name'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'last_name'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'email'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'phone'[39m, placeholder: [32m''[39m },
+    { type: [32m'file'[39m, name: [32m''[39m, id: [32m'resume'[39m, placeholder: [32m''[39m },
+    { type: [32m'file'[39m, name: [32m''[39m, id: [32m'cover_letter'[39m, placeholder: [32m''[39m },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258226004'[39m,
+      placeholder: [32m''[39m
+    },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258227004'[39m,
+      placeholder: [32m''[39m
+    },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258228004'[39m,
+      placeholder: [32m''[39m
+    },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    {
+      type: [32m'textarea'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258230004'[39m,
+      placeholder: [32m''[39m
+    },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258231004'[39m,
+      placeholder: [32m''[39m
+    },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258232004'[39m,
+      placeholder: [32m''[39m
+    },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258233004'[39m,
+      placeholder: [32m''[39m
+    },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258234004'[39m,
+      placeholder: [32m''[39m
+    },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258235004'[39m,
+      placeholder: [32m''[39m
+    },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_13010050004'[39m,
+      placeholder: [32m''[39m
+    },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'4000196004'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'4000197004'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'4000198004'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'4000199004'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'4000200004'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'4000201004'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    {
+      type: [32m'textarea'[39m,
+      name: [32m'g-recaptcha-response'[39m,
+      id: [32m'g-recaptcha-response-100000'[39m,
+      placeholder: [32m''[39m
+    }
+  ]
+}
+
+[1A[2K[10/57] [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:167:9 › Extension Page Detection & Resume Import Features › Extension Interaction › should open extension panel when ATS detected
+[1A[2K[chrome-for-testing] › tests/e2e/extension-detection.spec.ts:167:9 › Extension Page Detection & Resume Import Features › Extension Interaction › should open extension panel when ATS detected
+Panel visible: false
+
+[1A[2K[11/57] [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:188:9 › Extension Page Detection & Resume Import Features › Extension Interaction › should provide debug information
+[1A[2K[chrome-for-testing] › tests/e2e/extension-detection.spec.ts:188:9 › Extension Page Detection & Resume Import Features › Extension Interaction › should provide debug information
+Console logs:
+
+[1A[2K[12/57] [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:211:9 › Extension Page Detection & Resume Import Features › Error Handling › should handle pages with complex content
+[1A[2K[chrome-for-testing] › tests/e2e/extension-detection.spec.ts:211:9 › Extension Page Detection & Resume Import Features › Error Handling › should handle pages with complex content
+Panel count on complex page: 0
+
+[1A[2K[13/57] [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:224:9 › Extension Page Detection & Resume Import Features › Error Handling › should handle slow-loading pages
+[1A[2K[14/57] [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:242:9 › Extension Page Detection & Resume Import Features › Visual Testing › should render extension UI correctly
+[1A[2K  2) [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:152:9 › Extension Page Detection & Resume Import Features › Dynamic Content Detection › should handle pages without application forms 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "https://www.greenhouse.io/careers", waiting until "load"[22m
+
+
+      152 |     test('should handle pages without application forms', async ({ page }) => {
+      153 |       // Test a page that definitely won't have forms
+    > 154 |       await page.goto('https://www.greenhouse.io/careers');
+          |                  ^
+      155 |       
+      156 |       await page.waitForTimeout(2000);
+      157 |       
+        at /Users/micah/code/auto-apply/tests/e2e/extension-detection.spec.ts:154:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/extension-detection-Extens-46205-s-without-application-forms-chrome-for-testing/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/extension-detection-Extens-46205-s-without-application-forms-chrome-for-testing/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/extension-detection-Extens-46205-s-without-application-forms-chrome-for-testing/error-context.md
+
+
+[1A[2K[15/57] [chrome-for-testing] › tests/e2e/extension-persistent-context.spec.ts:5:7 › Extension with Persistent Context › should load extension with full API access
+[1A[2K[chrome-for-testing] › tests/e2e/extension-detection.spec.ts:242:9 › Extension Page Detection & Resume Import Features › Visual Testing › should render extension UI correctly
+Extension UI state: { hasPanel: [33mfalse[39m, hasExtensionStyles: [33mfalse[39m, bodyClasses: [32m''[39m }
+
+[1A[2K[16/57] [chrome-for-testing] › tests/e2e/extension-persistent-context.spec.ts:91:7 › Extension Direct Test › should work with normal browser context
+[1A[2K[chrome-for-testing] › tests/e2e/extension-persistent-context.spec.ts:5:7 › Extension with Persistent Context › should load extension with full API access
+Chrome API Info (persistent context): {
+  hasChrome: [33mtrue[39m,
+  hasRuntime: [33mfalse[39m,
+  hasStorage: [33mfalse[39m,
+  extensionId: [1mnull[22m,
+  manifest: [1mnull[22m
+}
+
+[1A[2KERROR: Chrome runtime API is not available
+
+[1A[2K[chrome-for-testing] › tests/e2e/extension-persistent-context.spec.ts:91:7 › Extension Direct Test › should work with normal browser context
+Normal context API info: {
+  hasChrome: [33mtrue[39m,
+  hasRuntime: [33mfalse[39m,
+  url: [32m'https://job-boards.greenhouse.io/headway/jobs/5308863004'[39m
+}
+
+[1A[2KPanel exists (normal context): false
+
+[1A[2K[17/57] [chrome-for-testing] › tests/e2e/extension-proper.spec.ts:4:7 › Chrome Extension with Proper Context › should load extension with full Chrome API access
+[1A[2K[chrome-for-testing] › tests/e2e/extension-proper.spec.ts:4:7 › Chrome Extension with Proper Context › should load extension with full Chrome API access
+Extension ID: eiacecmpjlaikfdigcckkacoffipjmfe
+
+[1A[2KChrome API Info: {
+  hasChrome: [33mtrue[39m,
+  hasRuntime: [33mfalse[39m,
+  hasStorage: [33mfalse[39m,
+  extensionId: [1mnull[22m,
+  runtimeAvailable: [33mfalse[39m
+}
+
+[1A[2K  3) [chrome-for-testing] › tests/e2e/extension-proper.spec.ts:4:7 › Chrome Extension with Proper Context › should load extension with full Chrome API access 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      24 |     
+      25 |     // The runtime should be available now
+    > 26 |     expect(chromeApiInfo.hasRuntime).toBe(true);
+         |                                      ^
+      27 |     expect(chromeApiInfo.extensionId).toBeTruthy();
+      28 |     
+      29 |     // Now test on the actual Greenhouse page
+        at /Users/micah/code/auto-apply/tests/e2e/extension-proper.spec.ts:26:38
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/extension-proper-Chrome-Ex-343f5-with-full-Chrome-API-access-chrome-for-testing/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/extension-proper-Chrome-Ex-343f5-with-full-Chrome-API-access-chrome-for-testing/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[18/57] [chrome-for-testing] › tests/e2e/extension-proper.spec.ts:96:7 › Chrome Extension with Proper Context › should detect ATS and forms correctly
+[1A[2K[chrome-for-testing] › tests/e2e/extension-persistent-context.spec.ts:5:7 › Extension with Persistent Context › should load extension with full API access
+Panel exists: false
+
+[1A[2KTarget page API info: { hasChrome: [33mtrue[39m, hasRuntime: [33mfalse[39m, extensionId: [1mnull[22m }
+
+[1A[2KContent script messages: []
+
+[1A[2K  4) [chrome-for-testing] › tests/e2e/extension-persistent-context.spec.ts:5:7 › Extension with Persistent Context › should load extension with full API access 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      84 |     
+      85 |     // The test should pass if we can access Chrome APIs
+    > 86 |     expect(chromeApiInfo.hasRuntime).toBe(true);
+         |                                      ^
+      87 |   });
+      88 | });
+      89 |
+        at /Users/micah/code/auto-apply/tests/e2e/extension-persistent-context.spec.ts:86:38
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/extension-persistent-conte-9ab6d-ension-with-full-API-access-chrome-for-testing/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[19/57] [chrome-for-testing] › tests/e2e/panel-debug.spec.ts:4:7 › Panel Debug › debug panel creation with detailed logging
+[1A[2K[chrome-for-testing] › tests/e2e/panel-debug.spec.ts:4:7 › Panel Debug › debug panel creation with detailed logging
+CONSOLE [warning]: ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+[1A[2KCONSOLE [warning]: ⚠️ React Router Future Flag Warning: The persistence behavior of fetchers is changing in v7. You can use the `v7_fetcherPersist` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_fetcherpersist.
+
+[1A[2KCONSOLE [warning]: ⚠️ React Router Future Flag Warning: The revalidation behavior after 4xx/5xx `action` responses is changing in v7. You can use the `v7_skipActionErrorRevalidation` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_skipactionerrorrevalidation.
+
+[1A[2KCONSOLE [error]: Failed to load resource: the server responded with a status of 401 ()
+
+[1A[2KPAGE ERROR: Unauthorized: User is not logged in.
+
+[1A[2KCONSOLE [warning]: An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing.
+
+[1A[2K[chrome-for-testing] › tests/e2e/extension-proper.spec.ts:96:7 › Chrome Extension with Proper Context › should detect ATS and forms correctly
+Form detection results: {
+  formCount: [33m1[39m,
+  inputCount: [33m31[39m,
+  fileInputCount: [33m2[39m,
+  hasFirstNameField: [33mtrue[39m,
+  hasLastNameField: [33mtrue[39m,
+  hasEmailField: [33mtrue[39m,
+  hasResumeField: [33mtrue[39m
+}
+
+[1A[2K[20/57] [chrome-for-testing-headless] › tests/e2e/content-script-debug.spec.ts:4:7 › Content Script Debug › verify content script execution
+[1A[2K[chrome-for-testing] › tests/e2e/panel-debug.spec.ts:4:7 › Panel Debug › debug panel creation with detailed logging
+Extension Info: {
+  hasExtensionScripts: [33mfalse[39m,
+  userAgent: [32m'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.15 Safari/537.36'[39m,
+  url: [32m'https://job-boards.greenhouse.io/headway/jobs/5308863004'[39m,
+  documentReady: [32m'complete'[39m,
+  bodyHTML: [32m'<div id="react-portal-mount-point"></div><main class="main font-secondary job-post"><div><div class="image-container"><a href="https://headway.co/" target="_blank" rel="noreferrer" class="logo"><img src="https://s4-recruiting.cdn.greenhouse.io/external_greenhouse_job_boards/logos/400/178/200/original/logo.png?1623696743" alt="Headway Logo" class=""></a></div><div><a class="link" target="_top" href="https://job-boards.greenhouse.io/headway"><svg class="svg-icon" fill="none" height="1.5rem" width=...'[39m
+}
+
+[1A[2KPanel exists: false
+
+[1A[2KAutoApply elements found: []
+
+[1A[2KContent script messages: []
+
+[1A[2KPanel not found, checking extension loading...
+
+[1A[2K[chrome-for-testing-headless] › tests/e2e/content-script-debug.spec.ts:4:7 › Content Script Debug › verify content script execution
+Chrome API Info: {
+  hasChrome: [33mtrue[39m,
+  hasRuntime: [33mfalse[39m,
+  hasStorage: [33mfalse[39m,
+  extensionId: [1mnull[22m,
+  manifest: [1mnull[22m
+}
+
+[1A[2K[chrome-for-testing] › tests/e2e/panel-debug.spec.ts:4:7 › Panel Debug › debug panel creation with detailed logging
+Panel exists after additional wait: false
+
+[1A[2K
+=== ALL CONSOLE MESSAGES ===
+
+[1A[2K1: warning: ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+[1A[2K2: warning: ⚠️ React Router Future Flag Warning: The persistence behavior of fetchers is changing in v7. You can use the `v7_fetcherPersist` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_fetcherpersist.
+
+[1A[2K3: warning: ⚠️ React Router Future Flag Warning: The revalidation behavior after 4xx/5xx `action` responses is changing in v7. You can use the `v7_skipActionErrorRevalidation` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_skipactionerrorrevalidation.
+
+[1A[2K4: error: Failed to load resource: the server responded with a status of 401 ()
+
+[1A[2K5: warning: An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing.
+
+[1A[2K[chrome-for-testing-headless] › tests/e2e/content-script-debug.spec.ts:4:7 › Content Script Debug › verify content script execution
+Test variables: {
+  contentScriptLoaded: [33mtrue[39m,
+  chromeAvailable: [33mtrue[39m,
+  chromeRuntimeAvailable: [33mfalse[39m
+}
+
+[1A[2KTotal pages in context: [33m1[39m
+
+[1A[2K[21/57] [chrome-for-testing-headless] › tests/e2e/content-script-debug.spec.ts:77:7 › Content Script Debug › verify extension files are accessible
+[1A[2KConsole messages:
+
+[1A[2K[22/57] [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:7:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse job application form
+[1A[2K[chrome-for-testing-headless] › tests/e2e/content-script-debug.spec.ts:77:7 › Content Script Debug › verify extension files are accessible
+Extension info: []
+
+[1A[2K[23/57] [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:29:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse career page form
+[1A[2K  5) [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:7:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse job application form 
+
+    Error: [31mTimed out 8000ms waiting for [39m[2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m()[22m
+
+    Locator: locator('#autoapply-panel')
+    Expected: visible
+    Received: <element(s) not found>
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 8000ms[22m
+    [2m  - waiting for locator('#autoapply-panel')[22m
+
+
+      14 |       // Check if the floating panel appeared
+      15 |       const panel = page.locator('#autoapply-panel');
+    > 16 |       await expect(panel).toBeVisible({ timeout: 8000 });
+         |                           ^
+      17 |       
+      18 |       // Check if the correct ATS was detected
+      19 |       const atsInfo = await page.evaluate(() => {
+        at /Users/micah/code/auto-apply/tests/e2e/extension-detection.spec.ts:16:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/extension-detection-Extens-f9b01-nhouse-job-application-form-chrome-for-testing-headless/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/extension-detection-Extens-f9b01-nhouse-job-application-form-chrome-for-testing-headless/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/extension-detection-Extens-f9b01-nhouse-job-application-form-chrome-for-testing-headless/error-context.md
+
+
+[1A[2K  6) [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:29:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse career page form 
+
+    Error: [31mTimed out 8000ms waiting for [39m[2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m()[22m
+
+    Locator: locator('#autoapply-panel')
+    Expected: visible
+    Received: <element(s) not found>
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 8000ms[22m
+    [2m  - waiting for locator('#autoapply-panel')[22m
+
+
+      35 |       // Check if panel appears
+      36 |       const panel = page.locator('#autoapply-panel');
+    > 37 |       await expect(panel).toBeVisible({ timeout: 8000 });
+         |                           ^
+      38 |       
+      39 |       await page.screenshot({ path: 'test-results/greenhouse-career-detection.png' });
+      40 |     });
+        at /Users/micah/code/auto-apply/tests/e2e/extension-detection.spec.ts:37:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/extension-detection-Extens-73431-Greenhouse-career-page-form-chrome-for-testing-headless/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/extension-detection-Extens-73431-Greenhouse-career-page-form-chrome-for-testing-headless/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/extension-detection-Extens-73431-Greenhouse-career-page-form-chrome-for-testing-headless/error-context.md
+
+
+[1A[2K[24/57] [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:42:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect generic job site with application forms
+[1A[2K[25/57] [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:58:9 › Extension Page Detection & Resume Import Features › Resume Import Detection › should detect native resume import on Greenhouse
+[1A[2K[chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:58:9 › Extension Page Detection & Resume Import Features › Resume Import Detection › should detect native resume import on Greenhouse
+Found resume import element: input[type="file"][accept*="pdf"]
+
+[1A[2KExtension detection results: {
+  hasResumeImport: [33mtrue[39m,
+  allFileInputs: [33m2[39m,
+  hasResumeKeywords: [33mtrue[39m,
+  hasAttachKeywords: [33mtrue[39m
+}
+
+[1A[2K[26/57] [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:100:9 › Extension Page Detection & Resume Import Features › Resume Import Detection › should detect application form elements
+[1A[2K[chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:100:9 › Extension Page Detection & Resume Import Features › Resume Import Detection › should detect application form elements
+Found form element: input[type="file"]
+
+[1A[2K[chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:42:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect generic job site with application forms
+Panel found: false
+
+[1A[2K[27/57] [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:125:9 › Extension Page Detection & Resume Import Features › Dynamic Content Detection › should detect form fields dynamically loaded
+[1A[2K[28/57] [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:152:9 › Extension Page Detection & Resume Import Features › Dynamic Content Detection › should handle pages without application forms
+[1A[2K[chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:125:9 › Extension Page Detection & Resume Import Features › Dynamic Content Detection › should detect form fields dynamically loaded
+Form analysis: {
+  formCount: [33m1[39m,
+  inputCount: [33m33[39m,
+  fieldTypes: [
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'first_name'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'last_name'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'email'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'phone'[39m, placeholder: [32m''[39m },
+    { type: [32m'file'[39m, name: [32m''[39m, id: [32m'resume'[39m, placeholder: [32m''[39m },
+    { type: [32m'file'[39m, name: [32m''[39m, id: [32m'cover_letter'[39m, placeholder: [32m''[39m },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258226004'[39m,
+      placeholder: [32m''[39m
+    },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258227004'[39m,
+      placeholder: [32m''[39m
+    },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258228004'[39m,
+      placeholder: [32m''[39m
+    },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    {
+      type: [32m'textarea'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258230004'[39m,
+      placeholder: [32m''[39m
+    },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258231004'[39m,
+      placeholder: [32m''[39m
+    },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258232004'[39m,
+      placeholder: [32m''[39m
+    },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258233004'[39m,
+      placeholder: [32m''[39m
+    },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258234004'[39m,
+      placeholder: [32m''[39m
+    },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_12258235004'[39m,
+      placeholder: [32m''[39m
+    },
+    {
+      type: [32m'text'[39m,
+      name: [32m''[39m,
+      id: [32m'question_13010050004'[39m,
+      placeholder: [32m''[39m
+    },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'4000196004'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'4000197004'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'4000198004'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'4000199004'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'4000200004'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m'4000201004'[39m, placeholder: [32m''[39m },
+    { type: [32m'text'[39m, name: [32m''[39m, id: [32m''[39m, placeholder: [32m''[39m },
+    {
+      type: [32m'textarea'[39m,
+      name: [32m'g-recaptcha-response'[39m,
+      id: [32m'g-recaptcha-response-100000'[39m,
+      placeholder: [32m''[39m
+    }
+  ]
+}
+
+[1A[2K[29/57] [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:167:9 › Extension Page Detection & Resume Import Features › Extension Interaction › should open extension panel when ATS detected
+[1A[2K[chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:167:9 › Extension Page Detection & Resume Import Features › Extension Interaction › should open extension panel when ATS detected
+Panel visible: false
+
+[1A[2K[30/57] [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:188:9 › Extension Page Detection & Resume Import Features › Extension Interaction › should provide debug information
+[1A[2K  7) [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:152:9 › Extension Page Detection & Resume Import Features › Dynamic Content Detection › should handle pages without application forms 
+
+    Error: locator.count: Execution context was destroyed, most likely because of a navigation
+
+      157 |       
+      158 |       // Extension should not create a panel here
+    > 159 |       const panelCount = await page.locator('#autoapply-panel').count();
+          |                                                                 ^
+      160 |       console.log(`Panel count on career overview page: ${panelCount}`);
+      161 |       
+      162 |       await page.screenshot({ path: 'test-results/no-forms-page.png' });
+        at /Users/micah/code/auto-apply/tests/e2e/extension-detection.spec.ts:159:65
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/extension-detection-Extens-46205-s-without-application-forms-chrome-for-testing-headless/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/extension-detection-Extens-46205-s-without-application-forms-chrome-for-testing-headless/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/extension-detection-Extens-46205-s-without-application-forms-chrome-for-testing-headless/error-context.md
+
+
+[1A[2K[31/57] [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:211:9 › Extension Page Detection & Resume Import Features › Error Handling › should handle pages with complex content
+[1A[2K[chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:188:9 › Extension Page Detection & Resume Import Features › Extension Interaction › should provide debug information
+Console logs:
+
+[1A[2K[32/57] [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:224:9 › Extension Page Detection & Resume Import Features › Error Handling › should handle slow-loading pages
+[1A[2K[chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:211:9 › Extension Page Detection & Resume Import Features › Error Handling › should handle pages with complex content
+Panel count on complex page: 0
+
+[1A[2K[33/57] [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:242:9 › Extension Page Detection & Resume Import Features › Visual Testing › should render extension UI correctly
+[1A[2K[34/57] [chrome-for-testing-headless] › tests/e2e/extension-persistent-context.spec.ts:5:7 › Extension with Persistent Context › should load extension with full API access
+[1A[2K[chrome-for-testing-headless] › tests/e2e/extension-persistent-context.spec.ts:5:7 › Extension with Persistent Context › should load extension with full API access
+Chrome API Info (persistent context): {
+  hasChrome: [33mtrue[39m,
+  hasRuntime: [33mfalse[39m,
+  hasStorage: [33mfalse[39m,
+  extensionId: [1mnull[22m,
+  manifest: [1mnull[22m
+}
+
+[1A[2KERROR: Chrome runtime API is not available
+
+[1A[2K[chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:242:9 › Extension Page Detection & Resume Import Features › Visual Testing › should render extension UI correctly
+Extension UI state: { hasPanel: [33mfalse[39m, hasExtensionStyles: [33mfalse[39m, bodyClasses: [32m''[39m }
+
+[1A[2K[35/57] [chrome-for-testing-headless] › tests/e2e/extension-persistent-context.spec.ts:91:7 › Extension Direct Test › should work with normal browser context
+[1A[2K[chrome-for-testing-headless] › tests/e2e/extension-persistent-context.spec.ts:91:7 › Extension Direct Test › should work with normal browser context
+Normal context API info: {
+  hasChrome: [33mtrue[39m,
+  hasRuntime: [33mfalse[39m,
+  url: [32m'https://job-boards.greenhouse.io/headway/jobs/5308863004'[39m
+}
+
+[1A[2KPanel exists (normal context): false
+
+[1A[2K[36/57] [chrome-for-testing-headless] › tests/e2e/extension-proper.spec.ts:4:7 › Chrome Extension with Proper Context › should load extension with full Chrome API access
+[1A[2K[chrome-for-testing-headless] › tests/e2e/extension-persistent-context.spec.ts:5:7 › Extension with Persistent Context › should load extension with full API access
+Panel exists: false
+
+[1A[2KTarget page API info: { hasChrome: [33mtrue[39m, hasRuntime: [33mfalse[39m, extensionId: [1mnull[22m }
+
+[1A[2KContent script messages: []
+
+[1A[2K  8) [chrome-for-testing-headless] › tests/e2e/extension-persistent-context.spec.ts:5:7 › Extension with Persistent Context › should load extension with full API access 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      84 |     
+      85 |     // The test should pass if we can access Chrome APIs
+    > 86 |     expect(chromeApiInfo.hasRuntime).toBe(true);
+         |                                      ^
+      87 |   });
+      88 | });
+      89 |
+        at /Users/micah/code/auto-apply/tests/e2e/extension-persistent-context.spec.ts:86:38
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/extension-persistent-conte-9ab6d-ension-with-full-API-access-chrome-for-testing-headless/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[37/57] [chrome-for-testing-headless] › tests/e2e/extension-proper.spec.ts:96:7 › Chrome Extension with Proper Context › should detect ATS and forms correctly
+[1A[2K[chrome-for-testing-headless] › tests/e2e/extension-proper.spec.ts:4:7 › Chrome Extension with Proper Context › should load extension with full Chrome API access
+Extension ID: eiacecmpjlaikfdigcckkacoffipjmfe
+
+[1A[2KChrome API Info: {
+  hasChrome: [33mtrue[39m,
+  hasRuntime: [33mfalse[39m,
+  hasStorage: [33mfalse[39m,
+  extensionId: [1mnull[22m,
+  runtimeAvailable: [33mfalse[39m
+}
+
+[1A[2K  9) [chrome-for-testing-headless] › tests/e2e/extension-proper.spec.ts:4:7 › Chrome Extension with Proper Context › should load extension with full Chrome API access 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      24 |     
+      25 |     // The runtime should be available now
+    > 26 |     expect(chromeApiInfo.hasRuntime).toBe(true);
+         |                                      ^
+      27 |     expect(chromeApiInfo.extensionId).toBeTruthy();
+      28 |     
+      29 |     // Now test on the actual Greenhouse page
+        at /Users/micah/code/auto-apply/tests/e2e/extension-proper.spec.ts:26:38
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/extension-proper-Chrome-Ex-343f5-with-full-Chrome-API-access-chrome-for-testing-headless/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/extension-proper-Chrome-Ex-343f5-with-full-Chrome-API-access-chrome-for-testing-headless/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[38/57] [chrome-for-testing-headless] › tests/e2e/panel-debug.spec.ts:4:7 › Panel Debug › debug panel creation with detailed logging
+[1A[2K[chrome-for-testing-headless] › tests/e2e/panel-debug.spec.ts:4:7 › Panel Debug › debug panel creation with detailed logging
+CONSOLE [warning]: ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+[1A[2KCONSOLE [warning]: ⚠️ React Router Future Flag Warning: The persistence behavior of fetchers is changing in v7. You can use the `v7_fetcherPersist` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_fetcherpersist.
+
+[1A[2KCONSOLE [warning]: ⚠️ React Router Future Flag Warning: The revalidation behavior after 4xx/5xx `action` responses is changing in v7. You can use the `v7_skipActionErrorRevalidation` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_skipactionerrorrevalidation.
+
+[1A[2KCONSOLE [error]: Failed to load resource: the server responded with a status of 401 ()
+
+[1A[2KPAGE ERROR: Unauthorized: User is not logged in.
+
+[1A[2KCONSOLE [warning]: An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing.
+
+[1A[2K[chrome-for-testing-headless] › tests/e2e/extension-proper.spec.ts:96:7 › Chrome Extension with Proper Context › should detect ATS and forms correctly
+Form detection results: {
+  formCount: [33m1[39m,
+  inputCount: [33m31[39m,
+  fileInputCount: [33m2[39m,
+  hasFirstNameField: [33mtrue[39m,
+  hasLastNameField: [33mtrue[39m,
+  hasEmailField: [33mtrue[39m,
+  hasResumeField: [33mtrue[39m
+}
+
+[1A[2K[39/57] [chrome-for-testing-debug] › tests/e2e/content-script-debug.spec.ts:4:7 › Content Script Debug › verify content script execution
+[1A[2K[chrome-for-testing-headless] › tests/e2e/panel-debug.spec.ts:4:7 › Panel Debug › debug panel creation with detailed logging
+Extension Info: {
+  hasExtensionScripts: [33mfalse[39m,
+  userAgent: [32m'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.15 Safari/537.36'[39m,
+  url: [32m'https://job-boards.greenhouse.io/headway/jobs/5308863004'[39m,
+  documentReady: [32m'complete'[39m,
+  bodyHTML: [32m'<div id="react-portal-mount-point"></div><main class="main font-secondary job-post"><div><div class="image-container"><a href="https://headway.co/" target="_blank" rel="noreferrer" class="logo"><img src="https://s4-recruiting.cdn.greenhouse.io/external_greenhouse_job_boards/logos/400/178/200/original/logo.png?1623696743" alt="Headway Logo" class=""></a></div><div><a class="link" target="_top" href="https://job-boards.greenhouse.io/headway"><svg class="svg-icon" fill="none" height="1.5rem" width=...'[39m
+}
+
+[1A[2KPanel exists: false
+
+[1A[2KAutoApply elements found: []
+
+[1A[2KContent script messages: []
+
+[1A[2KPanel not found, checking extension loading...
+
+[1A[2K[chrome-for-testing-debug] › tests/e2e/content-script-debug.spec.ts:4:7 › Content Script Debug › verify content script execution
+Chrome API Info: {
+  hasChrome: [33mtrue[39m,
+  hasRuntime: [33mfalse[39m,
+  hasStorage: [33mfalse[39m,
+  extensionId: [1mnull[22m,
+  manifest: [1mnull[22m
+}
+
+[1A[2K[chrome-for-testing-headless] › tests/e2e/panel-debug.spec.ts:4:7 › Panel Debug › debug panel creation with detailed logging
+Panel exists after additional wait: false
+
+[1A[2K
+=== ALL CONSOLE MESSAGES ===
+
+[1A[2K1: warning: ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+[1A[2K2: warning: ⚠️ React Router Future Flag Warning: The persistence behavior of fetchers is changing in v7. You can use the `v7_fetcherPersist` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_fetcherpersist.
+
+[1A[2K3: warning: ⚠️ React Router Future Flag Warning: The revalidation behavior after 4xx/5xx `action` responses is changing in v7. You can use the `v7_skipActionErrorRevalidation` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_skipactionerrorrevalidation.
+
+[1A[2K4: error: Failed to load resource: the server responded with a status of 401 ()
+
+[1A[2K5: warning: An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing.
+
+[1A[2K[chrome-for-testing-debug] › tests/e2e/content-script-debug.spec.ts:4:7 › Content Script Debug › verify content script execution
+Test variables: {
+  contentScriptLoaded: [33mtrue[39m,
+  chromeAvailable: [33mtrue[39m,
+  chromeRuntimeAvailable: [33mfalse[39m
+}
+
+[1A[2KTotal pages in context: [33m1[39m
+
+[1A[2K[40/57] [chrome-for-testing-debug] › tests/e2e/content-script-debug.spec.ts:77:7 › Content Script Debug › verify extension files are accessible
+[1A[2KConsole messages:
+
+[1A[2K[41/57] [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:7:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse job application form
+[1A[2K[chrome-for-testing-debug] › tests/e2e/content-script-debug.spec.ts:77:7 › Content Script Debug › verify extension files are accessible
+Extension info: []
+
+[1A[2K[42/57] [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:29:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse career page form
+[1A[2K  10) [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:7:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse job application form 
+
+    Error: [31mTimed out 8000ms waiting for [39m[2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m()[22m
+
+    Locator: locator('#autoapply-panel')
+    Expected: visible
+    Received: <element(s) not found>
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 8000ms[22m
+    [2m  - waiting for locator('#autoapply-panel')[22m
+
+
+      14 |       // Check if the floating panel appeared
+      15 |       const panel = page.locator('#autoapply-panel');
+    > 16 |       await expect(panel).toBeVisible({ timeout: 8000 });
+         |                           ^
+      17 |       
+      18 |       // Check if the correct ATS was detected
+      19 |       const atsInfo = await page.evaluate(() => {
+        at /Users/micah/code/auto-apply/tests/e2e/extension-detection.spec.ts:16:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/extension-detection-Extens-f9b01-nhouse-job-application-form-chrome-for-testing-debug/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/extension-detection-Extens-f9b01-nhouse-job-application-form-chrome-for-testing-debug/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/extension-detection-Extens-f9b01-nhouse-job-application-form-chrome-for-testing-debug/error-context.md
+
+
+[1A[2K  11) [chrome-for-testing] › tests/e2e/content-script-debug.spec.ts:77:7 › Content Script Debug › verify extension files are accessible 
+
+    TimeoutError: browserType.launch: Timeout 180000ms exceeded.
+    Call log:
+    [2m  - <launching> ./chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AutoExpandDetailsElement,AvoidUnnecessaryBeforeUnloadCheckSync,CertificateTransparencyComponentUpdater,DestroyProfileOnBrowserClose,DialMediaRouteProvider,ExtensionManifestV2Disabled,GlobalMediaControls,HttpsUpgrades,ImprovedCookieControls,LazyFrameLoading,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --enable-automation --enable-use-zoom-for-dsf=false --use-angle --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --load-extension=/Users/micah/code/auto-apply/dist/apps/extension --disable-extensions-except=/Users/micah/code/auto-apply/dist/apps/extension --disable-web-security --disable-features=VizDisplayCompositor --disable-dev-shm-usage --no-sandbox --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-renderer-backgrounding --no-first-run --disable-default-apps --enable-automation --disable-blink-features=AutomationControlled --remote-debugging-port=9222 --user-data-dir=/var/folders/7l/3hfc94_n2rg7x4604ytxdy140000gn/T/playwright_chromiumdev_profile-QaAxsj --remote-debugging-pipe --no-startup-window[22m
+    [2m  - <launched> pid=80864[22m
+    [2m  - [pid=80864][err] [80864:4743721:0613/224652.896576:ERROR:net/socket/socket_posix.cc:147] bind() failed: Address already in use (48)[22m
+    [2m  - [pid=80864][err] [80864:4743721:0613/224652.896681:ERROR:net/socket/socket_posix.cc:147] bind() failed: Address already in use (48)[22m
+    [2m  - [pid=80864][err] [80864:4743721:0613/224652.896711:ERROR:content/browser/devtools/devtools_http_handler.cc:309] Cannot start http server for devtools.[22m
+
+
+
+[1A[2K  12) [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:29:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse career page form 
+
+    TimeoutError: browserType.launch: Timeout 180000ms exceeded.
+    Call log:
+    [2m  - <launching> ./chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AutoExpandDetailsElement,AvoidUnnecessaryBeforeUnloadCheckSync,CertificateTransparencyComponentUpdater,DestroyProfileOnBrowserClose,DialMediaRouteProvider,ExtensionManifestV2Disabled,GlobalMediaControls,HttpsUpgrades,ImprovedCookieControls,LazyFrameLoading,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --enable-automation --enable-use-zoom-for-dsf=false --use-angle --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --load-extension=/Users/micah/code/auto-apply/dist/apps/extension --disable-extensions-except=/Users/micah/code/auto-apply/dist/apps/extension --disable-web-security --disable-features=VizDisplayCompositor --disable-dev-shm-usage --no-sandbox --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-renderer-backgrounding --no-first-run --disable-default-apps --enable-automation --disable-blink-features=AutomationControlled --remote-debugging-port=9222 --user-data-dir=/var/folders/7l/3hfc94_n2rg7x4604ytxdy140000gn/T/playwright_chromiumdev_profile-smXF8m --remote-debugging-pipe --no-startup-window[22m
+    [2m  - <launched> pid=80865[22m
+    [2m  - [pid=80865][err] [80865:4743733:0613/224652.999969:ERROR:net/socket/socket_posix.cc:147] bind() failed: Address already in use (48)[22m
+    [2m  - [pid=80865][err] [80865:4743733:0613/224653.000058:ERROR:net/socket/socket_posix.cc:147] bind() failed: Address already in use (48)[22m
+    [2m  - [pid=80865][err] [80865:4743733:0613/224653.000084:ERROR:content/browser/devtools/devtools_http_handler.cc:309] Cannot start http server for devtools.[22m
+
+
+
+[1A[2K[43/57] [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:42:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect generic job site with application forms
+[1A[2K[44/57] [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:100:9 › Extension Page Detection & Resume Import Features › Resume Import Detection › should detect application form elements
+[1A[2K[45/57] [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:58:9 › Extension Page Detection & Resume Import Features › Resume Import Detection › should detect native resume import on Greenhouse
+[1A[2K  13) [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:29:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse career page form 
+
+    Error: [31mTimed out 8000ms waiting for [39m[2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m()[22m
+
+    Locator: locator('#autoapply-panel')
+    Expected: visible
+    Received: <element(s) not found>
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 8000ms[22m
+    [2m  - waiting for locator('#autoapply-panel')[22m
+
+
+      35 |       // Check if panel appears
+      36 |       const panel = page.locator('#autoapply-panel');
+    > 37 |       await expect(panel).toBeVisible({ timeout: 8000 });
+         |                           ^
+      38 |       
+      39 |       await page.screenshot({ path: 'test-results/greenhouse-career-detection.png' });
+      40 |     });
+        at /Users/micah/code/auto-apply/tests/e2e/extension-detection.spec.ts:37:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/extension-detection-Extens-73431-Greenhouse-career-page-form-chrome-for-testing-debug/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/extension-detection-Extens-73431-Greenhouse-career-page-form-chrome-for-testing-debug/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/extension-detection-Extens-73431-Greenhouse-career-page-form-chrome-for-testing-debug/error-context.md
+
+
+[1A[2K[46/57] [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:125:9 › Extension Page Detection & Resume Import Features › Dynamic Content Detection › should detect form fields dynamically loaded
+[1A[2K[chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:58:9 › Extension Page Detection & Resume Import Features › Resume Import Detection › should detect native resume import on Greenhouse
+Found resume import element: input[type="file"][accept*="pdf"]
+
+[1A[2KExtension detection results: {
+  hasResumeImport: [33mtrue[39m,
+  allFileInputs: [33m2[39m,
+  hasResumeKeywords: [33mtrue[39m,
+  hasAttachKeywords: [33mtrue[39m
+}
+
+[1A[2K[47/57] [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:152:9 › Extension Page Detection & Resume Import Features › Dynamic Content Detection › should handle pages without application forms
+[1A[2K[chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:42:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect generic job site with application forms
+Panel found: false
+
+[1A[2K[48/57] [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:167:9 › Extension Page Detection & Resume Import Features › Extension Interaction › should open extension panel when ATS detected
+[1A[2K[chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:167:9 › Extension Page Detection & Resume Import Features › Extension Interaction › should open extension panel when ATS detected
+Panel visible: false
+
+[1A[2K[49/57] [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:188:9 › Extension Page Detection & Resume Import Features › Extension Interaction › should provide debug information
+[1A[2K[chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:188:9 › Extension Page Detection & Resume Import Features › Extension Interaction › should provide debug information
+Console logs:
+
+[1A[2K[50/57] [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:211:9 › Extension Page Detection & Resume Import Features › Error Handling › should handle pages with complex content
+[1A[2K[chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:152:9 › Extension Page Detection & Resume Import Features › Dynamic Content Detection › should handle pages without application forms
+Panel count on career overview page: 0
+
+[1A[2K[51/57] [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:224:9 › Extension Page Detection & Resume Import Features › Error Handling › should handle slow-loading pages
+[1A[2K  14) [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:211:9 › Extension Page Detection & Resume Import Features › Error Handling › should handle pages with complex content 
+
+    Error: locator.count: Execution context was destroyed, most likely because of a navigation
+
+      216 |       
+      217 |       // Extension should handle this gracefully
+    > 218 |       const panelCount = await page.locator('#autoapply-panel').count();
+          |                                                                 ^
+      219 |       console.log(`Panel count on complex page: ${panelCount}`);
+      220 |       
+      221 |       await page.screenshot({ path: 'test-results/complex-page.png' });
+        at /Users/micah/code/auto-apply/tests/e2e/extension-detection.spec.ts:218:65
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/extension-detection-Extens-ff0ec--pages-with-complex-content-chrome-for-testing-debug/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/extension-detection-Extens-ff0ec--pages-with-complex-content-chrome-for-testing-debug/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[52/57] [chrome-for-testing-debug] › tests/e2e/extension-persistent-context.spec.ts:5:7 › Extension with Persistent Context › should load extension with full API access
+[1A[2K[53/57] [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:242:9 › Extension Page Detection & Resume Import Features › Visual Testing › should render extension UI correctly
+[1A[2K[chrome-for-testing-debug] › tests/e2e/extension-persistent-context.spec.ts:5:7 › Extension with Persistent Context › should load extension with full API access
+Chrome API Info (persistent context): {
+  hasChrome: [33mtrue[39m,
+  hasRuntime: [33mfalse[39m,
+  hasStorage: [33mfalse[39m,
+  extensionId: [1mnull[22m,
+  manifest: [1mnull[22m
+}
+
+[1A[2KERROR: Chrome runtime API is not available
+
+[1A[2K[chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:242:9 › Extension Page Detection & Resume Import Features › Visual Testing › should render extension UI correctly
+Extension UI state: { hasPanel: [33mfalse[39m, hasExtensionStyles: [33mfalse[39m, bodyClasses: [32m''[39m }
+
+[1A[2K[54/57] [chrome-for-testing-debug] › tests/e2e/extension-persistent-context.spec.ts:91:7 › Extension Direct Test › should work with normal browser context
+[1A[2K[chrome-for-testing-debug] › tests/e2e/extension-persistent-context.spec.ts:5:7 › Extension with Persistent Context › should load extension with full API access
+Panel exists: false
+
+[1A[2KTarget page API info: { hasChrome: [33mtrue[39m, hasRuntime: [33mfalse[39m, extensionId: [1mnull[22m }
+
+[1A[2KContent script messages: []
+
+[1A[2K  15) [chrome-for-testing-debug] › tests/e2e/extension-persistent-context.spec.ts:5:7 › Extension with Persistent Context › should load extension with full API access 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      84 |     
+      85 |     // The test should pass if we can access Chrome APIs
+    > 86 |     expect(chromeApiInfo.hasRuntime).toBe(true);
+         |                                      ^
+      87 |   });
+      88 | });
+      89 |
+        at /Users/micah/code/auto-apply/tests/e2e/extension-persistent-context.spec.ts:86:38
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/extension-persistent-conte-9ab6d-ension-with-full-API-access-chrome-for-testing-debug/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[55/57] [chrome-for-testing-debug] › tests/e2e/extension-proper.spec.ts:4:7 › Chrome Extension with Proper Context › should load extension with full Chrome API access
+[1A[2K[chrome-for-testing-debug] › tests/e2e/extension-persistent-context.spec.ts:91:7 › Extension Direct Test › should work with normal browser context
+Normal context API info: {
+  hasChrome: [33mtrue[39m,
+  hasRuntime: [33mfalse[39m,
+  url: [32m'https://job-boards.greenhouse.io/headway/jobs/5308863004'[39m
+}
+
+[1A[2KPanel exists (normal context): false
+
+[1A[2K[chrome-for-testing-debug] › tests/e2e/extension-proper.spec.ts:4:7 › Chrome Extension with Proper Context › should load extension with full Chrome API access
+Extension ID: eiacecmpjlaikfdigcckkacoffipjmfe
+
+[1A[2K[56/57] [chrome-for-testing-debug] › tests/e2e/extension-proper.spec.ts:96:7 › Chrome Extension with Proper Context › should detect ATS and forms correctly
+[1A[2KChrome API Info: {
+  hasChrome: [33mtrue[39m,
+  hasRuntime: [33mfalse[39m,
+  hasStorage: [33mfalse[39m,
+  extensionId: [1mnull[22m,
+  runtimeAvailable: [33mfalse[39m
+}
+
+[1A[2K  16) [chrome-for-testing-debug] › tests/e2e/extension-proper.spec.ts:4:7 › Chrome Extension with Proper Context › should load extension with full Chrome API access 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      24 |     
+      25 |     // The runtime should be available now
+    > 26 |     expect(chromeApiInfo.hasRuntime).toBe(true);
+         |                                      ^
+      27 |     expect(chromeApiInfo.extensionId).toBeTruthy();
+      28 |     
+      29 |     // Now test on the actual Greenhouse page
+        at /Users/micah/code/auto-apply/tests/e2e/extension-proper.spec.ts:26:38
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/extension-proper-Chrome-Ex-343f5-with-full-Chrome-API-access-chrome-for-testing-debug/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/extension-proper-Chrome-Ex-343f5-with-full-Chrome-API-access-chrome-for-testing-debug/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[57/57] [chrome-for-testing-debug] › tests/e2e/panel-debug.spec.ts:4:7 › Panel Debug › debug panel creation with detailed logging
+[1A[2K[chrome-for-testing-debug] › tests/e2e/panel-debug.spec.ts:4:7 › Panel Debug › debug panel creation with detailed logging
+CONSOLE [warning]: ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+[1A[2KCONSOLE [warning]: ⚠️ React Router Future Flag Warning: The persistence behavior of fetchers is changing in v7. You can use the `v7_fetcherPersist` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_fetcherpersist.
+
+[1A[2KCONSOLE [warning]: ⚠️ React Router Future Flag Warning: The revalidation behavior after 4xx/5xx `action` responses is changing in v7. You can use the `v7_skipActionErrorRevalidation` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_skipactionerrorrevalidation.
+
+[1A[2KCONSOLE [error]: Failed to load resource: the server responded with a status of 401 ()
+
+[1A[2KPAGE ERROR: Unauthorized: User is not logged in.
+
+[1A[2K[chrome-for-testing-debug] › tests/e2e/extension-proper.spec.ts:96:7 › Chrome Extension with Proper Context › should detect ATS and forms correctly
+Form detection results: {
+  formCount: [33m1[39m,
+  inputCount: [33m31[39m,
+  fileInputCount: [33m2[39m,
+  hasFirstNameField: [33mtrue[39m,
+  hasLastNameField: [33mtrue[39m,
+  hasEmailField: [33mtrue[39m,
+  hasResumeField: [33mtrue[39m
+}
+
+[1A[2K[chrome-for-testing-debug] › tests/e2e/panel-debug.spec.ts:4:7 › Panel Debug › debug panel creation with detailed logging
+CONSOLE [warning]: An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing.
+
+[1A[2KExtension Info: {
+  hasExtensionScripts: [33mfalse[39m,
+  userAgent: [32m'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.15 Safari/537.36'[39m,
+  url: [32m'https://job-boards.greenhouse.io/headway/jobs/5308863004'[39m,
+  documentReady: [32m'complete'[39m,
+  bodyHTML: [32m'<div id="react-portal-mount-point"></div><main class="main font-secondary job-post"><div><div class="image-container"><a href="https://headway.co/" target="_blank" rel="noreferrer" class="logo"><img src="https://s4-recruiting.cdn.greenhouse.io/external_greenhouse_job_boards/logos/400/178/200/original/logo.png?1623696743" alt="Headway Logo" class=""></a></div><div><a class="link" target="_top" href="https://job-boards.greenhouse.io/headway"><svg class="svg-icon" fill="none" height="1.5rem" width=...'[39m
+}
+
+[1A[2KPanel exists: false
+
+[1A[2KAutoApply elements found: []
+
+[1A[2KContent script messages: []
+
+[1A[2KPanel not found, checking extension loading...
+
+[1A[2KPanel exists after additional wait: false
+
+[1A[2K
+=== ALL CONSOLE MESSAGES ===
+
+[1A[2K1: warning: ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+[1A[2K2: warning: ⚠️ React Router Future Flag Warning: The persistence behavior of fetchers is changing in v7. You can use the `v7_fetcherPersist` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_fetcherpersist.
+
+[1A[2K3: warning: ⚠️ React Router Future Flag Warning: The revalidation behavior after 4xx/5xx `action` responses is changing in v7. You can use the `v7_skipActionErrorRevalidation` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_skipactionerrorrevalidation.
+
+[1A[2K4: error: Failed to load resource: the server responded with a status of 401 ()
+
+[1A[2K5: warning: An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing.
+
+[1A[2K  17) [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:100:9 › Extension Page Detection & Resume Import Features › Resume Import Detection › should detect application form elements 
+
+    TimeoutError: browserType.launch: Timeout 180000ms exceeded.
+    Call log:
+    [2m  - <launching> ./chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AutoExpandDetailsElement,AvoidUnnecessaryBeforeUnloadCheckSync,CertificateTransparencyComponentUpdater,DestroyProfileOnBrowserClose,DialMediaRouteProvider,ExtensionManifestV2Disabled,GlobalMediaControls,HttpsUpgrades,ImprovedCookieControls,LazyFrameLoading,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --enable-automation --enable-use-zoom-for-dsf=false --auto-open-devtools-for-tabs --no-sandbox --load-extension=/Users/micah/code/auto-apply/dist/apps/extension --disable-extensions-except=/Users/micah/code/auto-apply/dist/apps/extension --disable-web-security --disable-features=VizDisplayCompositor --disable-dev-shm-usage --no-sandbox --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-renderer-backgrounding --no-first-run --disable-default-apps --enable-automation --disable-blink-features=AutomationControlled --remote-debugging-port=9224 --user-data-dir=/var/folders/7l/3hfc94_n2rg7x4604ytxdy140000gn/T/playwright_chromiumdev_profile-essovk --remote-debugging-pipe --no-startup-window[22m
+    [2m  - <launched> pid=81622[22m
+    [2m  - [pid=81622][err] [81622:4754009:0613/224954.376227:ERROR:net/socket/socket_posix.cc:147] bind() failed: Address already in use (48)[22m
+    [2m  - [pid=81622][err] [81622:4754009:0613/224954.376369:ERROR:net/socket/socket_posix.cc:147] bind() failed: Address already in use (48)[22m
+    [2m  - [pid=81622][err] [81622:4754009:0613/224954.376400:ERROR:content/browser/devtools/devtools_http_handler.cc:309] Cannot start http server for devtools.[22m
+
+
+
+[1A[2K  18) [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:125:9 › Extension Page Detection & Resume Import Features › Dynamic Content Detection › should detect form fields dynamically loaded 
+
+    TimeoutError: browserType.launch: Timeout 180000ms exceeded.
+    Call log:
+    [2m  - <launching> ./chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AutoExpandDetailsElement,AvoidUnnecessaryBeforeUnloadCheckSync,CertificateTransparencyComponentUpdater,DestroyProfileOnBrowserClose,DialMediaRouteProvider,ExtensionManifestV2Disabled,GlobalMediaControls,HttpsUpgrades,ImprovedCookieControls,LazyFrameLoading,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --enable-automation --enable-use-zoom-for-dsf=false --auto-open-devtools-for-tabs --no-sandbox --load-extension=/Users/micah/code/auto-apply/dist/apps/extension --disable-extensions-except=/Users/micah/code/auto-apply/dist/apps/extension --disable-web-security --disable-features=VizDisplayCompositor --disable-dev-shm-usage --no-sandbox --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-renderer-backgrounding --no-first-run --disable-default-apps --enable-automation --disable-blink-features=AutomationControlled --remote-debugging-port=9224 --user-data-dir=/var/folders/7l/3hfc94_n2rg7x4604ytxdy140000gn/T/playwright_chromiumdev_profile-rFwqOE --remote-debugging-pipe --no-startup-window[22m
+    [2m  - <launched> pid=81668[22m
+    [2m  - [pid=81668][err] [81668:4754612:0613/224958.994229:ERROR:net/socket/socket_posix.cc:147] bind() failed: Address already in use (48)[22m
+    [2m  - [pid=81668][err] [81668:4754612:0613/224958.994333:ERROR:net/socket/socket_posix.cc:147] bind() failed: Address already in use (48)[22m
+    [2m  - [pid=81668][err] [81668:4754612:0613/224958.994364:ERROR:content/browser/devtools/devtools_http_handler.cc:309] Cannot start http server for devtools.[22m
+
+
+
+[1A[2K  18 failed
+    [chrome-for-testing] › tests/e2e/content-script-debug.spec.ts:77:7 › Content Script Debug › verify extension files are accessible 
+    [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:7:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse job application form 
+    [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:29:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse career page form 
+    [chrome-for-testing] › tests/e2e/extension-detection.spec.ts:152:9 › Extension Page Detection & Resume Import Features › Dynamic Content Detection › should handle pages without application forms 
+    [chrome-for-testing] › tests/e2e/extension-persistent-context.spec.ts:5:7 › Extension with Persistent Context › should load extension with full API access 
+    [chrome-for-testing] › tests/e2e/extension-proper.spec.ts:4:7 › Chrome Extension with Proper Context › should load extension with full Chrome API access 
+    [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:7:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse job application form 
+    [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:29:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse career page form 
+    [chrome-for-testing-headless] › tests/e2e/extension-detection.spec.ts:152:9 › Extension Page Detection & Resume Import Features › Dynamic Content Detection › should handle pages without application forms 
+    [chrome-for-testing-headless] › tests/e2e/extension-persistent-context.spec.ts:5:7 › Extension with Persistent Context › should load extension with full API access 
+    [chrome-for-testing-headless] › tests/e2e/extension-proper.spec.ts:4:7 › Chrome Extension with Proper Context › should load extension with full Chrome API access 
+    [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:7:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse job application form 
+    [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:29:9 › Extension Page Detection & Resume Import Features › ATS Detection › should detect Greenhouse career page form 
+    [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:100:9 › Extension Page Detection & Resume Import Features › Resume Import Detection › should detect application form elements 
+    [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:125:9 › Extension Page Detection & Resume Import Features › Dynamic Content Detection › should detect form fields dynamically loaded 
+    [chrome-for-testing-debug] › tests/e2e/extension-detection.spec.ts:211:9 › Extension Page Detection & Resume Import Features › Error Handling › should handle pages with complex content 
+    [chrome-for-testing-debug] › tests/e2e/extension-persistent-context.spec.ts:5:7 › Extension with Persistent Context › should load extension with full API access 
+    [chrome-for-testing-debug] › tests/e2e/extension-proper.spec.ts:4:7 › Chrome Extension with Proper Context › should load extension with full Chrome API access 
+  39 passed (6.1m)
+
+[36m  Serving HTML report at http://localhost:9323. Press Ctrl+C to quit.[39m

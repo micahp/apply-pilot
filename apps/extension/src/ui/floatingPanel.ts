@@ -1,14 +1,13 @@
 import { ATS } from '../utils/ats-platforms';
 import { Profile } from '../types/profile';
-
-import { EnhancedFillResult } from '../utils/ats-enhanced';
+import type { AutomationResult } from '../utils/comprehensive-form-automation';
 
 /**
  * Interface for panel configuration options
  */
 interface FloatingPanelOptions {
   ats: ATS;
-  onFillFields: (profileData: Profile) => Promise<EnhancedFillResult>;
+  onFillFields: (profileData: Profile) => Promise<AutomationResult>;
   onApply?: () => boolean;
   onClose: () => void;
   isJobListingPage?: boolean;
@@ -180,27 +179,24 @@ export function initFloatingPanel(options: FloatingPanelOptions): HTMLElement {
               const fillResult = await options.onFillFields(result.profile);
               
               if (fillResult.success) {
-                const playwrightText = fillResult.usedPlaywright 
-                  ? ` (${fillResult.contentScriptFields} basic + ${fillResult.playwrightFields} complex)` 
-                  : '';
-                statusMessageArea.textContent = `✅ Filled ${fillResult.totalFieldsFilled} fields${playwrightText}!`;
+                statusMessageArea.textContent = `✅ Filled ${fillResult.fieldsFilled} fields!`;
                 statusMessageArea.style.color = '#27ae60';
                 
                 // Show warnings if any (with delay)
                 if (fillResult.warnings.length > 0) {
                   setTimeout(() => {
-                    statusMessageArea.innerHTML = `✅ Filled ${fillResult.totalFieldsFilled} fields${playwrightText}!<br><span style="font-size: 12px; color: #f39c12;">⚠️ ${fillResult.warnings[0]}</span>`;
+                    statusMessageArea.innerHTML = `✅ Filled ${fillResult.fieldsFilled} fields!<br><span style="font-size: 12px; color: #f39c12;">⚠️ ${fillResult.warnings[0]}</span>`;
                   }, 2000);
                 }
                 
-                // Show first recommendation if any (with longer delay)
-                if (fillResult.recommendations.length > 0) {
+                // Show first next action if any (with longer delay)
+                if (fillResult.nextActions.length > 0) {
                   setTimeout(() => {
-                    statusMessageArea.innerHTML = `✅ Filled ${fillResult.totalFieldsFilled} fields${playwrightText}!<br><span style="font-size: 11px; color: #3498db;">💡 ${fillResult.recommendations[0]}</span>`;
+                    statusMessageArea.innerHTML = `✅ Filled ${fillResult.fieldsFilled} fields!<br><span style="font-size: 11px; color: #3498db;">💡 ${fillResult.nextActions[0]}</span>`;
                   }, 5000);
                 }
               } else {
-                statusMessageArea.innerHTML = `❌ Fill failed: ${fillResult.errors[0] || 'Unknown error'}<br><span style="font-size: 11px; color: #e67e22;">💡 ${fillResult.recommendations[0] || 'Try refreshing the page'}</span>`;
+                statusMessageArea.innerHTML = `❌ Fill failed: ${fillResult.errors[0] || 'Unknown error'}<br><span style="font-size: 11px; color: #e67e22;">💡 ${fillResult.nextActions[0] || 'Try refreshing the page'}</span>`;
                 statusMessageArea.style.color = '#e74c3c';
               }
             } catch (fillError: any) {
@@ -232,7 +228,7 @@ export function initFloatingPanel(options: FloatingPanelOptions): HTMLElement {
           
           try {
             const fillResult = await options.onFillFields(mockProfile);
-            statusMessageArea.textContent = `✅ Test mode: Filled ${fillResult.totalFieldsFilled} fields!`;
+            statusMessageArea.textContent = `✅ Test mode: Filled ${fillResult.fieldsFilled} fields!`;
             statusMessageArea.style.color = '#27ae60';
           } catch (fillError: any) {
             statusMessageArea.textContent = `❌ Test mode error: ${fillError.message}`;

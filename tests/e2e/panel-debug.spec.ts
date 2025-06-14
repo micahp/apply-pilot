@@ -1,28 +1,28 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures/shared-extension';
 
 test.describe('Panel Debug', () => {
-  test('debug panel creation with detailed logging', async ({ page }) => {
+  test('debug panel creation with detailed logging', async ({ extensionPage }) => {
     // Capture console messages
     const consoleMessages: string[] = [];
-    page.on('console', msg => {
+    extensionPage.on('console', msg => {
       const text = msg.text();
       consoleMessages.push(`${msg.type()}: ${text}`);
       console.log(`CONSOLE [${msg.type()}]: ${text}`);
     });
 
     // Capture any errors
-    page.on('pageerror', error => {
+    extensionPage.on('pageerror', error => {
       console.log(`PAGE ERROR: ${error.message}`);
     });
 
     // Navigate to the Greenhouse job page
-    await page.goto('https://job-boards.greenhouse.io/headway/jobs/5308863004');
+    await extensionPage.goto('https://job-boards.greenhouse.io/headway/jobs/5308863004');
     
     // Wait longer for extension to fully initialize
-    await page.waitForTimeout(5000);
+    await extensionPage.waitForTimeout(5000);
     
     // Check if extension is loaded
-    const extensionInfo = await page.evaluate(() => {
+    const extensionInfo = await extensionPage.evaluate(() => {
       return {
         hasExtensionScripts: !!window.chrome?.runtime,
         userAgent: navigator.userAgent,
@@ -35,11 +35,11 @@ test.describe('Panel Debug', () => {
     console.log('Extension Info:', extensionInfo);
     
     // Check for panel element
-    const panelExists = await page.locator('#autoapply-panel').count() > 0;
+    const panelExists = await extensionPage.locator('#autoapply-panel').count() > 0;
     console.log(`Panel exists: ${panelExists}`);
     
     // Check for any elements with autoapply in their ID or class
-    const autoapplyElements = await page.evaluate(() => {
+    const autoapplyElements = await extensionPage.evaluate(() => {
       const elements = document.querySelectorAll('*[id*="autoapply"], *[class*="autoapply"]');
       return Array.from(elements).map(el => ({
         tag: el.tagName,
@@ -63,13 +63,13 @@ test.describe('Panel Debug', () => {
       console.log('Panel not found, checking extension loading...');
       
       // Wait a bit more and check again
-      await page.waitForTimeout(3000);
-      const panelExistsAfterWait = await page.locator('#autoapply-panel').count() > 0;
+      await extensionPage.waitForTimeout(3000);
+      const panelExistsAfterWait = await extensionPage.locator('#autoapply-panel').count() > 0;
       console.log(`Panel exists after additional wait: ${panelExistsAfterWait}`);
     }
     
     // Take a screenshot for visual debugging
-    await page.screenshot({ 
+    await extensionPage.screenshot({ 
       path: 'test-results/panel-debug.png',
       fullPage: true 
     });

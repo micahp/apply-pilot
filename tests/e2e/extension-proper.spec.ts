@@ -1,11 +1,7 @@
-import { test, expect } from '../fixtures/extension';
+import { test, expect } from '@playwright/test';
 
 test.describe('Chrome Extension with Proper Context', () => {
-  test('should load extension with full Chrome API access', async ({ context, extensionId }) => {
-    console.log('Extension ID:', extensionId);
-    
-    // Create a new page in the extension context
-    const page = await context.newPage();
+  test('should load extension with full Chrome API access', async ({ page }) => {
     
     // Test Chrome API availability first
     await page.goto('data:text/html,<html><body><h1>Test Page</h1></body></html>');
@@ -93,8 +89,7 @@ test.describe('Chrome Extension with Proper Context', () => {
     expect(panelExists).toBe(true);
   });
   
-  test('should detect ATS and forms correctly', async ({ context }) => {
-    const page = await context.newPage();
+  test('should detect ATS and forms correctly', async ({ page }) => {
     await page.goto('https://job-boards.greenhouse.io/headway/jobs/5308863004');
     await page.waitForTimeout(5000);
     

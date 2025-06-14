@@ -89,7 +89,6 @@ export default defineConfig({
         },
       },
     },
-    // Extension testing in different scenarios with Chrome for Testing
     {
       name: 'chrome-for-testing-debug',
       use: { 

@@ -1,4 +1,4 @@
-import { test, expect, Page, BrowserContext } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import path from 'path';
 
 // Enhanced page detection and resume import detection tests
