@@ -1,10 +1,24 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures/shared-extension';
 import path from 'path';
 
 // Enhanced page detection and resume import detection tests
 test.describe('Extension Page Detection & Resume Import Features', () => {
+  test.beforeEach(async ({ extensionPage: page }) => {
+    // Enhanced logging for debugging
+    page.on('console', msg => {
+      const text = msg.text();
+      if (text.includes('AutoApply') || text.includes('Content script') || text.includes('Extension')) {
+        console.log(`[EXTENSION] ${text}`);
+      }
+    });
+
+    page.on('pageerror', err => {
+      console.error(`[PAGE ERROR] ${err.message}`);
+    });
+  });
+
   test.describe('ATS Detection', () => {
-    test('should detect Greenhouse job application form', async ({ page }) => {
+    test('should detect Greenhouse job application form', async ({ extensionPage: page }) => {
       // Navigate to a real Greenhouse job application that exists
       await page.goto('https://job-boards.greenhouse.io/headway/jobs/5308863004');
       
@@ -26,20 +40,99 @@ test.describe('Extension Page Detection & Resume Import Features', () => {
       await page.screenshot({ path: 'test-results/greenhouse-detection.png' });
     });
 
-    test('should detect Greenhouse career page form', async ({ page }) => {
-      await page.goto('https://job-boards.greenhouse.io/headway/jobs/5308863004');
+    test('should detect Greenhouse career page form', async ({ extensionPage: page }) => {
+      const url = 'https://job-boards.greenhouse.io/headway/jobs/5308863004';
       
-      // Wait for page to load and extension to initialize
-      await page.waitForTimeout(3000);
+      console.log(`Navigating to: ${url}`);
+      await page.goto(url);
       
-      // Check if panel appears
-      const panel = page.locator('#autoapply-panel');
-      await expect(panel).toBeVisible({ timeout: 8000 });
+      // Wait for page to fully load
+      await page.waitForLoadState('networkidle');
+      
+      // First, let's verify the extension is actually loaded
+      const extensionInfo = await page.evaluate(() => {
+        return {
+          hasChrome: typeof chrome !== 'undefined',
+          hasRuntime: typeof chrome?.runtime !== 'undefined',
+          extensionId: chrome?.runtime?.id || null,
+          url: window.location.href,
+          title: document.title,
+          hasAnyAutoApplyElements: document.querySelectorAll('*[id*="autoapply"], *[class*="autoapply"]').length > 0
+        };
+      });
+      
+      console.log('Extension info:', extensionInfo);
+      
+      // Check if this URL should trigger content scripts based on manifest
+      const shouldHaveContentScript = [
+        'greenhouse.io',
+        'workday.com',
+        'lever.co',
+        'taleo.net',
+        'ashbyhq.com',
+        'workable.com',
+        'icims.com'
+      ].some(domain => url.includes(domain));
+      
+      console.log(`Should have content script for this URL: ${shouldHaveContentScript}`);
+      
+      if (shouldHaveContentScript) {
+        // Wait longer for content script to initialize and create panel
+        console.log('Waiting for extension content script to create panel...');
+        
+        // Check if panel exists or gets created within timeout
+        try {
+          const panel = page.locator('#autoapply-panel');
+          await expect(panel).toBeVisible({ timeout: 12000 });
+          console.log('✅ Panel found and visible');
+        } catch (error) {
+          console.log('❌ Panel not found, checking for other extension signs...');
+          
+          // Check for any extension activity
+          const debugInfo = await page.evaluate(() => {
+            const allElements = document.querySelectorAll('*');
+            const suspiciousElements: Array<{ tag: string; id: string; classes: string }> = [];
+            
+            allElements.forEach(el => {
+              if (el.id && (el.id.includes('autoapply') || el.id.includes('extension'))) {
+                suspiciousElements.push({ tag: el.tagName, id: el.id, classes: el.className });
+              }
+              if (el.className && typeof el.className === 'string' && 
+                  (el.className.includes('autoapply') || el.className.includes('extension'))) {
+                suspiciousElements.push({ tag: el.tagName, id: el.id, classes: el.className });
+              }
+            });
+            
+            return {
+              suspiciousElements,
+              totalElements: allElements.length,
+              hasAutoApplyInBody: document.body.innerHTML.includes('autoapply'),
+              scriptTags: Array.from(document.querySelectorAll('script')).length,
+              hasExtensionScripts: Array.from(document.querySelectorAll('script')).some(s => 
+                s.src && s.src.includes('chrome-extension')
+              )
+            };
+          });
+          
+          console.log('Debug info:', debugInfo);
+          
+          // Take diagnostic screenshot
+          await page.screenshot({ 
+            path: 'test-results/greenhouse-debug.png',
+            fullPage: true 
+          });
+          
+          throw error;
+        }
+      } else {
+        console.log('⚠️  URL may not match content script patterns in manifest');
+        console.log('Available patterns: workday.com, greenhouse.io, lever.co, taleo.net, ashbyhq.com, workable.com, icims.com');
+      }
       
       await page.screenshot({ path: 'test-results/greenhouse-career-detection.png' });
     });
 
-    test('should detect generic job site with application forms', async ({ page }) => {
+    test('should detect generic job site with application forms', async ({ extensionPage: page }) => {
       // Use a site that might have job application forms
       await page.goto('https://my.greenhouse.io');
       
@@ -55,7 +148,7 @@ test.describe('Extension Page Detection & Resume Import Features', () => {
   });
 
   test.describe('Resume Import Detection', () => {
-    test('should detect native resume import on Greenhouse', async ({ page }) => {
+    test('should detect native resume import on Greenhouse', async ({ extensionPage: page }) => {
       await page.goto('https://job-boards.greenhouse.io/headway/jobs/5308863004');
       
       // Look for resume import buttons/links
@@ -97,7 +190,7 @@ test.describe('Extension Page Detection & Resume Import Features', () => {
       console.log('Extension detection results:', extensionDetection);
     });
 
-    test('should detect application form elements', async ({ page }) => {
+    test('should detect application form elements', async ({ extensionPage: page }) => {
       await page.goto('https://job-boards.greenhouse.io/headway/jobs/5308863004');
       
       // Look for general application form elements
@@ -122,7 +215,7 @@ test.describe('Extension Page Detection & Resume Import Features', () => {
   });
 
   test.describe('Dynamic Content Detection', () => {
-    test('should detect form fields dynamically loaded', async ({ page }) => {
+    test('should detect form fields dynamically loaded', async ({ extensionPage: page }) => {
       await page.goto('https://job-boards.greenhouse.io/headway/jobs/5308863004');
       
       // Wait for form to load
@@ -149,7 +242,7 @@ test.describe('Extension Page Detection & Resume Import Features', () => {
       expect(formAnalysis.inputCount).toBeGreaterThan(0);
     });
 
-    test('should handle pages without application forms', async ({ page }) => {
+    test('should handle pages without application forms', async ({ extensionPage: page }) => {
       // Test a page that definitely won't have forms
       await page.goto('https://www.greenhouse.io/careers');
       
@@ -164,7 +257,7 @@ test.describe('Extension Page Detection & Resume Import Features', () => {
   });
 
   test.describe('Extension Interaction', () => {
-    test('should open extension panel when ATS detected', async ({ page }) => {
+    test('should open extension panel when ATS detected', async ({ extensionPage: page }) => {
       await page.goto('https://job-boards.greenhouse.io/headway/jobs/5308863004');
       
       // Wait for extension to initialize
@@ -185,7 +278,7 @@ test.describe('Extension Page Detection & Resume Import Features', () => {
       }
     });
 
-    test('should provide debug information', async ({ page }) => {
+    test('should provide debug information', async ({ extensionPage: page }) => {
       await page.goto('https://job-boards.greenhouse.io/headway/jobs/5308863004');
       
       await page.waitForTimeout(3000);
@@ -208,7 +301,7 @@ test.describe('Extension Page Detection & Resume Import Features', () => {
   });
 
   test.describe('Error Handling', () => {
-    test('should handle pages with complex content', async ({ page }) => {
+    test('should handle pages with complex content', async ({ extensionPage: page }) => {
       // Test with a complex page
       await page.goto('https://www.greenhouse.io');
       
@@ -221,7 +314,7 @@ test.describe('Extension Page Detection & Resume Import Features', () => {
       await page.screenshot({ path: 'test-results/complex-page.png' });
     });
 
-    test('should handle slow-loading pages', async ({ page }) => {
+    test('should handle slow-loading pages', async ({ extensionPage: page }) => {
       // Navigate to a potentially slow page
       await page.goto('https://job-boards.greenhouse.io/headway/jobs/5308863004');
       
@@ -239,7 +332,7 @@ test.describe('Extension Page Detection & Resume Import Features', () => {
   });
 
   test.describe('Visual Testing', () => {
-    test('should render extension UI correctly', async ({ page }) => {
+    test('should render extension UI correctly', async ({ extensionPage: page }) => {
       await page.goto('https://job-boards.greenhouse.io/headway/jobs/5308863004');
       
       await page.waitForTimeout(3000);

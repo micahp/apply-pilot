@@ -239,10 +239,7 @@ export function detectResumeImportFeatures(): {
   recommendations: string[];
 } {
   const resumeImportSelectors = [
-    // Common resume import patterns
-    'button:has-text("Import from Resume")',
-    'button:has-text("Upload Resume")',
-    'a:has-text("Import Resume")',
+    // Common resume import patterns - using standard CSS selectors
     '[data-qa*="resume-import"]',
     '[data-testid*="resume-import"]',
     'input[type="file"][accept*="pdf"]',
@@ -250,16 +247,33 @@ export function detectResumeImportFeatures(): {
     '.resume-upload',
     '.file-upload',
     '[id*="resume-upload"]',
-    '[class*="resume-upload"]'
+    '[class*="resume-upload"]',
+    'button[title*="resume"]',
+    'button[aria-label*="resume"]',
+    'a[title*="resume"]'
   ];
   
   const foundSelectors: string[] = [];
   const recommendations: string[] = [];
   
+  // Check standard CSS selectors
   for (const selector of resumeImportSelectors) {
     if (document.querySelector(selector)) {
       foundSelectors.push(selector);
     }
+  }
+  
+  // Check for text-based elements (buttons/links with resume-related text)
+  const textBasedElements = [
+    ...findElementsByText('button', 'import from resume'),
+    ...findElementsByText('button', 'upload resume'),
+    ...findElementsByText('a', 'import resume'),
+    ...findElementsByText('button', 'resume'),
+    ...findElementsByText('a', 'resume')
+  ];
+  
+  if (textBasedElements.length > 0) {
+    foundSelectors.push('text-based-resume-elements');
   }
   
   const hasNativeImport = foundSelectors.length > 0;
@@ -315,15 +329,31 @@ export function clickAshbyApplyButton(): boolean {
   const applySelectors = [
     'button[data-qa*="apply"]',
     'a[data-qa*="apply"]',
-    'button:has-text("Apply")',
-    'a:has-text("Apply")',
     '.apply-button',
-    '[class*="apply-btn"]'
+    '[class*="apply-btn"]',
+    'button[title*="apply"]',
+    'button[aria-label*="apply"]',
+    'a[title*="apply"]',
+    'input[type="submit"][value*="apply"]'
   ];
   
+  // Try standard CSS selectors first
   for (const selector of applySelectors) {
     const element = document.querySelector(selector) as HTMLElement;
     if (element && isElementVisible(element)) {
+      element.click();
+      return true;
+    }
+  }
+  
+  // Try text-based search for apply buttons
+  const textBasedApplyElements = [
+    ...findElementsByText('button', 'apply'),
+    ...findElementsByText('a', 'apply')
+  ];
+  
+  for (const element of textBasedApplyElements) {
+    if (isElementVisible(element)) {
       element.click();
       return true;
     }
@@ -344,4 +374,14 @@ function isElementVisible(element: HTMLElement): boolean {
          style.opacity !== '0' &&
          element.offsetWidth > 0 && 
          element.offsetHeight > 0;
+}
+
+/**
+ * Find elements by text content (replacement for Playwright's :has-text())
+ */
+function findElementsByText(tagName: string, textContent: string): HTMLElement[] {
+  const elements = Array.from(document.querySelectorAll(tagName));
+  return elements.filter(el => 
+    el.textContent?.toLowerCase().includes(textContent.toLowerCase())
+  ) as HTMLElement[];
 } 

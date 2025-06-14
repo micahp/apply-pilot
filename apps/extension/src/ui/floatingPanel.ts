@@ -224,7 +224,7 @@ export function initFloatingPanel(options: FloatingPanelOptions): HTMLElement {
               city: 'Test City',
               state: 'Test State'
             }
-          } as Profile;
+          } as Profile; 
           
           try {
             const fillResult = await options.onFillFields(mockProfile);

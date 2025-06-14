@@ -4,29 +4,30 @@ import path from 'path';
 type ExtensionFixtures = {
   extensionContext: BrowserContext;
   extensionPage: Page;
+  extensionId: string;
 };
 
 type ExtensionWorkerFixtures = {
-  extensionBrowser: Browser;
+  // Remove browser fixture since we'll use persistent context directly
 };
 
 /**
- * Shared browser fixture for extension testing.
- * Reuses browser instance across tests while maintaining context isolation.
- * This significantly improves performance for extension testing.
+ * Extension testing fixture following Playwright's official Chrome extension testing pattern.
+ * Uses launchPersistentContext for proper extension loading.
  */
 export const test = base.extend<ExtensionFixtures, ExtensionWorkerFixtures>({
-  // Worker-scoped browser - shared across all tests in a file
-  extensionBrowser: [async ({ }, use) => {
+  // Test-scoped persistent context - proper way to load extensions
+  extensionContext: async ({ }, use) => {
     const pathToExtension = path.join(__dirname, '../../dist/apps/extension');
-    const chromeExecutablePath = './chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing';
+    const userDataDir = '/tmp/test-user-data-dir-' + Date.now(); // Unique dir per test
     
-    const browser = await chromium.launch({
-      headless: false, // Set to true for CI
-      executablePath: chromeExecutablePath,
+    console.log(`Loading extension from: ${pathToExtension}`);
+    
+    const context = await chromium.launchPersistentContext(userDataDir, {
+      headless: false, // Extensions require non-headless mode
       args: [
-        `--load-extension=${pathToExtension}`,
         `--disable-extensions-except=${pathToExtension}`,
+        `--load-extension=${pathToExtension}`,
         '--disable-web-security',
         '--disable-features=VizDisplayCompositor',
         '--disable-dev-shm-usage',
@@ -36,27 +37,25 @@ export const test = base.extend<ExtensionFixtures, ExtensionWorkerFixtures>({
         '--disable-renderer-backgrounding',
         '--no-first-run',
         '--disable-default-apps',
-        '--enable-automation',
-        '--disable-blink-features=AutomationControlled',
-        '--remote-debugging-port=9222'
       ],
-    });
-    
-    await use(browser);
-    await browser.close();
-  }, { scope: 'worker' }],
-
-  // Test-scoped context - fresh context for each test (maintains isolation)
-  extensionContext: async ({ extensionBrowser }, use) => {
-    const context = await extensionBrowser.newContext({
-      // Ensure clean state for each test
-      ignoreHTTPSErrors: true,
-      // You can add more context options here as needed
-      viewport: { width: 1280, height: 720 },
+      ignoreDefaultArgs: ['--disable-component-extensions-with-background-pages'],
     });
     
     await use(context);
     await context.close();
+  },
+
+  // Extension ID detection for Manifest v3
+  extensionId: async ({ extensionContext }, use) => {
+    // For manifest v3: get service worker
+    let [background] = extensionContext.serviceWorkers();
+    if (!background) {
+      background = await extensionContext.waitForEvent('serviceworker');
+    }
+
+    const extensionId = background.url().split('/')[2];
+    console.log(`Extension ID: ${extensionId}`);
+    await use(extensionId);
   },
 
   // Test-scoped page - fresh page for each test
@@ -102,7 +101,7 @@ export async function waitForExtensionReady(page: Page, timeout = 10000): Promis
       // Check if extension content script has loaded
       return window.hasOwnProperty('AutoApplyExtension') || 
              document.querySelector('#autoapply-panel') !== null ||
-             typeof chrome !== 'undefined' && chrome.runtime;
+             (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id);
     },
     { timeout }
   );
