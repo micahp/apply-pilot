@@ -31,6 +31,7 @@ const args = process.argv.slice(2);
 const config = {
   submit: args.includes('--submit'),
   headless: args.includes('--headless'),
+  resume: args.includes('--resume'),
   limit: parseInt(args.includes('--limit') ? args[args.indexOf('--limit') + 1] : '999', 10),
   profilePath: args.includes('--profile') ? args[args.indexOf('--profile') + 1] : DEFAULT_PROFILE,
 };
@@ -425,14 +426,29 @@ async function applyToJob(browser, job, profile, index, total) {
 
     // Submit or review
     if (config.submit) {
-      const submitBtn = page.locator('input[type="submit"], button[type="submit"], button:has-text("Submit"), button:has-text("Send")').first();
-      if (await submitBtn.count() > 0) {
-        await submitBtn.click();
-        await page.waitForTimeout(3000);
+      // Only target visible, non-hidden submit buttons (skip hCaptcha hidden buttons)
+      const allSubmitBtns = page.locator('input[type="submit"]:visible, button[type="submit"]:visible, button:has-text("Submit"):visible, button:has-text("Send"):visible, button:has-text("Apply"):visible, input[type="submit"][value*="Submit" i]');
+      const submitCount = await allSubmitBtns.count();
+      let submitted = false;
+      for (let si = 0; si < submitCount; si++) {
+        const btn = allSubmitBtns.nth(si);
+        try {
+          const isVisible = await btn.isVisible();
+          const isEnabled = await btn.isEnabled();
+          const hasHiddenClass = await btn.evaluate(el => el.classList.contains('hidden') || el.closest('.hidden'));
+          if (isVisible && isEnabled && !hasHiddenClass) {
+            await btn.click();
+            await page.waitForTimeout(3000);
+            submitted = true;
+            break;
+          }
+        } catch { /* try next */ }
+      }
+      if (submitted) {
         result.submitted = true;
         console.log('  ✅ SUBMITTED');
       } else {
-        console.log('  ⚠️  No submit button found — filled but not submitted');
+        console.log('  ⚠️  No visible submit button found — filled but not submitted');
       }
     } else {
       if (config.headless) {
@@ -453,7 +469,7 @@ async function applyToJob(browser, job, profile, index, total) {
     console.error(`  ❌ Error: ${error.message}`);
     result.error = error.message;
   } finally {
-    await context.close();
+    try { await context.close(); } catch {}
   }
 
   return result;
@@ -462,9 +478,21 @@ async function applyToJob(browser, job, profile, index, total) {
 // ─── Main ─────────────────────────────────────────────────────────
 
 async function main() {
+  // Load previously processed URLs if resuming
+  let processedUrls = new Set();
+  let existingResults = [];
+  if (config.resume) {
+    try {
+      existingResults = JSON.parse(fs.readFileSync(RESULTS_FILE, 'utf-8'));
+      processedUrls = new Set(existingResults.map(r => r.job.url));
+      console.log(`[auto-apply] Resuming: skipping ${processedUrls.size} already-processed jobs`);
+    } catch { /* no existing results */ }
+  }
+
   // Filter and sort jobs: US/Remote, high score
   const filtered = jobs
     .filter(j => {
+      if (processedUrls.has(j.url)) return false;
       const loc = (j.location || '').toLowerCase();
       const isUS = /united states|usa|san francisco|new york|palo alto|seattle|remote|austin|boston|denver|chicago|los angeles|dc|mountain view|menlo park/i.test(loc);
       return (j.score || 0) >= 35 && (isUS || loc.includes('remote'));
@@ -474,7 +502,7 @@ async function main() {
 
   console.log(`\n[auto-apply] Targeting ${filtered.length} high-relevance US/Remote jobs`);
 
-  const results = [];
+  const results = config.resume ? [...existingResults] : [];
   const browser = await chromium.launch({
     headless: config.headless,
     slowMo: config.headless ? 0 : 100, // Slow down in visible mode
