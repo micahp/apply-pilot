@@ -6,3 +6,8 @@ node_modules
 test-results*
 playwright-report/
 chrome/
+# Auto-apply outputs
+jobs.json
+apply-results.json
+profile.json
+screenshots/
