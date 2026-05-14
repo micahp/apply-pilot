@@ -3,20 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Job Listings - AutoApply</title>
-  <!-- You might want to link a CSS file here for styling -->
-  <!-- <link rel="stylesheet" href="job_listings.css"> -->
+  <title>AI / LLM Job Listings — AutoApply</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header>
-    <h1>Available Job Postings</h1>
+    <h1>🤖 AI & LLM Engineering Jobs</h1>
+    <div class="header-controls">
+      <select id="source-filter">
+        <option value="all">All Sources</option>
+      </select>
+      <input type="text" id="search-input" placeholder="Search jobs, companies, skills...">
+      <button id="refresh-btn">🔄 Refresh</button>
+    </div>
   </header>
   <main>
+    <div id="stats"></div>
     <div id="job-listings-container">
-      <!-- Job listings will be dynamically inserted here by job_listings.js -->
-      <p>Loading job listings...</p>
+      <div id="status"><span class="loading-spinner"></span> Loading job listings...</div>
     </div>
   </main>
   <script type="module" src="job_listings.js"></script>
 </body>
-</html> 
+</html>

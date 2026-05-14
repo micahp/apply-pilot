@@ -179,6 +179,168 @@ export const supportedPlatforms: ATSPlatform[] = [
       phone: 'input[type="tel"], input[name*="phone"]',
       resume: 'input[type="file"]'
     }
+  },
+  {
+    name: 'BambooHR',
+    slug: 'bamboohr',
+    description: 'BambooHR application detected',
+    urlPatterns: [
+      /\.bamboohr\.com\/careers/,
+      /\.bamboohr\.com\/jobs/
+    ],
+    selectors: {
+      firstName: 'input[name*="first"], input[id*="first"]',
+      lastName: 'input[name*="last"], input[id*="last"]',
+      email: 'input[type="email"], input[name*="email"]',
+      phone: 'input[type="tel"], input[name*="phone"]',
+      resume: 'input[type="file"]'
+    }
+  },
+  {
+    name: 'BreezyHR',
+    slug: 'breezyhr',
+    description: 'BreezyHR application detected',
+    urlPatterns: [
+      /\.breezy\.hr/,
+      /breezyhr\.com/
+    ],
+    selectors: {
+      firstName: 'input[name*="first"], input[id*="first-name"]',
+      lastName: 'input[name*="last"], input[id*="last-name"]',
+      email: 'input[type="email"], input[name*="email"]',
+      phone: 'input[type="tel"], input[name*="phone"]',
+      resume: 'input[type="file"]'
+    }
+  },
+  {
+    name: 'Recruitee',
+    slug: 'recruitee',
+    description: 'Recruitee application detected',
+    urlPatterns: [
+      /\.recruitee\.com/,
+      /recruitee\.com\/o\//
+    ],
+    selectors: {
+      firstName: 'input[name*="first"], input[id*="first"]',
+      lastName: 'input[name*="last"], input[id*="last"]',
+      email: 'input[type="email"], input[name*="email"]',
+      phone: 'input[type="tel"], input[name*="phone"]',
+      resume: 'input[type="file"]',
+      coverLetter: 'textarea[name*="cover"], textarea[id*="cover"]'
+    }
+  },
+  {
+    name: 'JazzHR',
+    slug: 'jazzhr',
+    description: 'JazzHR application detected',
+    urlPatterns: [
+      /\.jazzhr\.com/,
+      /jazz\.co/
+    ],
+    selectors: {
+      firstName: 'input[name*="first"], input[id*="first"]',
+      lastName: 'input[name*="last"], input[id*="last"]',
+      email: 'input[type="email"], input[name*="email"]',
+      phone: 'input[type="tel"], input[name*="phone"]',
+      resume: 'input[type="file"]'
+    }
+  },
+  {
+    name: 'Personio',
+    slug: 'personio',
+    description: 'Personio application detected',
+    urlPatterns: [
+      /\.personio\.com/,
+      /personio\.de/
+    ],
+    selectors: {
+      firstName: 'input[name*="first"], input[id*="first"]',
+      lastName: 'input[name*="last"], input[id*="last"]',
+      email: 'input[type="email"], input[name*="email"]',
+      phone: 'input[type="tel"], input[name*="phone"]',
+      resume: 'input[type="file"]'
+    }
+  },
+  {
+    name: 'LinkedIn EasyApply',
+    slug: 'linkedin',
+    description: 'LinkedIn EasyApply application detected',
+    urlPatterns: [
+      /linkedin\.com\/jobs/,
+      /linkedin\.com\/comm\/jobs/
+    ],
+    selectors: {
+      firstName: 'input[name*="firstName"], input[id*="first-name"]',
+      lastName: 'input[name*="lastName"], input[id*="last-name"]',
+      email: 'input[type="email"], input[name*="email"]',
+      phone: 'input[name*="phoneNumber"], input[type="tel"]',
+      resume: 'input[type="file"][name*="resume"]',
+      location: 'input[name*="location"]',
+      linkedin: 'input[name*="linkedin"]',
+    }
+  },
+  {
+    name: 'Indeed',
+    slug: 'indeed',
+    description: 'Indeed application detected',
+    urlPatterns: [
+      /indeed\.com\/.*\/apply/,
+      /indeed\.com\/viewjob/,
+      /m5\.apply\.indeed\.com/,
+      /smartapply\.indeed\.com/
+    ],
+    selectors: {
+      firstName: 'input[name*="firstName"], input[id*="input-firstName"]',
+      lastName: 'input[name*="lastName"], input[id*="input-lastName"]',
+      email: 'input[type="email"], input[name*="email"], input#input-email',
+      phone: 'input[type="tel"], input[name*="phone"], input#input-phone',
+      address: 'input[name*="address"], input#input-address',
+      city: 'input[name*="city"], input#input-city',
+      state: 'select[name*="state"], select#input-state',
+      zipCode: 'input[name*="zip"], input[name*="postal"], input#input-zip',
+      resume: 'input[type="file"]',
+    }
+  },
+  {
+    name: 'Y Combinator',
+    slug: 'ycombinator',
+    description: 'Y Combinator Work at a Startup application detected',
+    urlPatterns: [
+      /workatastartup\.com/,
+      /ycombinator\.com\/jobs/,
+      /jobs\.ycombinator\.com/
+    ],
+    selectors: {
+      firstName: 'input[name*="first"], input[id*="first"]',
+      lastName: 'input[name*="last"], input[id*="last"]',
+      email: 'input[type="email"]',
+      phone: 'input[type="tel"]',
+      linkedin: 'input[name*="linkedin"]',
+      github: 'input[name*="github"]',
+      website: 'input[name*="website"], input[name*="portfolio"]',
+      resume: 'input[type="file"]',
+      location: 'input[name*="location"]',
+    }
+  },
+  {
+    name: 'Wellfound',
+    slug: 'wellfound',
+    description: 'Wellfound (AngelList Talent) application detected',
+    urlPatterns: [
+      /wellfound\.com/,
+      /angel\.co\/jobs/,
+      /angel\.co\/recruit/
+    ],
+    selectors: {
+      firstName: 'input[name*="first"], input[id*="first"]',
+      lastName: 'input[name*="last"], input[id*="last"]',
+      email: 'input[type="email"]',
+      phone: 'input[type="tel"]',
+      linkedin: 'input[name*="linkedin"]',
+      github: 'input[name*="github"]',
+      resume: 'input[type="file"]',
+      location: 'input[name*="location"]',
+    }
   }
 ];
 

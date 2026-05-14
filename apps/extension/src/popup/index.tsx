@@ -3,7 +3,9 @@ import { createRoot } from 'react-dom/client';
 import { onMessage } from 'webext-bridge/popup';
 import EditProfile from './EditProfile';
 import ProfileDisplay from './ProfileDisplay';
+import CoverLetterGenerator from './CoverLetterGenerator';
 import { PartialProfile, ATSMessageData, ATSFieldDescriptor } from '../types/profile';
+import { DEFAULT_PROFILE } from '../utils/defaultProfile';
 import './styles.css';
 
 const Popup: React.FC = () => {
@@ -11,6 +13,7 @@ const Popup: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<PartialProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [showCoverLetter, setShowCoverLetter] = useState(false);
 
   const [detectedATS, setDetectedATS] = useState<string | null>(null);
   const [isOnApplicationPage, setIsOnApplicationPage] = useState<boolean>(false);
@@ -25,7 +28,11 @@ const Popup: React.FC = () => {
       if (result.profile) {
         setProfile(result.profile);
       } else {
+        // Pre-load default profile (Micah's resume data) instead of blank form
+        setProfile(DEFAULT_PROFILE);
         setIsEditing(true);
+        // Save default to storage so it persists
+        chrome.storage.local.set({ profile: DEFAULT_PROFILE });
       }
     });
 
@@ -158,7 +165,12 @@ const Popup: React.FC = () => {
       </div>
 
       <div className="content">
-        {isEditing || !profile ? (
+        {showCoverLetter ? (
+          <CoverLetterGenerator
+            profile={profile}
+            onBack={() => setShowCoverLetter(false)}
+          />
+        ) : isEditing || !profile ? (
           <EditProfile 
             initialProfile={profile || {}} 
             onSave={handleSaveProfile} 
@@ -168,6 +180,7 @@ const Popup: React.FC = () => {
           <ProfileDisplay 
             profile={profile} 
             onEdit={() => setIsEditing(true)}
+            onGenerateCoverLetter={() => setShowCoverLetter(true)}
             isWorkExperienceOpen={isWorkExperienceOpen}
             toggleWorkExperience={() => setIsWorkExperienceOpen(!isWorkExperienceOpen)}
           />

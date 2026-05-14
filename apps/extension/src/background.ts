@@ -52,11 +52,25 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     // Check if this is a supported ATS URL
     const supportedAts = [
       'workday.com',
+      'myworkdayjobs.com',
       'greenhouse.io',
       'lever.co',
       'ashbyhq.com',
       'icims.com',
-      'workable.com'
+      'workable.com',
+      'smartrecruiters.com',
+      'bamboohr.com',
+      'breezy.hr',
+      'recruitee.com',
+      'jazzhr.com',
+      'personio.com',
+      'zohorecruit.com',
+      'indeed.com',
+      'linkedin.com/jobs',
+      'ycombinator.com',
+      'workatastartup.com',
+      'wellfound.com',
+      'angel.co'
     ];
     
     const isOnSupportedAts = supportedAts.some(ats => tab.url?.includes(ats));

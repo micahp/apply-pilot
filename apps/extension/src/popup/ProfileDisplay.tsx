@@ -5,11 +5,12 @@ import './styles.css';
 interface ProfileDisplayProps {
   profile: PartialProfile;
   onEdit: () => void;
+  onGenerateCoverLetter?: () => void;
   isWorkExperienceOpen: boolean;
   toggleWorkExperience: () => void;
 }
 
-const ProfileDisplay: React.FC<ProfileDisplayProps> = ({ profile, onEdit, isWorkExperienceOpen, toggleWorkExperience }) => {
+const ProfileDisplay: React.FC<ProfileDisplayProps> = ({ profile, onEdit, onGenerateCoverLetter, isWorkExperienceOpen, toggleWorkExperience }) => {
   return (
     <div className="profile-display">
       <div className="profile-section">
@@ -130,6 +131,11 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({ profile, onEdit, isWork
       )}
 
       <div className="profile-actions">
+        {onGenerateCoverLetter && (
+          <button className="secondary-btn" onClick={onGenerateCoverLetter}>
+            ✍️ Tailor Cover Letter
+          </button>
+        )}
         <button className="primary-btn" onClick={onEdit}>
           Edit Profile
         </button>

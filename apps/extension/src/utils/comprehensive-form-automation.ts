@@ -91,9 +91,11 @@ interface UserProfile {
     city?: string;
     state?: string;
     zipCode?: string;
+    country?: string;
     linkedIn?: string;
     github?: string;
     website?: string;
+    twitter?: string;
   };
   documents?: {
     resumeFile?: File;
@@ -103,6 +105,31 @@ interface UserProfile {
     currentLocation?: string;
     desiredSalary?: string;
     availableStartDate?: string;
+    usWorkAuth?: string;
+    sponsorshipRequired?: string;
+  };
+  workExperience?: Array<{
+    company: string;
+    title: string;
+    startDate: string;
+    endDate?: string;
+    currentlyWorkHere?: boolean;
+    description?: string;
+    location?: string;
+  }>;
+  education?: Array<{
+    institution: string;
+    degree: string;
+    fieldOfStudy: string;
+    startDate?: string;
+    endDate?: string;
+    gpa?: string;
+  }>;
+  eeo?: {
+    gender?: string;
+    ethnicity?: string;
+    veteranStatus?: string;
+    disabilityStatus?: string;
   };
 }
 
@@ -111,14 +138,14 @@ export class ComprehensiveFormAutomation {
   private startTime: number = 0;
 
   constructor(config?: Partial<HumanBehaviorConfig>) {
-    // Configure for job application context - slightly faster but still human-like
+    // Configure for job application context - very human-like to avoid reCAPTCHA
     this.humanAutomation = new HumanLikeAutomation({
-      minDelay: 80,
-      maxDelay: 250,
-      typingSpeedWpm: 55, // Slightly above average for professional context
+      minDelay: 150,
+      maxDelay: 400,
+      typingSpeedWpm: 45, // More conservative typing speed
       scrollBehavior: true,
       mouseMovement: true,
-      errorRate: 0.015, // 1.5% error rate
+      errorRate: 0.02, // 2% error rate for realism
       ...config
     });
   }
@@ -146,7 +173,11 @@ export class ComprehensiveFormAutomation {
     const forms = document.querySelectorAll('form');
     const inputs = document.querySelectorAll('input, textarea, select');
     const fileInputs = document.querySelectorAll('input[type="file"]');
-    const submitButtons = document.querySelectorAll('button[type="submit"], input[type="submit"], button:contains("apply"), button:contains("submit")');
+    // Find submit buttons (can't use :contains() in CSS selectors)
+    const submitButtons = Array.from(document.querySelectorAll('button[type="submit"], input[type="submit"], button')).filter(btn => {
+      const text = btn.textContent?.toLowerCase() || '';
+      return text.includes('apply') || text.includes('submit');
+    });
 
     if (forms.length === 0 && inputs.length === 0) {
       context.pageType = 'job-listing';
@@ -271,17 +302,16 @@ export class ComprehensiveFormAutomation {
       timeTaken: 0
     };
 
-    // Handle CAPTCHAs first
+    // Handle CAPTCHAs first - be very careful here
     if (result.pageContext.captchas.length > 0) {
-      console.log('[ComprehensiveAutomation] CAPTCHAs detected, handling...');
-      for (const captcha of result.pageContext.captchas) {
-        const solved = await CaptchaHandler.solveCaptchaAutomatically(captcha);
-        if (solved) {
-          result.captchasSolved++;
-        } else {
-          result.errors.push(`Failed to solve ${captcha.type} CAPTCHA`);
-        }
-      }
+      console.log('[ComprehensiveAutomation] CAPTCHAs detected, pausing automation...');
+      result.warnings.push(`${result.pageContext.captchas.length} CAPTCHA(s) detected - automation paused`);
+      result.nextActions.push('Please solve the CAPTCHA manually, then retry auto-fill');
+      
+      // Don't attempt to fill fields if CAPTCHAs are present
+      result.timeTaken = Date.now() - this.startTime;
+      result.success = false;
+      return result;
     }
 
     // Fill fields in priority order
@@ -317,8 +347,8 @@ export class ComprehensiveFormAutomation {
           result.errors.push(`Failed to fill field: ${field.fieldKey}`);
         }
 
-        // Human-like pause between fields
-        await this.randomDelay(800, 2500);
+        // Extra human-like pause between fields to avoid reCAPTCHA
+        await this.randomDelay(1500, 4000);
 
       } catch (error: any) {
         console.error(`[ComprehensiveAutomation] Error filling ${field.fieldKey}:`, error);
@@ -517,13 +547,19 @@ export class ComprehensiveFormAutomation {
     if (allText.match(/(city|town)/)) {
       return 'city';
     }
+    if (allText.match(/(state|province|region)/) && element.tagName === 'SELECT') {
+      return 'state';
+    }
     if (allText.match(/(state|province|region)/)) {
       return 'state';
     }
     if (allText.match(/(zip|postal|postcode)/)) {
       return 'zipCode';
     }
-    if (allText.match(/(location|where)/)) {
+    if (allText.match(/(country|nation)/)) {
+      return 'country';
+    }
+    if (allText.match(/(location|where)/) && !allText.includes('work')) {
       return 'currentLocation';
     }
 
@@ -536,6 +572,93 @@ export class ComprehensiveFormAutomation {
     }
     if (allText.match(/(website|portfolio|url)/)) {
       return 'website';
+    }
+    if (allText.includes('twitter') || allText.includes('x.com')) {
+      return 'twitter';
+    }
+
+    // Work Experience fields
+    if (allText.match(/(company|employer|organization)/) && !allText.includes('previous') && !allText.includes('past')) {
+      return 'workExperience_company';
+    }
+    if (allText.match(/(job.?title|role|position)/) && !allText.includes('previous')) {
+      return 'workExperience_title';
+    }
+    if (allText.match(/(start.?date|from.?date|date.?started)/)) {
+      return 'workExperience_startDate';
+    }
+    if (allText.match(/(end.?date|to.?date|date.?ended)/)) {
+      return 'workExperience_endDate';
+    }
+    if (allText.match(/(currently.?work|current.?job|present)/)) {
+      return 'workExperience_currentlyWorkHere';
+    }
+    if (allText.match(/(job.?description|responsibilities|duties|achievement)/)) {
+      return 'workExperience_description';
+    }
+    if (allText.match(/(work.?location|office.?location|job.?city)/)) {
+      return 'workExperience_location';
+    }
+
+    // Previous company fields (different from current)
+    if (allText.match(/(previous|past|former).*(company|employer|organization)/)) {
+      return 'workExperience_previousCompany';
+    }
+    if (allText.match(/(previous|past|former).*(title|role|position)/)) {
+      return 'workExperience_previousTitle';
+    }
+
+    // Education fields
+    if (allText.match(/(school|university|college|institution)/)) {
+      return 'education_institution';
+    }
+    if (allText.match(/(degree|diploma)/)) {
+      return 'education_degree';
+    }
+    if (allText.match(/(field.?of.?study|major|concentration|area.?of.?study)/)) {
+      return 'education_fieldOfStudy';
+    }
+    if (allText.match(/(edu.*start.*date|edu.*from.*date|enrollment)/)) {
+      return 'education_startDate';
+    }
+    if (allText.match(/(edu.*end.*date|edu.*to.*date|graduation)/)) {
+      return 'education_endDate';
+    }
+    if (allText.match(/(gpa|grade.?point)/)) {
+      return 'education_gpa';
+    }
+
+    // EEO / Demographic fields
+    if (allText.match(/(gender|sex)/)) {
+      return 'eeo_gender';
+    }
+    if (allText.match(/(ethnicity|race|ethnic)/)) {
+      return 'eeo_ethnicity';
+    }
+    if (allText.match(/(veteran|military)/)) {
+      return 'eeo_veteranStatus';
+    }
+    if (allText.match(/(disability|disabled|accessible)/)) {
+      return 'eeo_disabilityStatus';
+    }
+
+    // Work authorization
+    if (allText.match(/(work.?auth|eligible|sponsor|visa|us.?citizen|right.?to.?work)/)) {
+      // Check which specific question
+      if (allText.match(/(sponsor|visa|require.*sponsor)/)) {
+        return 'sponsorshipRequired';
+      }
+      return 'usWorkAuth';
+    }
+
+    // Salary expectations
+    if (allText.match(/(salary|compensation|expected.?pay|pay.?range|desired.?salary)/)) {
+      return 'desiredSalary';
+    }
+
+    // Available start date
+    if (allText.match(/(available|start.?date|can.?you.?start|earliest)/)) {
+      return 'availableStartDate';
     }
 
     // File uploads
@@ -576,12 +699,70 @@ export class ComprehensiveFormAutomation {
       city: profile.personal.city,
       state: profile.personal.state,
       zipCode: profile.personal.zipCode,
+      country: profile.personal.country,
       linkedIn: profile.personal.linkedIn,
       github: profile.personal.github,
       website: profile.personal.website,
+      twitter: profile.personal.twitter,
       currentLocation: profile.preferences?.currentLocation,
       coverLetterText: profile.documents?.coverLetterText,
+      desiredSalary: profile.preferences?.desiredSalary,
+      availableStartDate: profile.preferences?.availableStartDate,
+      usWorkAuth: profile.preferences?.usWorkAuth,
+      sponsorshipRequired: profile.preferences?.sponsorshipRequired,
     };
+
+    // Work experience fields — use most recent/current job
+    if (fieldKey.startsWith('workExperience_')) {
+      const currentJob = profile.workExperience?.[0];
+      if (!currentJob) return null;
+
+      const workMap: Record<string, string | undefined> = {
+        workExperience_company: currentJob.company,
+        workExperience_title: currentJob.title,
+        workExperience_startDate: currentJob.startDate,
+        workExperience_endDate: currentJob.endDate,
+        workExperience_location: currentJob.location,
+        workExperience_description: currentJob.description,
+        workExperience_currentlyWorkHere: currentJob.currentlyWorkHere ? 'Yes' : undefined,
+      };
+      if (workMap[fieldKey]) return workMap[fieldKey];
+
+      // Previous job (2nd entry)
+      if (fieldKey.startsWith('workExperience_previous')) {
+        const prevJob = profile.workExperience?.[1];
+        if (!prevJob) return null;
+        const prevField = fieldKey.replace('workExperience_previous', '');
+        const prevMap: Record<string, string | undefined> = {
+          Company: prevJob.company,
+          Title: prevJob.title,
+        };
+        return prevMap[prevField] || null;
+      }
+    }
+
+    // Education fields
+    if (fieldKey.startsWith('education_')) {
+      const edu = profile.education?.[0];
+      if (!edu) return null;
+      const eduField = fieldKey.replace('education_', '');
+      const eduMap: Record<string, string | undefined> = {
+        institution: edu.institution,
+        degree: edu.degree,
+        fieldOfStudy: edu.fieldOfStudy,
+        startDate: edu.startDate,
+        endDate: edu.endDate,
+        gpa: edu.gpa,
+      };
+      return eduMap[eduField] || null;
+    }
+
+    // EEO fields
+    if (fieldKey.startsWith('eeo_')) {
+      if (!profile.eeo) return null;
+      const eeoField = fieldKey.replace('eeo_', '');
+      return (profile.eeo as any)[eeoField] || null;
+    }
 
     return mapping[fieldKey] || null;
   }
@@ -638,11 +819,20 @@ export class ComprehensiveFormAutomation {
       '_pxAppId',
       'px-captcha',
       'bot-detection',
-      'anti-bot'
+      'anti-bot',
+      'data-sitekey', // reCAPTCHA site key
+      'g-recaptcha', // reCAPTCHA class
+      'protected by recaptcha'
     ];
 
     const pageContent = document.documentElement.outerHTML.toLowerCase();
-    return protectionIndicators.some(indicator => pageContent.includes(indicator));
+    const hasProtection = protectionIndicators.some(indicator => pageContent.includes(indicator));
+    
+    if (hasProtection) {
+      console.warn('[ComprehensiveAutomation] Anti-bot protection detected - will proceed with extra caution');
+    }
+    
+    return hasProtection;
   }
 
   /**

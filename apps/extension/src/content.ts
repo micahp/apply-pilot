@@ -5,6 +5,119 @@ import { Profile } from './types/profile';
 
 // Panel instance
 let floatingPanel: HTMLElement | null = null;
+// Global automation system - initialize immediately
+let globalAutomationSystem: ComprehensiveFormAutomation = new ComprehensiveFormAutomation();
+
+console.log('[AutoApply] Setting up global AutoApplyExtension API...');
+
+// Expose extension API globally for testing
+(window as any).AutoApplyExtension = {
+  getAutomationSystem: () => {
+    console.log('[AutoApply] getAutomationSystem called, returning:', !!globalAutomationSystem);
+    return globalAutomationSystem;
+  },
+  getProfile: async () => {
+    console.log('[AutoApply] getProfile called, checking storage...');
+    if (chrome?.storage?.sync) {
+      try {
+        const result = await chrome.storage.sync.get(['profile']);
+        console.log('[AutoApply] Storage result:', !!result.profile);
+        return result.profile || null;
+      } catch (error) {
+        console.error('Failed to load profile from storage:', error);
+        return null;
+      }
+    }
+    // Test environment fallback
+    console.log('[AutoApply] Using test environment fallback profile');
+    return {
+      personal: {
+        firstName: 'John',
+        lastName: 'Doe', 
+        email: 'john.doe@example.com',
+        phone: '555-123-4567',
+        city: 'New York',
+        state: 'NY',
+        zipCode: '10001'
+      },
+      documents: {
+        coverLetter: 'I am very interested in this position.'
+      }
+    };
+  },
+  fillForm: async (profileData?: Profile) => {
+    // Automation system is always initialized now
+    console.log('[AutoApply] Starting fillForm with automation system');
+
+    const profile = profileData || await (window as any).AutoApplyExtension.getProfile();
+    if (!profile) {
+      throw new Error('No profile data available');
+    }
+
+    // Convert to UserProfile format
+    const userProfile: UserProfile = {
+      personal: {
+        firstName: profile.personal?.firstName || '',
+        lastName: profile.personal?.lastName || '',
+        email: profile.personal?.email || '',
+        phone: profile.personal?.phone || '',
+        address: profile.personal?.address,
+        city: profile.personal?.city,
+        state: profile.personal?.state,
+        zipCode: profile.personal?.zipCode,
+        country: profile.personal?.country,
+        linkedIn: profile.personal?.linkedIn,
+        github: profile.personal?.github,
+        website: profile.personal?.website,
+        twitter: (profile.personal as any)?.twitter,
+      },
+      documents: {
+        coverLetterText: profile.documents?.coverLetter,
+      },
+      preferences: {
+        currentLocation: profile.personal?.city,
+        desiredSalary: (profile as any).preferences?.desiredSalary,
+        availableStartDate: (profile as any).preferences?.availableStartDate,
+        usWorkAuth: (profile as any).preferences?.usWorkAuth,
+        sponsorshipRequired: (profile as any).preferences?.sponsorshipRequired,
+      },
+      workExperience: profile.workExperience?.map((exp: any) => ({
+        company: exp.company || '',
+        title: exp.title || '',
+        startDate: exp.startDate || '',
+        endDate: exp.endDate || undefined,
+        currentlyWorkHere: exp.current || exp.currentlyWorkHere || false,
+        description: exp.description || '',
+        location: exp.location || '',
+      })) || [],
+      education: profile.education?.map((edu: any) => ({
+        institution: edu.institution || '',
+        degree: edu.degree || '',
+        fieldOfStudy: edu.fieldOfStudy || '',
+        startDate: edu.startDate || '',
+        endDate: edu.endDate || undefined,
+        gpa: edu.gpa || '',
+      })) || [],
+      eeo: profile.eeo ? {
+        gender: (profile.eeo as any).gender || '',
+        ethnicity: (profile.eeo as any).ethnicity || '',
+        veteranStatus: (profile.eeo as any).veteranStatus || '',
+        disabilityStatus: (profile.eeo as any).disabilityStatus || '',
+      } : undefined,
+    };
+
+    const detectedATS = detectATS(window.location.href);
+    const fields = await globalAutomationSystem.discoverAllFormElements(detectedATS);
+    return await globalAutomationSystem.fillFormWithProfile(userProfile, fields);
+  }
+};
+
+console.log('[AutoApply] AutoApplyExtension API configured:', {
+  hasGetAutomationSystem: typeof (window as any).AutoApplyExtension.getAutomationSystem === 'function',
+  hasGetProfile: typeof (window as any).AutoApplyExtension.getProfile === 'function',
+  hasFillForm: typeof (window as any).AutoApplyExtension.fillForm === 'function',
+  automationSystemInitialized: !!globalAutomationSystem
+});
 
 /**
  * Initialize the content script
@@ -28,8 +141,8 @@ function initialize(): void {
       console.log('Recommendations:', resumeImport.recommendations);
     }
     
-    // Create comprehensive form automation for bot-resistant filling
-    const automationSystem = new ComprehensiveFormAutomation();
+    // Automation system already initialized at module level
+    console.log('[AutoApply] Using pre-initialized automation system');
     
     floatingPanel = initFloatingPanel({
       ats: {
@@ -41,48 +154,8 @@ function initialize(): void {
         console.log('[AutoApply] Starting enhanced field filling...');
         
         try {
-          // Convert Profile to UserProfile format
-          const userProfile: UserProfile = {
-            personal: {
-              firstName: profileData.personal?.firstName || '',
-              lastName: profileData.personal?.lastName || '',
-              email: profileData.personal?.email || '',
-              phone: profileData.personal?.phone || '',
-              address: profileData.personal?.address,
-              city: profileData.personal?.city,
-              state: profileData.personal?.state,
-              zipCode: profileData.personal?.zipCode,
-              linkedIn: profileData.personal?.linkedIn,
-              github: profileData.personal?.github,
-              website: profileData.personal?.website,
-            },
-                         documents: {
-               coverLetterText: profileData.documents?.coverLetter,
-             },
-            preferences: {
-              currentLocation: profileData.personal?.city,
-            }
-          };
-
-          // Use comprehensive automation system
-          const pageContext = await automationSystem.analyzePageContext();
-          const fields = await automationSystem.discoverAllFormElements(detectedATS);
-          const result = await automationSystem.fillFormWithProfile(userProfile, fields);
-          
-          console.log(`[AutoApply] Form automation completed:`, result);
-          console.log(`[AutoApply] Fields filled: ${result.fieldsFilled}`);
-          console.log(`[AutoApply] Success: ${result.success}`);
-          
-          if (result.warnings.length > 0) {
-            console.warn('[AutoApply] Warnings:', result.warnings);
-          }
-          
-          if (result.nextActions.length > 0) {
-            console.info('[AutoApply] Next actions:', result.nextActions);
-          }
-          
-          // Always return the full result for enhanced UI display
-          return result;
+          // Use the global fillForm method
+          return await (window as any).AutoApplyExtension.fillForm(profileData);
           
         } catch (error: any) {
           console.error('[AutoApply] Enhanced fill critical error:', error);
@@ -133,9 +206,14 @@ function initialize(): void {
       chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.action === 'fillFields' && message.profileData) {
         console.log('[AutoApply] Received fillFields message.');
-        // TODO: Implement fillFields message handler with comprehensive automation
-        console.warn('[AutoApply] fillFields message received but not yet implemented with new system');
-        sendResponse({ success: false, error: 'Not implemented with new automation system' });
+        // Use the global fillForm method
+        (window as any).AutoApplyExtension.fillForm(message.profileData)
+          .then((result: AutomationResult) => {
+            sendResponse({ success: result.success, result });
+          })
+          .catch((error: any) => {
+            sendResponse({ success: false, error: error.message });
+          });
         return true; // Indicates that the response will be sent asynchronously
       }
       
@@ -153,15 +231,39 @@ function initialize(): void {
         sendResponse({ success: true, message: 'ATS_PAGE_LOADED received' });
         return true;
       }
-      // Default response for unhandled messages
-      // sendResponse({ success: false, error: 'Unknown message' }); 
-      // return true; // Keep channel open for other listeners if any
+
+      if (message.action === 'getJobInfo') {
+        console.log('[AutoApply] Received getJobInfo message.');
+        const jobInfo = {
+          title: '',
+          company: '',
+          description: '',
+        };
+
+        // Try to extract job title
+        const titleEl = document.querySelector('h1, h2, [class*="job-title"], [class*="posting-title"], [data-qa="job-title"]');
+        if (titleEl?.textContent) jobInfo.title = titleEl.textContent.trim();
+
+        // Try to extract company
+        const companyEl = document.querySelector('[class*="company"], [class*="employer"], [data-qa="company"], [itemprop="hiringOrganization"]');
+        if (companyEl?.textContent) jobInfo.company = companyEl.textContent.trim();
+
+        // Try to extract job description
+        const descEl = document.querySelector('[class*="job-description"], [class*="posting-description"], [class*="description"], [data-qa="job-description"], #job-description');
+        if (descEl?.textContent) jobInfo.description = descEl.textContent.trim().slice(0, 3000);
+
+        sendResponse(jobInfo);
+        return true;
+      }
       });
     } else {
       console.log('[AutoApply] Chrome runtime API not available - running in test mode');
     }
   } else {
     console.log(`[AutoApply] No supported ATS detected on this page: ${currentUrl}`);
+    
+    // Automation system already initialized at module level
+    console.log('[AutoApply] Automation system available for non-ATS pages');
     
     // Still listen for check messages and ATS_PAGE_LOADED even if no ATS is detected initially
     if (chrome?.runtime?.onMessage) {
@@ -176,17 +278,9 @@ function initialize(): void {
 
       if (message.type === 'ATS_PAGE_LOADED') {
         console.log('[AutoApply Content Script] Received ATS_PAGE_LOADED (no ATS initially detected). Attempting re-initialization.');
-        // It's crucial to remove existing listeners before re-adding, to prevent duplicates if initialize is called multiple times.
-        // However, given initialize() structure, direct re-call might lead to nested listeners.
-        // A safer pattern would be to have a separate function for setting up listeners only once.
-        // For now, let's rely on the page reload or a more sophisticated state management if re-init is frequent.
-        // initialize(); // This could cause issues with duplicate listeners.
         sendResponse({ success: true, message: 'ATS_PAGE_LOADED received, consider page refresh or manual re-check for ATS.' });
         return true;
       }
-      // Default response for unhandled messages
-      // sendResponse({ success: false, error: 'Unknown message' });
-      // return true;
       });
     } else {
       console.log('[AutoApply] Chrome runtime API not available - running in test mode (no ATS detected)');
