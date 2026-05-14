@@ -33,26 +33,45 @@ const AI_KEYWORDS = [
 
 const AI_COMPANY_CAREERS = [
   // Format: [name, url, type]
+  // Greenhouse boards
   ['Anthropic', 'https://boards.greenhouse.io/anthropic', 'greenhouse'],
   ['OpenAI', 'https://boards.greenhouse.io/openai', 'greenhouse'],
   ['Scale AI', 'https://boards.greenhouse.io/scaleai', 'greenhouse'],
-  ['Perplexity', 'https://jobs.lever.co/perplexity', 'lever'],
-  ['Notion', 'https://jobs.lever.co/notion', 'lever'],
-  ['Replit', 'https://jobs.lever.co/replit', 'lever'],
-  ['Vercel', 'https://jobs.lever.co/vercel', 'lever'],
-  ['LangChain', 'https://jobs.lever.co/langchain', 'lever'],
+  ['Databricks', 'https://boards.greenhouse.io/databricks', 'greenhouse'],
+  ['Grammarly', 'https://boards.greenhouse.io/grammarly', 'greenhouse'],
+  ['Samsara', 'https://boards.greenhouse.io/samsara', 'greenhouse'],
+  ['Applied Intuition', 'https://boards.greenhouse.io/appliedintuition', 'greenhouse'],
+  ['Anduril', 'https://boards.greenhouse.io/anduril', 'greenhouse'],
+  ['Harvey', 'https://boards.greenhouse.io/harvey', 'greenhouse'],
+  ['Glean', 'https://boards.greenhouse.io/glean', 'greenhouse'],
+  ['Hex', 'https://boards.greenhouse.io/hex', 'greenhouse'],
+  ['Ramp', 'https://boards.greenhouse.io/ramp', 'greenhouse'],
+  ['Mercury', 'https://boards.greenhouse.io/mercury', 'greenhouse'],
+  ['Notion', 'https://boards.greenhouse.io/notion', 'greenhouse'],
+  ['Figma', 'https://boards.greenhouse.io/figma', 'greenhouse'],
+  ['Vercel', 'https://boards.greenhouse.io/vercel', 'greenhouse'],
+  ['Replit', 'https://boards.greenhouse.io/replit', 'greenhouse'],
+  ['Cognition', 'https://boards.greenhouse.io/cognition', 'greenhouse'],
+  ['Synthesia', 'https://boards.greenhouse.io/synthesia', 'greenhouse'],
+  // Lever boards (only those with public API enabled)
   ['Mistral AI', 'https://jobs.lever.co/mistral', 'lever'],
+  ['Perplexity', 'https://jobs.lever.co/perplexity', 'lever'],
   ['Cohere', 'https://jobs.lever.co/cohere', 'lever'],
+  ['ElevenLabs', 'https://jobs.lever.co/elevenlabs', 'lever'],
+  ['Together AI', 'https://jobs.lever.co/together', 'lever'],
+  ['Pinecone', 'https://jobs.lever.co/pinecone', 'lever'],
+  ['Voyage AI', 'https://jobs.lever.co/voyageai', 'lever'],
+  ['Weights & Biases', 'https://jobs.lever.co/wandb', 'lever'],
+  ['LangChain', 'https://jobs.lever.co/langchain', 'lever'],
   ['Stability AI', 'https://jobs.lever.co/stabilityai', 'lever'],
   ['Midjourney', 'https://jobs.lever.co/midjourney', 'lever'],
   ['Character.AI', 'https://jobs.lever.co/character', 'lever'],
+  ['Cursor', 'https://jobs.lever.co/cursor', 'lever'],
+  ['Replicate', 'https://jobs.lever.co/replicate', 'lever'],
+  // Workable
   ['Hugging Face', 'https://apply.workable.com/huggingface', 'workable'],
-  ['ElevenLabs', 'https://jobs.lever.co/elevenlabs', 'lever'],
+  // Ashby
   ['Modal', 'https://jobs.ashbyhq.com/modal', 'ashby'],
-  ['Together AI', 'https://jobs.lever.co/together', 'lever'],
-  ['Voyage AI', 'https://jobs.lever.co/voyageai', 'lever'],
-  ['Pinecone', 'https://jobs.lever.co/pinecone', 'lever'],
-  ['Weights & Biases', 'https://jobs.lever.co/wandb', 'lever'],
 ];
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -212,17 +231,15 @@ async function scrapeWellfoundJobs(limit = 50) {
 async function scrapeAICompanyCareers(limit = 50) {
   console.log('[scrape-jobs] Fetching AI company career pages...');
   const jobs = [];
-  const companiesToFetch = AI_COMPANY_CAREERS.slice(0, 10); // Limit to avoid rate limiting
+  const companiesToFetch = AI_COMPANY_CAREERS; // Fetch all companies
 
   for (const [company, baseUrl, platform] of companiesToFetch) {
     try {
       let apiUrl;
       if (platform === 'greenhouse') {
-        // Greenhouse has a public API: https://boards.greenhouse.io/{company}
-        // The JSON endpoint is at the same URL with .json
-        // We need to extract the board token from the URL
+        // Greenhouse public API v1: https://developers.greenhouse.io/job-board.html
         const boardToken = baseUrl.split('/').pop();
-        apiUrl = `https://boards.greenhouse.io/embed/job_board?for=${boardToken}&b=https://boards.greenhouse.io/${boardToken}`;
+        apiUrl = `https://api.greenhouse.io/v1/boards/${boardToken}/jobs?content=true`;
       } else if (platform === 'lever') {
         const companySlug = baseUrl.split('/').pop();
         apiUrl = `https://api.lever.co/v0/postings/${companySlug}?mode=json`;
@@ -243,7 +260,8 @@ async function scrapeAICompanyCareers(limit = 50) {
       // Parse responses differently based on platform
       let rawJobs = [];
       if (platform === 'greenhouse') {
-        rawJobs = data.jobs || data.departments?.flatMap(d => d.jobs || []) || [];
+        // Greenhouse v1 API: { jobs: [...] }
+        rawJobs = data.jobs || [];
       } else if (platform === 'lever') {
         rawJobs = Array.isArray(data) ? data : (data.postings || data.data || []);
       } else if (platform === 'workable') {
@@ -253,32 +271,42 @@ async function scrapeAICompanyCareers(limit = 50) {
       }
 
       for (const job of rawJobs) {
-        const title = job.title || job.text || '';
-        const desc = (job.description || job.descriptionPlain || '').slice(0, 500);
-        const score = scoreAIRelevance(title, desc);
+        let title, desc, score, jobUrl;
 
-        if (score > 20) {
-          let jobUrl = '';
-          if (platform === 'greenhouse') {
-            jobUrl = job.absolute_url || (job.id ? `${baseUrl}/${job.id}` : baseUrl);
-          } else if (platform === 'lever') {
+        if (platform === 'greenhouse') {
+          title = job.title || '';
+          desc = (job.content || '').replace(/<[^>]*>/g, '').slice(0, 500);
+          jobUrl = job.absolute_url || (job.id ? `${baseUrl}/${job.id}` : baseUrl);
+          score = scoreAIRelevance(title, desc);
+        } else {
+          title = job.title || job.text || '';
+          desc = (job.description || job.descriptionPlain || '').slice(0, 500);
+          score = scoreAIRelevance(title, desc);
+
+          if (platform === 'lever') {
             jobUrl = job.hostedUrl || job.applyUrl || (job.id ? `${baseUrl}/${job.id}` : baseUrl);
           } else if (platform === 'workable') {
             jobUrl = job.url || job.shortlink || baseUrl;
           } else {
             jobUrl = job.url || job.applyUrl || baseUrl;
           }
+        }
+
+        if (score > 15) {
+          // Greenhouse location is nested: { name: "San Francisco, CA" }
+          let loc = job.location;
+          if (loc && typeof loc === 'object' && loc.name) loc = loc.name;
 
           jobs.push({
             id: `${company.toLowerCase().replace(/\s+/g, '-')}-${job.id || Math.random().toString(36).slice(2)}`,
             title,
             company,
-            location: job.location || job.office || job.categories?.location || 'Remote',
+            location: loc || 'Remote',
             description: desc,
             url: jobUrl,
             source: `${company} Careers`,
             score,
-            postedAt: job.updated_at || job.created_at || job.published_at || null,
+            postedAt: job.updated_at || job.first_published || job.created_at || job.published_at || null,
           });
         }
       }
