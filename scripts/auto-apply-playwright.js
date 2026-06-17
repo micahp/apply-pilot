@@ -427,7 +427,7 @@ async function applyToJob(browser, job, profile, index, total) {
     // Submit or review
     if (config.submit) {
       // Only target visible, non-hidden submit buttons (skip hCaptcha hidden buttons)
-      const allSubmitBtns = page.locator('input[type="submit"]:visible, button[type="submit"]:visible, button:has-text("Submit"):visible, button:has-text("Send"):visible, button:has-text("Apply"):visible, input[type="submit"][value*="Submit" i]');
+      const allSubmitBtns = page.locator('input[type="submit"]:visible, button[type="submit"]:visible, button:has-text("Submit"):visible, button:has-text("Send"):visible, button:has-text("Apply"):visible, input[type="submit"][value*="Submit" i], button:has-text("Submit Application"):visible, a[role="button"]:has-text("Submit"):visible, [data-testid*="submit"]:visible, [data-qa*="submit"]:visible');
       const submitCount = await allSubmitBtns.count();
       let submitted = false;
       for (let si = 0; si < submitCount; si++) {

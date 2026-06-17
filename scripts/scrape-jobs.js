@@ -33,45 +33,26 @@ const AI_KEYWORDS = [
 
 const AI_COMPANY_CAREERS = [
   // Format: [name, url, type]
-  // Greenhouse boards
+  // Greenhouse boards (verified working as of May 2026)
   ['Anthropic', 'https://boards.greenhouse.io/anthropic', 'greenhouse'],
-  ['OpenAI', 'https://boards.greenhouse.io/openai', 'greenhouse'],
   ['Scale AI', 'https://boards.greenhouse.io/scaleai', 'greenhouse'],
   ['Databricks', 'https://boards.greenhouse.io/databricks', 'greenhouse'],
-  ['Grammarly', 'https://boards.greenhouse.io/grammarly', 'greenhouse'],
   ['Samsara', 'https://boards.greenhouse.io/samsara', 'greenhouse'],
   ['Applied Intuition', 'https://boards.greenhouse.io/appliedintuition', 'greenhouse'],
-  ['Anduril', 'https://boards.greenhouse.io/anduril', 'greenhouse'],
-  ['Harvey', 'https://boards.greenhouse.io/harvey', 'greenhouse'],
-  ['Glean', 'https://boards.greenhouse.io/glean', 'greenhouse'],
-  ['Hex', 'https://boards.greenhouse.io/hex', 'greenhouse'],
-  ['Ramp', 'https://boards.greenhouse.io/ramp', 'greenhouse'],
   ['Mercury', 'https://boards.greenhouse.io/mercury', 'greenhouse'],
-  ['Notion', 'https://boards.greenhouse.io/notion', 'greenhouse'],
   ['Figma', 'https://boards.greenhouse.io/figma', 'greenhouse'],
   ['Vercel', 'https://boards.greenhouse.io/vercel', 'greenhouse'],
-  ['Replit', 'https://boards.greenhouse.io/replit', 'greenhouse'],
-  ['Cognition', 'https://boards.greenhouse.io/cognition', 'greenhouse'],
-  ['Synthesia', 'https://boards.greenhouse.io/synthesia', 'greenhouse'],
-  // Lever boards (only those with public API enabled)
+  ['xAI', 'https://boards.greenhouse.io/xai', 'greenhouse'],
+  ['Stripe', 'https://boards.greenhouse.io/stripe', 'greenhouse'],
+  ['Cloudflare', 'https://boards.greenhouse.io/cloudflare', 'greenhouse'],
+  ['Discord', 'https://boards.greenhouse.io/discord', 'greenhouse'],
+  ['Reddit', 'https://boards.greenhouse.io/reddit', 'greenhouse'],
+  ['Roblox', 'https://boards.greenhouse.io/roblox', 'greenhouse'],
+  ['Airbnb', 'https://boards.greenhouse.io/airbnb', 'greenhouse'],
+  ['Instacart', 'https://boards.greenhouse.io/instacart', 'greenhouse'],
+  ['Brex', 'https://boards.greenhouse.io/brex', 'greenhouse'],
+  // Lever boards
   ['Mistral AI', 'https://jobs.lever.co/mistral', 'lever'],
-  ['Perplexity', 'https://jobs.lever.co/perplexity', 'lever'],
-  ['Cohere', 'https://jobs.lever.co/cohere', 'lever'],
-  ['ElevenLabs', 'https://jobs.lever.co/elevenlabs', 'lever'],
-  ['Together AI', 'https://jobs.lever.co/together', 'lever'],
-  ['Pinecone', 'https://jobs.lever.co/pinecone', 'lever'],
-  ['Voyage AI', 'https://jobs.lever.co/voyageai', 'lever'],
-  ['Weights & Biases', 'https://jobs.lever.co/wandb', 'lever'],
-  ['LangChain', 'https://jobs.lever.co/langchain', 'lever'],
-  ['Stability AI', 'https://jobs.lever.co/stabilityai', 'lever'],
-  ['Midjourney', 'https://jobs.lever.co/midjourney', 'lever'],
-  ['Character.AI', 'https://jobs.lever.co/character', 'lever'],
-  ['Cursor', 'https://jobs.lever.co/cursor', 'lever'],
-  ['Replicate', 'https://jobs.lever.co/replicate', 'lever'],
-  // Workable
-  ['Hugging Face', 'https://apply.workable.com/huggingface', 'workable'],
-  // Ashby
-  ['Modal', 'https://jobs.ashbyhq.com/modal', 'ashby'],
 ];
 
 // ─── Types ──────────────────────────────────────────────────────────
