@@ -1,10 +1,123 @@
-import { detectATS, fillATSFields } from './utils/ats';
-import { EnhancedATSFiller } from './utils/ats-enhanced';
+import { detectATS, detectResumeImportFeatures } from './utils/ats-platforms';
+import { ComprehensiveFormAutomation, type UserProfile, type AutomationResult } from './utils/comprehensive-form-automation';
 import { initFloatingPanel } from './ui/floatingPanel';
 import { Profile } from './types/profile';
 
 // Panel instance
 let floatingPanel: HTMLElement | null = null;
+// Global automation system - initialize immediately
+let globalAutomationSystem: ComprehensiveFormAutomation = new ComprehensiveFormAutomation();
+
+console.log('[AutoApply] Setting up global AutoApplyExtension API...');
+
+// Expose extension API globally for testing
+(window as any).AutoApplyExtension = {
+  getAutomationSystem: () => {
+    console.log('[AutoApply] getAutomationSystem called, returning:', !!globalAutomationSystem);
+    return globalAutomationSystem;
+  },
+  getProfile: async () => {
+    console.log('[AutoApply] getProfile called, checking storage...');
+    if (chrome?.storage?.sync) {
+      try {
+        const result = await chrome.storage.sync.get(['profile']);
+        console.log('[AutoApply] Storage result:', !!result.profile);
+        return result.profile || null;
+      } catch (error) {
+        console.error('Failed to load profile from storage:', error);
+        return null;
+      }
+    }
+    // Test environment fallback
+    console.log('[AutoApply] Using test environment fallback profile');
+    return {
+      personal: {
+        firstName: 'John',
+        lastName: 'Doe', 
+        email: 'john.doe@example.com',
+        phone: '555-123-4567',
+        city: 'New York',
+        state: 'NY',
+        zipCode: '10001'
+      },
+      documents: {
+        coverLetter: 'I am very interested in this position.'
+      }
+    };
+  },
+  fillForm: async (profileData?: Profile) => {
+    // Automation system is always initialized now
+    console.log('[AutoApply] Starting fillForm with automation system');
+
+    const profile = profileData || await (window as any).AutoApplyExtension.getProfile();
+    if (!profile) {
+      throw new Error('No profile data available');
+    }
+
+    // Convert to UserProfile format
+    const userProfile: UserProfile = {
+      personal: {
+        firstName: profile.personal?.firstName || '',
+        lastName: profile.personal?.lastName || '',
+        email: profile.personal?.email || '',
+        phone: profile.personal?.phone || '',
+        address: profile.personal?.address,
+        city: profile.personal?.city,
+        state: profile.personal?.state,
+        zipCode: profile.personal?.zipCode,
+        country: profile.personal?.country,
+        linkedIn: profile.personal?.linkedIn,
+        github: profile.personal?.github,
+        website: profile.personal?.website,
+        twitter: (profile.personal as any)?.twitter,
+      },
+      documents: {
+        coverLetterText: profile.documents?.coverLetter,
+      },
+      preferences: {
+        currentLocation: profile.personal?.city,
+        desiredSalary: (profile as any).preferences?.desiredSalary,
+        availableStartDate: (profile as any).preferences?.availableStartDate,
+        usWorkAuth: (profile as any).preferences?.usWorkAuth,
+        sponsorshipRequired: (profile as any).preferences?.sponsorshipRequired,
+      },
+      workExperience: profile.workExperience?.map((exp: any) => ({
+        company: exp.company || '',
+        title: exp.title || '',
+        startDate: exp.startDate || '',
+        endDate: exp.endDate || undefined,
+        currentlyWorkHere: exp.current || exp.currentlyWorkHere || false,
+        description: exp.description || '',
+        location: exp.location || '',
+      })) || [],
+      education: profile.education?.map((edu: any) => ({
+        institution: edu.institution || '',
+        degree: edu.degree || '',
+        fieldOfStudy: edu.fieldOfStudy || '',
+        startDate: edu.startDate || '',
+        endDate: edu.endDate || undefined,
+        gpa: edu.gpa || '',
+      })) || [],
+      eeo: profile.eeo ? {
+        gender: (profile.eeo as any).gender || '',
+        ethnicity: (profile.eeo as any).ethnicity || '',
+        veteranStatus: (profile.eeo as any).veteranStatus || '',
+        disabilityStatus: (profile.eeo as any).disabilityStatus || '',
+      } : undefined,
+    };
+
+    const detectedATS = detectATS(window.location.href);
+    const fields = await globalAutomationSystem.discoverAllFormElements(detectedATS);
+    return await globalAutomationSystem.fillFormWithProfile(userProfile, fields);
+  }
+};
+
+console.log('[AutoApply] AutoApplyExtension API configured:', {
+  hasGetAutomationSystem: typeof (window as any).AutoApplyExtension.getAutomationSystem === 'function',
+  hasGetProfile: typeof (window as any).AutoApplyExtension.getProfile === 'function',
+  hasFillForm: typeof (window as any).AutoApplyExtension.fillForm === 'function',
+  automationSystemInitialized: !!globalAutomationSystem
+});
 
 /**
  * Initialize the content script
@@ -21,8 +134,15 @@ function initialize(): void {
   if (detectedATS) {
     console.log(`[AutoApply] Detected ATS: ${detectedATS.name}. Initializing panel...`);
     
-    // Create enhanced ATS filler for better handling of complex scenarios
-    const enhancedFiller = new EnhancedATSFiller();
+    // Check for native resume import features
+    const resumeImport = detectResumeImportFeatures();
+    if (resumeImport.hasNativeImport) {
+      console.log('Native resume import detected:', resumeImport.importSelectors);
+      console.log('Recommendations:', resumeImport.recommendations);
+    }
+    
+    // Automation system already initialized at module level
+    console.log('[AutoApply] Using pre-initialized automation system');
     
     floatingPanel = initFloatingPanel({
       ats: {
@@ -34,83 +154,36 @@ function initialize(): void {
         console.log('[AutoApply] Starting enhanced field filling...');
         
         try {
-          // Use enhanced filler that combines content script + Playwright
-          const result = await enhancedFiller.fillATSFieldsEnhanced(detectedATS, profileData, {
-            debugMode: true, // Enable detailed logging
-            usePlaywrightForComplex: true,
-            enableFileUploads: true,
-            enableLocationAutocomplete: true,
-            enableMultiStepFlow: true
-          });
-          
-          console.log(`[AutoApply] Enhanced fill completed:`, result);
-          console.log(`[AutoApply] Strategy used: ${result.usedPlaywright ? 'Hybrid/Playwright' : 'Content Script Only'}`);
-          console.log(`[AutoApply] Fields filled: ${result.totalFieldsFilled} (CS: ${result.contentScriptFields}, PW: ${result.playwrightFields})`);
-          
-          if (result.warnings.length > 0) {
-            console.warn('[AutoApply] Warnings:', result.warnings);
-          }
-          
-          if (result.recommendations.length > 0) {
-            console.info('[AutoApply] Recommendations:', result.recommendations);
-          }
-          
-          if (result.platformSpecificInfo) {
-            console.info('[AutoApply] Platform info:', result.platformSpecificInfo);
-          }
-          
-          // Always return the full result for enhanced UI display
-          return result;
+          // Use the global fillForm method
+          return await (window as any).AutoApplyExtension.fillForm(profileData);
           
         } catch (error: any) {
           console.error('[AutoApply] Enhanced fill critical error:', error);
           
-          // Create fallback result with basic content script
-          try {
-            console.log('[AutoApply] Attempting fallback to basic content script...');
-            const basicFieldsFilled = await fillATSFields(detectedATS, profileData);
-            
-            return {
-              success: basicFieldsFilled > 0,
-              totalFieldsFilled: basicFieldsFilled,
-              contentScriptFields: basicFieldsFilled,
-              playwrightFields: 0,
-              errors: basicFieldsFilled === 0 ? ['Basic content script also failed'] : [],
-              warnings: ['Enhanced filling failed, used basic fallback'],
-              usedPlaywright: false,
-              recommendations: [
-                'Enhanced mode failed - check console for details',
-                'Consider refreshing page and trying again'
-              ],
-              platformSpecificInfo: {
-                platform: detectedATS.slug,
-                detectedComplexFields: [],
-                requiresManualSteps: false
-              }
-            };
-          } catch (fallbackError: any) {
-            console.error('[AutoApply] Fallback also failed:', fallbackError);
-            
-            return {
-              success: false,
-              totalFieldsFilled: 0,
-              contentScriptFields: 0,
-              playwrightFields: 0,
-              errors: [error.message, fallbackError.message],
-              warnings: ['Both enhanced and basic filling failed'],
-              usedPlaywright: false,
-              recommendations: [
-                'All filling methods failed',
-                'Check form is loaded and extension has latest updates',
-                'Try manual form filling'
-              ],
-              platformSpecificInfo: {
-                platform: detectedATS.slug,
-                detectedComplexFields: [],
-                requiresManualSteps: true
-              }
-            };
-          }
+          // Create fallback result
+          console.log('[AutoApply] Automation failed, returning error result');
+          return {
+            success: false,
+            pageContext: { 
+              pageType: 'application-form' as const,
+              ats: detectedATS,
+              url: window.location.href,
+              title: document.title,
+              hasProtection: false,
+              captchas: []
+            },
+            fieldsDiscovered: 0,
+            fieldsAttempted: 0,
+            fieldsFilled: 0,
+            captchasSolved: 0,
+            errors: [error.message],
+            warnings: ['Primary automation failed'],
+            nextActions: [
+              'Check console for details',
+              'Consider refreshing page and trying again'
+            ],
+            timeTaken: 0
+          };
         }
       },
       onClose: () => {
@@ -129,11 +202,18 @@ function initialize(): void {
     }
     
     // Listen for messages from the extension popup or background
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (chrome?.runtime?.onMessage) {
+      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.action === 'fillFields' && message.profileData) {
         console.log('[AutoApply] Received fillFields message.');
-        fillATSFields(detectedATS, message.profileData);
-        sendResponse({ success: true });
+        // Use the global fillForm method
+        (window as any).AutoApplyExtension.fillForm(message.profileData)
+          .then((result: AutomationResult) => {
+            sendResponse({ success: result.success, result });
+          })
+          .catch((error: any) => {
+            sendResponse({ success: false, error: error.message });
+          });
         return true; // Indicates that the response will be sent asynchronously
       }
       
@@ -151,15 +231,43 @@ function initialize(): void {
         sendResponse({ success: true, message: 'ATS_PAGE_LOADED received' });
         return true;
       }
-      // Default response for unhandled messages
-      // sendResponse({ success: false, error: 'Unknown message' }); 
-      // return true; // Keep channel open for other listeners if any
-    });
+
+      if (message.action === 'getJobInfo') {
+        console.log('[AutoApply] Received getJobInfo message.');
+        const jobInfo = {
+          title: '',
+          company: '',
+          description: '',
+        };
+
+        // Try to extract job title
+        const titleEl = document.querySelector('h1, h2, [class*="job-title"], [class*="posting-title"], [data-qa="job-title"]');
+        if (titleEl?.textContent) jobInfo.title = titleEl.textContent.trim();
+
+        // Try to extract company
+        const companyEl = document.querySelector('[class*="company"], [class*="employer"], [data-qa="company"], [itemprop="hiringOrganization"]');
+        if (companyEl?.textContent) jobInfo.company = companyEl.textContent.trim();
+
+        // Try to extract job description
+        const descEl = document.querySelector('[class*="job-description"], [class*="posting-description"], [class*="description"], [data-qa="job-description"], #job-description');
+        if (descEl?.textContent) jobInfo.description = descEl.textContent.trim().slice(0, 3000);
+
+        sendResponse(jobInfo);
+        return true;
+      }
+      });
+    } else {
+      console.log('[AutoApply] Chrome runtime API not available - running in test mode');
+    }
   } else {
     console.log(`[AutoApply] No supported ATS detected on this page: ${currentUrl}`);
     
+    // Automation system already initialized at module level
+    console.log('[AutoApply] Automation system available for non-ATS pages');
+    
     // Still listen for check messages and ATS_PAGE_LOADED even if no ATS is detected initially
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (chrome?.runtime?.onMessage) {
+      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.action === 'checkATS') {
         console.log('[AutoApply] Received checkATS message (no ATS detected).');
         sendResponse({ 
@@ -170,18 +278,13 @@ function initialize(): void {
 
       if (message.type === 'ATS_PAGE_LOADED') {
         console.log('[AutoApply Content Script] Received ATS_PAGE_LOADED (no ATS initially detected). Attempting re-initialization.');
-        // It's crucial to remove existing listeners before re-adding, to prevent duplicates if initialize is called multiple times.
-        // However, given initialize() structure, direct re-call might lead to nested listeners.
-        // A safer pattern would be to have a separate function for setting up listeners only once.
-        // For now, let's rely on the page reload or a more sophisticated state management if re-init is frequent.
-        // initialize(); // This could cause issues with duplicate listeners.
         sendResponse({ success: true, message: 'ATS_PAGE_LOADED received, consider page refresh or manual re-check for ATS.' });
         return true;
       }
-      // Default response for unhandled messages
-      // sendResponse({ success: false, error: 'Unknown message' });
-      // return true;
-    });
+      });
+    } else {
+      console.log('[AutoApply] Chrome runtime API not available - running in test mode (no ATS detected)');
+    }
   }
 }
 

@@ -21,7 +21,24 @@ export const manifest = defineManifest({
     '*://*.taleo.net/*',
     '*://*.ashbyhq.com/*',
     '*://*.workable.com/*',
-    '*://*.icims.com/*'
+    '*://*.icims.com/*',
+    '*://*.smartrecruiters.com/*',
+    '*://*.myworkdayjobs.com/*',
+    '*://*.bamboohr.com/*',
+    '*://*.breezy.hr/*',
+    '*://*.recruitee.com/*',
+    '*://*.jazzhr.com/*',
+    '*://*.applytojob.com/*',
+    '*://*.personio.com/*',
+    '*://*.zohorecruit.com/*',
+    '*://jobs.lever.co/*',
+    '*://boards.greenhouse.io/*',
+    '*://*.linkedin.com/*',
+    '*://*.indeed.com/*',
+    '*://*.ycombinator.com/*',
+    '*://*.workatastartup.com/*',
+    '*://*.wellfound.com/*',
+    '*://*.angel.co/*'
   ],
   action: {
     default_popup: 'src/popup/index.html',
@@ -37,6 +54,12 @@ export const manifest = defineManifest({
     '128': 'assets/icon-128.png'
   },
   options_page: 'src/options/index.html',
+  web_accessible_resources: [
+    {
+      resources: ['src/jobs/index.html', 'src/jobs/job_listings.js', 'src/jobs/styles.css'],
+      matches: ['<all_urls>']
+    }
+  ],
   background: {
     service_worker: 'src/background.ts',
     type: 'module'
@@ -54,7 +77,24 @@ export const manifest = defineManifest({
         '*://*.taleo.net/*',
         '*://*.ashbyhq.com/*',
         '*://*.workable.com/*',
-        '*://*.icims.com/*'
+        '*://*.icims.com/*',
+        '*://*.smartrecruiters.com/*',
+        '*://*.myworkdayjobs.com/*',
+        '*://*.bamboohr.com/*',
+        '*://*.breezy.hr/*',
+        '*://*.recruitee.com/*',
+        '*://*.jazzhr.com/*',
+        '*://*.applytojob.com/*',
+        '*://*.personio.com/*',
+        '*://*.zohorecruit.com/*',
+        '*://jobs.lever.co/*',
+        '*://boards.greenhouse.io/*',
+        '*://*.linkedin.com/*',
+        '*://*.indeed.com/*',
+        '*://*.ycombinator.com/*',
+        '*://*.workatastartup.com/*',
+        '*://*.wellfound.com/*',
+        '*://*.angel.co/*'
       ],
       js: ['src/content.ts'],
       css: ['content.css']

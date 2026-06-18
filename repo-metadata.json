@@ -1,0 +1,6041 @@
+{
+  "generatedAt": "2025-06-14T17:03:48.589Z",
+  "project": {
+    "name": "auto-apply",
+    "version": "0.1.0",
+    "scripts": {
+      "build": "nx run-many --target=build",
+      "test": "nx run-many --target=test",
+      "test:e2e": "playwright test",
+      "test:e2e:headed": "playwright test --headed",
+      "test:e2e:debug": "playwright test --debug",
+      "lint": "nx run-many --target=lint",
+      "dev": "nx run-many --target=serve --parallel",
+      "start": "nx run-many --target=serve --prod",
+      "load-extension": "node scripts/load-extension.js"
+    },
+    "dependencies": [
+      "@aws-sdk/client-s3",
+      "@fastify/cors",
+      "fastify",
+      "jose",
+      "pdf-parse",
+      "webext-bridge"
+    ],
+    "devDependencies": [
+      "@crxjs/vite-plugin",
+      "@nx/eslint-plugin",
+      "@nx/js",
+      "@nx/vite",
+      "@nx/workspace",
+      "@playwright/test",
+      "@types/chrome",
+      "@types/jest",
+      "@types/node",
+      "@types/react",
+      "@types/react-dom",
+      "@vitejs/plugin-react",
+      "eslint",
+      "jest",
+      "nx",
+      "playwright",
+      "prettier",
+      "react",
+      "react-dom",
+      "sharp",
+      "ts-jest",
+      "typescript",
+      "vite"
+    ]
+  },
+  "summary": {
+    "availableModules": [
+      {
+        "file": "apps/extension/manifest.ts",
+        "exports": [
+          "manifest"
+        ]
+      },
+      {
+        "file": "apps/extension/src/components/ProfileDisplay.tsx",
+        "exports": [
+          "ProfileDisplay"
+        ]
+      },
+      {
+        "file": "apps/extension/src/components/ProfileForm.tsx",
+        "exports": [
+          "ProfileForm"
+        ]
+      },
+      {
+        "file": "apps/extension/src/popup/EditProfile.tsx",
+        "exports": [
+          "EditProfile"
+        ]
+      },
+      {
+        "file": "apps/extension/src/popup/ProfileDisplay.tsx",
+        "exports": [
+          "ProfileDisplay"
+        ]
+      },
+      {
+        "file": "apps/extension/src/popup/ProfileForm.tsx",
+        "exports": [
+          "ProfileForm"
+        ]
+      },
+      {
+        "file": "apps/extension/src/types/css.d.ts",
+        "exports": [
+          "css",
+          "scss",
+          "sass",
+          "less",
+          "styl"
+        ]
+      },
+      {
+        "file": "apps/extension/src/types/images.d.ts",
+        "exports": [
+          "ReactComponent",
+          "src",
+          "content",
+          "content",
+          "content",
+          "content",
+          "content",
+          "content"
+        ]
+      },
+      {
+        "file": "apps/extension/src/types/nx-react.d.ts",
+        "exports": [
+          "classes",
+          "classes",
+          "classes",
+          "classes",
+          "classes"
+        ]
+      },
+      {
+        "file": "apps/extension/src/types/profile.ts",
+        "exports": [
+          "PersonalInfo",
+          "EEOData",
+          "WorkExperience",
+          "Education",
+          "Skill",
+          "Documents",
+          "Profile",
+          "PartialProfile",
+          "ATSFieldDescriptor",
+          "ATSMessageData"
+        ]
+      },
+      {
+        "file": "apps/extension/src/types/ui.ts",
+        "exports": [
+          "AutoApplyPanel"
+        ]
+      },
+      {
+        "file": "apps/extension/src/ui/floatingPanel.ts",
+        "exports": [
+          "initFloatingPanel"
+        ]
+      },
+      {
+        "file": "apps/extension/src/ui.ts",
+        "exports": [
+          "createFloatingPanel",
+          "updateFilledCount"
+        ]
+      },
+      {
+        "file": "apps/extension/src/utils/ats-platforms.ts",
+        "exports": [
+          "ATS",
+          "ATSPlatform",
+          "supportedPlatforms",
+          "detectATS",
+          "detectResumeImportFeatures",
+          "isJobListingPage",
+          "isAshbyJobListingPage",
+          "clickAshbyApplyButton"
+        ]
+      },
+      {
+        "file": "apps/extension/src/utils/captcha-handler.ts",
+        "exports": [
+          "CaptchaHandler",
+          "type CaptchaInfo"
+        ]
+      },
+      {
+        "file": "apps/extension/src/utils/comprehensive-form-automation.ts",
+        "exports": [
+          "ComprehensiveFormAutomation"
+        ]
+      },
+      {
+        "file": "apps/extension/src/utils/human-like-automation.ts",
+        "exports": [
+          "HumanLikeAutomation",
+          "type HumanBehaviorConfig"
+        ]
+      },
+      {
+        "file": "apps/extension/src/utils/mockData.ts",
+        "exports": [
+          "generateMockParsedProfile",
+          "sampleProfile"
+        ]
+      },
+      {
+        "file": "apps/extension/src/utils/playwright-automation.ts",
+        "exports": [
+          "PlaywrightAutomationOptions",
+          "AutomationResult",
+          "ComplexField",
+          "PlaywrightAutomationService",
+          "shouldUsePlaywright",
+          "createPlaywrightAutomation"
+        ]
+      },
+      {
+        "file": "apps/extension/src/utils/testResumeParsing.ts",
+        "exports": [
+          "initTestResumeParser"
+        ]
+      },
+      {
+        "file": "apps/extension/vite.config.ts",
+        "exports": [
+          "defineConfig"
+        ]
+      },
+      {
+        "file": "examples/resume_test.js",
+        "exports": [
+          "ResumeTester"
+        ]
+      },
+      {
+        "file": "playwright.config.ts",
+        "exports": [
+          "defineConfig"
+        ]
+      },
+      {
+        "file": "tests/fixtures/extension.ts",
+        "exports": [
+          "test",
+          "expect"
+        ]
+      },
+      {
+        "file": "tests/fixtures/shared-extension.ts",
+        "exports": [
+          "test",
+          "expect "
+        ]
+      }
+    ],
+    "typeDefinitions": [
+      {
+        "file": "apps/extension/src/ats.ts",
+        "types": [
+          "AtsInfo",
+          "FieldMap"
+        ]
+      },
+      {
+        "file": "apps/extension/src/components/ProfileDisplay.tsx",
+        "types": [
+          "ProfileDisplayProps"
+        ]
+      },
+      {
+        "file": "apps/extension/src/components/ProfileForm.tsx",
+        "types": [
+          "ProfileFormProps"
+        ]
+      },
+      {
+        "file": "apps/extension/src/content.ts",
+        "types": [
+          "UserProfile",
+          "AutomationResult"
+        ]
+      },
+      {
+        "file": "apps/extension/src/options/index.ts",
+        "types": [
+          "ParsedData"
+        ]
+      },
+      {
+        "file": "apps/extension/src/popup/EditProfile.tsx",
+        "types": [
+          "EditProfileProps"
+        ]
+      },
+      {
+        "file": "apps/extension/src/popup/ProfileDisplay.tsx",
+        "types": [
+          "ProfileDisplayProps"
+        ]
+      },
+      {
+        "file": "apps/extension/src/popup/ProfileForm.tsx",
+        "types": [
+          "ProfileFormProps"
+        ]
+      },
+      {
+        "file": "apps/extension/src/types/chrome.d.ts",
+        "types": [
+          "Chrome"
+        ]
+      },
+      {
+        "file": "apps/extension/src/types/profile.ts",
+        "types": [
+          "PersonalInfo",
+          "EEOData",
+          "WorkExperience",
+          "Education",
+          "Skill",
+          "Documents",
+          "Profile",
+          "PartialProfile",
+          "ATSFieldDescriptor",
+          "ATSMessageData"
+        ]
+      },
+      {
+        "file": "apps/extension/src/types/ui.ts",
+        "types": [
+          "AutoApplyPanel"
+        ]
+      },
+      {
+        "file": "apps/extension/src/ui/floatingPanel.ts",
+        "types": [
+          "FloatingPanelOptions",
+          "fillButton"
+        ]
+      },
+      {
+        "file": "apps/extension/src/utils/__tests__/ats-ashby.test.ts",
+        "types": [
+          "selectors"
+        ]
+      },
+      {
+        "file": "apps/extension/src/utils/ats-platforms.ts",
+        "types": [
+          "ATS",
+          "ATSPlatform"
+        ]
+      },
+      {
+        "file": "apps/extension/src/utils/captcha-handler.ts",
+        "types": [
+          "CaptchaInfo",
+          "Object",
+          "as",
+          "CaptchaInfo"
+        ]
+      },
+      {
+        "file": "apps/extension/src/utils/comprehensive-form-automation.ts",
+        "types": [
+          "HumanBehaviorConfig",
+          "CaptchaInfo",
+          "ATSPlatform",
+          "PageContext",
+          "FieldInfo",
+          "AutomationResult",
+          "UserProfile",
+          "based"
+        ]
+      },
+      {
+        "file": "apps/extension/src/utils/enhancedPdfParser.ts",
+        "types": [
+          "and",
+          "ParsedResume",
+          "FeatureSet"
+        ]
+      },
+      {
+        "file": "apps/extension/src/utils/human-like-automation.ts",
+        "types": [
+          "HumanBehaviorConfig",
+          "HumanBehaviorConfig"
+        ]
+      },
+      {
+        "file": "apps/extension/src/utils/playwright-automation.ts",
+        "types": [
+          "PlaywrightAutomationOptions",
+          "AutomationResult",
+          "ComplexField",
+          "in"
+        ]
+      },
+      {
+        "file": "apps/extension/src/utils/resumeParser.ts",
+        "types": [
+          "ParsedResume"
+        ]
+      },
+      {
+        "file": "apps/extension/src/utils/unnecessaryPdfParser.ts",
+        "types": [
+          "ParsedResume",
+          "FeatureSet"
+        ]
+      },
+      {
+        "file": "apps/resume-api/server.js",
+        "types": [
+          "and",
+          "const",
+          "const",
+          "but",
+          "but"
+        ]
+      },
+      {
+        "file": "tests/e2e/playwright-direct.spec.ts",
+        "types": [
+          "declaration",
+          "Window"
+        ]
+      },
+      {
+        "file": "tests/fixtures/extension.ts",
+        "types": [
+          "BrowserContext"
+        ]
+      },
+      {
+        "file": "tests/fixtures/shared-extension.ts",
+        "types": [
+          "ExtensionFixtures",
+          "ExtensionWorkerFixtures"
+        ]
+      }
+    ],
+    "projectStructure": [
+      {
+        "type": "directory",
+        "name": ".nx",
+        "path": ".nx",
+        "children": [
+          {
+            "type": "directory",
+            "name": "cache",
+            "path": ".nx/cache",
+            "children": [
+              {
+                "type": "directory",
+                "name": "10866889271505677233",
+                "path": ".nx/cache/10866889271505677233",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "code",
+                    "path": ".nx/cache/10866889271505677233/code",
+                    "extension": "",
+                    "size": 1
+                  },
+                  {
+                    "type": "directory",
+                    "name": "outputs",
+                    "path": ".nx/cache/10866889271505677233/outputs",
+                    "children": []
+                  },
+                  {
+                    "type": "file",
+                    "name": "source",
+                    "path": ".nx/cache/10866889271505677233/source",
+                    "extension": "",
+                    "size": 64
+                  },
+                  {
+                    "type": "file",
+                    "name": "terminalOutput",
+                    "path": ".nx/cache/10866889271505677233/terminalOutput",
+                    "extension": "",
+                    "size": 4609
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "10866889271505677233.commit",
+                "path": ".nx/cache/10866889271505677233.commit",
+                "extension": ".commit",
+                "size": 4
+              },
+              {
+                "type": "directory",
+                "name": "15174611973012607379",
+                "path": ".nx/cache/15174611973012607379",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "code",
+                    "path": ".nx/cache/15174611973012607379/code",
+                    "extension": "",
+                    "size": 1
+                  },
+                  {
+                    "type": "directory",
+                    "name": "outputs",
+                    "path": ".nx/cache/15174611973012607379/outputs",
+                    "children": []
+                  },
+                  {
+                    "type": "file",
+                    "name": "source",
+                    "path": ".nx/cache/15174611973012607379/source",
+                    "extension": "",
+                    "size": 64
+                  },
+                  {
+                    "type": "file",
+                    "name": "terminalOutput",
+                    "path": ".nx/cache/15174611973012607379/terminalOutput",
+                    "extension": "",
+                    "size": 4603
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "15174611973012607379.commit",
+                "path": ".nx/cache/15174611973012607379.commit",
+                "extension": ".commit",
+                "size": 4
+              },
+              {
+                "type": "directory",
+                "name": "1963808459420626804",
+                "path": ".nx/cache/1963808459420626804",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "code",
+                    "path": ".nx/cache/1963808459420626804/code",
+                    "extension": "",
+                    "size": 1
+                  },
+                  {
+                    "type": "directory",
+                    "name": "outputs",
+                    "path": ".nx/cache/1963808459420626804/outputs",
+                    "children": []
+                  },
+                  {
+                    "type": "file",
+                    "name": "source",
+                    "path": ".nx/cache/1963808459420626804/source",
+                    "extension": "",
+                    "size": 64
+                  },
+                  {
+                    "type": "file",
+                    "name": "terminalOutput",
+                    "path": ".nx/cache/1963808459420626804/terminalOutput",
+                    "extension": "",
+                    "size": 4769
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "1963808459420626804.commit",
+                "path": ".nx/cache/1963808459420626804.commit",
+                "extension": ".commit",
+                "size": 4
+              },
+              {
+                "type": "directory",
+                "name": "8616631161631229740",
+                "path": ".nx/cache/8616631161631229740",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "code",
+                    "path": ".nx/cache/8616631161631229740/code",
+                    "extension": "",
+                    "size": 1
+                  },
+                  {
+                    "type": "directory",
+                    "name": "outputs",
+                    "path": ".nx/cache/8616631161631229740/outputs",
+                    "children": []
+                  },
+                  {
+                    "type": "file",
+                    "name": "source",
+                    "path": ".nx/cache/8616631161631229740/source",
+                    "extension": "",
+                    "size": 64
+                  },
+                  {
+                    "type": "file",
+                    "name": "terminalOutput",
+                    "path": ".nx/cache/8616631161631229740/terminalOutput",
+                    "extension": "",
+                    "size": 4704
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "8616631161631229740.commit",
+                "path": ".nx/cache/8616631161631229740.commit",
+                "extension": ".commit",
+                "size": 4
+              },
+              {
+                "type": "directory",
+                "name": "888129865988551965",
+                "path": ".nx/cache/888129865988551965",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "code",
+                    "path": ".nx/cache/888129865988551965/code",
+                    "extension": "",
+                    "size": 1
+                  },
+                  {
+                    "type": "directory",
+                    "name": "outputs",
+                    "path": ".nx/cache/888129865988551965/outputs",
+                    "children": []
+                  },
+                  {
+                    "type": "file",
+                    "name": "source",
+                    "path": ".nx/cache/888129865988551965/source",
+                    "extension": "",
+                    "size": 64
+                  },
+                  {
+                    "type": "file",
+                    "name": "terminalOutput",
+                    "path": ".nx/cache/888129865988551965/terminalOutput",
+                    "extension": "",
+                    "size": 4772
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "888129865988551965.commit",
+                "path": ".nx/cache/888129865988551965.commit",
+                "extension": ".commit",
+                "size": 4
+              },
+              {
+                "type": "directory",
+                "name": "d",
+                "path": ".nx/cache/d",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "server-process.json",
+                    "path": ".nx/cache/d/server-process.json",
+                    "extension": ".json",
+                    "size": 20
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "file-map.json",
+                "path": ".nx/cache/file-map.json",
+                "extension": ".json",
+                "size": 58706
+              },
+              {
+                "type": "file",
+                "name": "lockfile.hash",
+                "path": ".nx/cache/lockfile.hash",
+                "extension": ".hash",
+                "size": 20
+              },
+              {
+                "type": "file",
+                "name": "parsed-lock-file.json",
+                "path": ".nx/cache/parsed-lock-file.json",
+                "extension": ".json",
+                "size": 351807
+              },
+              {
+                "type": "file",
+                "name": "project-graph.json",
+                "path": ".nx/cache/project-graph.json",
+                "extension": ".json",
+                "size": 356526
+              },
+              {
+                "type": "file",
+                "name": "run.json",
+                "path": ".nx/cache/run.json",
+                "extension": ".json",
+                "size": 508
+              },
+              {
+                "type": "directory",
+                "name": "terminalOutputs",
+                "path": ".nx/cache/terminalOutputs",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "10866889271505677233",
+                    "path": ".nx/cache/terminalOutputs/10866889271505677233",
+                    "extension": "",
+                    "size": 4609
+                  },
+                  {
+                    "type": "file",
+                    "name": "15174611973012607379",
+                    "path": ".nx/cache/terminalOutputs/15174611973012607379",
+                    "extension": "",
+                    "size": 4603
+                  },
+                  {
+                    "type": "file",
+                    "name": "16117515415257420797",
+                    "path": ".nx/cache/terminalOutputs/16117515415257420797",
+                    "extension": "",
+                    "size": 845
+                  },
+                  {
+                    "type": "file",
+                    "name": "18212760966587062082",
+                    "path": ".nx/cache/terminalOutputs/18212760966587062082",
+                    "extension": "",
+                    "size": 3365
+                  },
+                  {
+                    "type": "file",
+                    "name": "1963808459420626804",
+                    "path": ".nx/cache/terminalOutputs/1963808459420626804",
+                    "extension": "",
+                    "size": 4769
+                  },
+                  {
+                    "type": "file",
+                    "name": "3189769316084929834",
+                    "path": ".nx/cache/terminalOutputs/3189769316084929834",
+                    "extension": "",
+                    "size": 186
+                  },
+                  {
+                    "type": "file",
+                    "name": "4435722346215497822",
+                    "path": ".nx/cache/terminalOutputs/4435722346215497822",
+                    "extension": "",
+                    "size": 3388
+                  },
+                  {
+                    "type": "file",
+                    "name": "7796305130330444601",
+                    "path": ".nx/cache/terminalOutputs/7796305130330444601",
+                    "extension": "",
+                    "size": 186
+                  },
+                  {
+                    "type": "file",
+                    "name": "8616631161631229740",
+                    "path": ".nx/cache/terminalOutputs/8616631161631229740",
+                    "extension": "",
+                    "size": 4704
+                  },
+                  {
+                    "type": "file",
+                    "name": "888129865988551965",
+                    "path": ".nx/cache/terminalOutputs/888129865988551965",
+                    "extension": "",
+                    "size": 4772
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "README.md",
+        "path": "README.md",
+        "extension": ".md",
+        "size": 3819
+      },
+      {
+        "type": "file",
+        "name": "RepoMetadataGenerator.js",
+        "path": "RepoMetadataGenerator.js",
+        "extension": ".js",
+        "size": 11577
+      },
+      {
+        "type": "directory",
+        "name": "apps",
+        "path": "apps",
+        "children": [
+          {
+            "type": "directory",
+            "name": "extension",
+            "path": "apps/extension",
+            "children": [
+              {
+                "type": "file",
+                "name": "PLAYWRIGHT_INTEGRATION.md",
+                "path": "apps/extension/PLAYWRIGHT_INTEGRATION.md",
+                "extension": ".md",
+                "size": 15216
+              },
+              {
+                "type": "directory",
+                "name": "assets",
+                "path": "apps/extension/assets",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "icon-128.png",
+                    "path": "apps/extension/assets/icon-128.png",
+                    "extension": ".png",
+                    "size": 3856
+                  },
+                  {
+                    "type": "file",
+                    "name": "icon-16.png",
+                    "path": "apps/extension/assets/icon-16.png",
+                    "extension": ".png",
+                    "size": 3856
+                  },
+                  {
+                    "type": "file",
+                    "name": "icon-48.png",
+                    "path": "apps/extension/assets/icon-48.png",
+                    "extension": ".png",
+                    "size": 3856
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "content.css",
+                "path": "apps/extension/content.css",
+                "extension": ".css",
+                "size": 1230
+              },
+              {
+                "type": "file",
+                "name": "index.html",
+                "path": "apps/extension/index.html",
+                "extension": ".html",
+                "size": 338
+              },
+              {
+                "type": "file",
+                "name": "jest.config.ts",
+                "path": "apps/extension/jest.config.ts",
+                "extension": ".ts",
+                "size": 642
+              },
+              {
+                "type": "file",
+                "name": "manifest.json",
+                "path": "apps/extension/manifest.json",
+                "extension": ".json",
+                "size": 1518
+              },
+              {
+                "type": "file",
+                "name": "manifest.ts",
+                "path": "apps/extension/manifest.ts",
+                "extension": ".ts",
+                "size": 1494
+              },
+              {
+                "type": "file",
+                "name": "package.json",
+                "path": "apps/extension/package.json",
+                "extension": ".json",
+                "size": 724
+              },
+              {
+                "type": "file",
+                "name": "project.json",
+                "path": "apps/extension/project.json",
+                "extension": ".json",
+                "size": 2048
+              },
+              {
+                "type": "directory",
+                "name": "src",
+                "path": "apps/extension/src",
+                "children": [
+                  {
+                    "type": "directory",
+                    "name": "assets",
+                    "path": "apps/extension/src/assets",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "icon.svg",
+                        "path": "apps/extension/src/assets/icon.svg",
+                        "extension": ".svg",
+                        "size": 514
+                      }
+                    ]
+                  },
+                  {
+                    "type": "file",
+                    "name": "ats.ts",
+                    "path": "apps/extension/src/ats.ts",
+                    "extension": ".ts",
+                    "size": 2605
+                  },
+                  {
+                    "type": "file",
+                    "name": "background.ts",
+                    "path": "apps/extension/src/background.ts",
+                    "extension": ".ts",
+                    "size": 3256
+                  },
+                  {
+                    "type": "directory",
+                    "name": "components",
+                    "path": "apps/extension/src/components",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "ProfileDisplay.tsx",
+                        "path": "apps/extension/src/components/ProfileDisplay.tsx",
+                        "extension": ".tsx",
+                        "size": 4638
+                      },
+                      {
+                        "type": "file",
+                        "name": "ProfileForm.tsx",
+                        "path": "apps/extension/src/components/ProfileForm.tsx",
+                        "extension": ".tsx",
+                        "size": 22313
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory",
+                    "name": "content",
+                    "path": "apps/extension/src/content",
+                    "children": []
+                  },
+                  {
+                    "type": "file",
+                    "name": "content.css",
+                    "path": "apps/extension/src/content.css",
+                    "extension": ".css",
+                    "size": 1230
+                  },
+                  {
+                    "type": "file",
+                    "name": "content.test.ts",
+                    "path": "apps/extension/src/content.test.ts",
+                    "extension": ".ts",
+                    "size": 14702
+                  },
+                  {
+                    "type": "file",
+                    "name": "content.ts",
+                    "path": "apps/extension/src/content.ts",
+                    "extension": ".ts",
+                    "size": 8870
+                  },
+                  {
+                    "type": "directory",
+                    "name": "jobs",
+                    "path": "apps/extension/src/jobs",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "index.html",
+                        "path": "apps/extension/src/jobs/index.html",
+                        "extension": ".html",
+                        "size": 633
+                      },
+                      {
+                        "type": "file",
+                        "name": "job_listings.js",
+                        "path": "apps/extension/src/jobs/job_listings.js",
+                        "extension": ".js",
+                        "size": 2092
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory",
+                    "name": "options",
+                    "path": "apps/extension/src/options",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "index.html",
+                        "path": "apps/extension/src/options/index.html",
+                        "extension": ".html",
+                        "size": 280
+                      },
+                      {
+                        "type": "file",
+                        "name": "index.ts",
+                        "path": "apps/extension/src/options/index.ts",
+                        "extension": ".ts",
+                        "size": 22953
+                      },
+                      {
+                        "type": "file",
+                        "name": "index.tsx",
+                        "path": "apps/extension/src/options/index.tsx",
+                        "extension": ".tsx",
+                        "size": 25063
+                      },
+                      {
+                        "type": "file",
+                        "name": "styles.css",
+                        "path": "apps/extension/src/options/styles.css",
+                        "extension": ".css",
+                        "size": 11584
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory",
+                    "name": "popup",
+                    "path": "apps/extension/src/popup",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "EditProfile.tsx",
+                        "path": "apps/extension/src/popup/EditProfile.tsx",
+                        "extension": ".tsx",
+                        "size": 14512
+                      },
+                      {
+                        "type": "file",
+                        "name": "ProfileDisplay.tsx",
+                        "path": "apps/extension/src/popup/ProfileDisplay.tsx",
+                        "extension": ".tsx",
+                        "size": 5117
+                      },
+                      {
+                        "type": "file",
+                        "name": "ProfileForm.tsx",
+                        "path": "apps/extension/src/popup/ProfileForm.tsx",
+                        "extension": ".tsx",
+                        "size": 14490
+                      },
+                      {
+                        "type": "file",
+                        "name": "index.html",
+                        "path": "apps/extension/src/popup/index.html",
+                        "extension": ".html",
+                        "size": 314
+                      },
+                      {
+                        "type": "file",
+                        "name": "index.tsx",
+                        "path": "apps/extension/src/popup/index.tsx",
+                        "extension": ".tsx",
+                        "size": 6362
+                      },
+                      {
+                        "type": "file",
+                        "name": "styles.css",
+                        "path": "apps/extension/src/popup/styles.css",
+                        "extension": ".css",
+                        "size": 18416
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory",
+                    "name": "test",
+                    "path": "apps/extension/src/test",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "setup.ts",
+                        "path": "apps/extension/src/test/setup.ts",
+                        "extension": ".ts",
+                        "size": 1969
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory",
+                    "name": "types",
+                    "path": "apps/extension/src/types",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "chrome.d.ts",
+                        "path": "apps/extension/src/types/chrome.d.ts",
+                        "extension": ".ts",
+                        "size": 705
+                      },
+                      {
+                        "type": "file",
+                        "name": "css.d.ts",
+                        "path": "apps/extension/src/types/css.d.ts",
+                        "extension": ".ts",
+                        "size": 461
+                      },
+                      {
+                        "type": "file",
+                        "name": "images.d.ts",
+                        "path": "apps/extension/src/types/images.d.ts",
+                        "extension": ".ts",
+                        "size": 668
+                      },
+                      {
+                        "type": "file",
+                        "name": "nx-react.d.ts",
+                        "path": "apps/extension/src/types/nx-react.d.ts",
+                        "extension": ".ts",
+                        "size": 815
+                      },
+                      {
+                        "type": "file",
+                        "name": "profile.ts",
+                        "path": "apps/extension/src/types/profile.ts",
+                        "extension": ".ts",
+                        "size": 1982
+                      },
+                      {
+                        "type": "file",
+                        "name": "ui.ts",
+                        "path": "apps/extension/src/types/ui.ts",
+                        "extension": ".ts",
+                        "size": 142
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory",
+                    "name": "ui",
+                    "path": "apps/extension/src/ui",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "floatingPanel.ts",
+                        "path": "apps/extension/src/ui/floatingPanel.ts",
+                        "extension": ".ts",
+                        "size": 12827
+                      }
+                    ]
+                  },
+                  {
+                    "type": "file",
+                    "name": "ui.ts",
+                    "path": "apps/extension/src/ui.ts",
+                    "extension": ".ts",
+                    "size": 1861
+                  },
+                  {
+                    "type": "directory",
+                    "name": "utils",
+                    "path": "apps/extension/src/utils",
+                    "children": [
+                      {
+                        "type": "directory",
+                        "name": "__tests__",
+                        "path": "apps/extension/src/utils/__tests__",
+                        "children": [
+                          {
+                            "type": "file",
+                            "name": "ats-ashby.test.ts",
+                            "path": "apps/extension/src/utils/__tests__/ats-ashby.test.ts",
+                            "extension": ".ts",
+                            "size": 19564
+                          },
+                          {
+                            "type": "file",
+                            "name": "ats-greenhouse.test.ts",
+                            "path": "apps/extension/src/utils/__tests__/ats-greenhouse.test.ts",
+                            "extension": ".ts",
+                            "size": 19309
+                          },
+                          {
+                            "type": "file",
+                            "name": "ats-icims.test.ts",
+                            "path": "apps/extension/src/utils/__tests__/ats-icims.test.ts",
+                            "extension": ".ts",
+                            "size": 16009
+                          },
+                          {
+                            "type": "file",
+                            "name": "ats-lever.test.ts",
+                            "path": "apps/extension/src/utils/__tests__/ats-lever.test.ts",
+                            "extension": ".ts",
+                            "size": 20094
+                          },
+                          {
+                            "type": "file",
+                            "name": "ats-workable.test.ts",
+                            "path": "apps/extension/src/utils/__tests__/ats-workable.test.ts",
+                            "extension": ".ts",
+                            "size": 18569
+                          },
+                          {
+                            "type": "file",
+                            "name": "ats-workday.test.ts",
+                            "path": "apps/extension/src/utils/__tests__/ats-workday.test.ts",
+                            "extension": ".ts",
+                            "size": 16174
+                          },
+                          {
+                            "type": "file",
+                            "name": "ats.test.ts",
+                            "path": "apps/extension/src/utils/__tests__/ats.test.ts",
+                            "extension": ".ts",
+                            "size": 12843
+                          },
+                          {
+                            "type": "file",
+                            "name": "playwright-integration.test.ts",
+                            "path": "apps/extension/src/utils/__tests__/playwright-integration.test.ts",
+                            "extension": ".ts",
+                            "size": 15375
+                          }
+                        ]
+                      },
+                      {
+                        "type": "file",
+                        "name": "ats-platforms.ts",
+                        "path": "apps/extension/src/utils/ats-platforms.ts",
+                        "extension": ".ts",
+                        "size": 9988
+                      },
+                      {
+                        "type": "file",
+                        "name": "ats.test.ts",
+                        "path": "apps/extension/src/utils/ats.test.ts",
+                        "extension": ".ts",
+                        "size": 11844
+                      },
+                      {
+                        "type": "file",
+                        "name": "captcha-handler.ts",
+                        "path": "apps/extension/src/utils/captcha-handler.ts",
+                        "extension": ".ts",
+                        "size": 7979
+                      },
+                      {
+                        "type": "file",
+                        "name": "comprehensive-form-automation.ts",
+                        "path": "apps/extension/src/utils/comprehensive-form-automation.ts",
+                        "extension": ".ts",
+                        "size": 21769
+                      },
+                      {
+                        "type": "file",
+                        "name": "enhancedPdfParser.ts",
+                        "path": "apps/extension/src/utils/enhancedPdfParser.ts",
+                        "extension": ".ts",
+                        "size": 42980
+                      },
+                      {
+                        "type": "file",
+                        "name": "human-like-automation.ts",
+                        "path": "apps/extension/src/utils/human-like-automation.ts",
+                        "extension": ".ts",
+                        "size": 9298
+                      },
+                      {
+                        "type": "file",
+                        "name": "mockData.ts",
+                        "path": "apps/extension/src/utils/mockData.ts",
+                        "extension": ".ts",
+                        "size": 3925
+                      },
+                      {
+                        "type": "file",
+                        "name": "nodeTestParsePdf.js",
+                        "path": "apps/extension/src/utils/nodeTestParsePdf.js",
+                        "extension": ".js",
+                        "size": 977
+                      },
+                      {
+                        "type": "file",
+                        "name": "playwright-automation.ts",
+                        "path": "apps/extension/src/utils/playwright-automation.ts",
+                        "extension": ".ts",
+                        "size": 13745
+                      },
+                      {
+                        "type": "file",
+                        "name": "resumeParser.ts",
+                        "path": "apps/extension/src/utils/resumeParser.ts",
+                        "extension": ".ts",
+                        "size": 33522
+                      },
+                      {
+                        "type": "file",
+                        "name": "testPdfParser.js",
+                        "path": "apps/extension/src/utils/testPdfParser.js",
+                        "extension": ".js",
+                        "size": 3826
+                      },
+                      {
+                        "type": "file",
+                        "name": "testResumeParsing.ts",
+                        "path": "apps/extension/src/utils/testResumeParsing.ts",
+                        "extension": ".ts",
+                        "size": 3498
+                      },
+                      {
+                        "type": "file",
+                        "name": "unnecessaryPdfParser.ts",
+                        "path": "apps/extension/src/utils/unnecessaryPdfParser.ts",
+                        "extension": ".ts",
+                        "size": 20415
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "directory",
+                "name": "test-results",
+                "path": "apps/extension/test-results",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "extension-ui-desktop.png",
+                    "path": "apps/extension/test-results/extension-ui-desktop.png",
+                    "extension": ".png",
+                    "size": 31635
+                  },
+                  {
+                    "type": "file",
+                    "name": "extension-ui-mobile.png",
+                    "path": "apps/extension/test-results/extension-ui-mobile.png",
+                    "extension": ".png",
+                    "size": 24799
+                  },
+                  {
+                    "type": "file",
+                    "name": "extension-ui.png",
+                    "path": "apps/extension/test-results/extension-ui.png",
+                    "extension": ".png",
+                    "size": 26544
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "tsconfig.app.json",
+                "path": "apps/extension/tsconfig.app.json",
+                "extension": ".json",
+                "size": 263
+              },
+              {
+                "type": "file",
+                "name": "tsconfig.json",
+                "path": "apps/extension/tsconfig.json",
+                "extension": ".json",
+                "size": 665
+              },
+              {
+                "type": "file",
+                "name": "tsconfig.spec.json",
+                "path": "apps/extension/tsconfig.spec.json",
+                "extension": ".json",
+                "size": 373
+              },
+              {
+                "type": "file",
+                "name": "vite.config.ts",
+                "path": "apps/extension/vite.config.ts",
+                "extension": ".ts",
+                "size": 10848
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "jobs-web",
+            "path": "apps/jobs-web",
+            "children": []
+          },
+          {
+            "type": "directory",
+            "name": "resume-api",
+            "path": "apps/resume-api",
+            "children": [
+              {
+                "type": "file",
+                "name": "README.md",
+                "path": "apps/resume-api/README.md",
+                "extension": ".md",
+                "size": 1910
+              },
+              {
+                "type": "file",
+                "name": "package-lock.json",
+                "path": "apps/resume-api/package-lock.json",
+                "extension": ".json",
+                "size": 46746
+              },
+              {
+                "type": "file",
+                "name": "package.json",
+                "path": "apps/resume-api/package.json",
+                "extension": ".json",
+                "size": 440
+              },
+              {
+                "type": "directory",
+                "name": "public",
+                "path": "apps/resume-api/public",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "index.html",
+                    "path": "apps/resume-api/public/index.html",
+                    "extension": ".html",
+                    "size": 4363
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "server.js",
+                "path": "apps/resume-api/server.js",
+                "extension": ".js",
+                "size": 33432
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "chrome",
+        "path": "chrome",
+        "children": [
+          {
+            "type": "file",
+            "name": ".metadata",
+            "path": "chrome/.metadata",
+            "extension": "",
+            "size": 52
+          },
+          {
+            "type": "directory",
+            "name": "mac-137.0.7151.70",
+            "path": "chrome/mac-137.0.7151.70",
+            "children": [
+              {
+                "type": "directory",
+                "name": "chrome-mac-x64",
+                "path": "chrome/mac-137.0.7151.70/chrome-mac-x64",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "ABOUT",
+                    "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/ABOUT",
+                    "extension": "",
+                    "size": 248
+                  },
+                  {
+                    "type": "directory",
+                    "name": "Google Chrome for Testing.app",
+                    "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app",
+                    "children": [
+                      {
+                        "type": "directory",
+                        "name": "Contents",
+                        "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents",
+                        "children": [
+                          {
+                            "type": "directory",
+                            "name": "Frameworks",
+                            "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/Frameworks",
+                            "children": []
+                          },
+                          {
+                            "type": "file",
+                            "name": "Info.plist",
+                            "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/Info.plist",
+                            "extension": ".plist",
+                            "size": 10964
+                          },
+                          {
+                            "type": "directory",
+                            "name": "MacOS",
+                            "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS",
+                            "children": []
+                          },
+                          {
+                            "type": "file",
+                            "name": "PkgInfo",
+                            "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/PkgInfo",
+                            "extension": "",
+                            "size": 8
+                          },
+                          {
+                            "type": "directory",
+                            "name": "Resources",
+                            "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/Resources",
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory",
+                    "name": "PrivacySandboxAttestationsPreloaded",
+                    "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/PrivacySandboxAttestationsPreloaded",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "manifest.json",
+                        "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/PrivacySandboxAttestationsPreloaded/manifest.json",
+                        "extension": ".json",
+                        "size": 122
+                      },
+                      {
+                        "type": "file",
+                        "name": "privacy-sandbox-attestations.dat",
+                        "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/PrivacySandboxAttestationsPreloaded/privacy-sandbox-attestations.dat",
+                        "extension": ".dat",
+                        "size": 7581
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory",
+                    "name": "resources",
+                    "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/resources",
+                    "children": [
+                      {
+                        "type": "directory",
+                        "name": "accessibility",
+                        "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/resources/accessibility",
+                        "children": [
+                          {
+                            "type": "directory",
+                            "name": "reading_mode_gdocs_helper",
+                            "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/resources/accessibility/reading_mode_gdocs_helper",
+                            "children": []
+                          },
+                          {
+                            "type": "file",
+                            "name": "reading_mode_gdocs_helper_manifest.json",
+                            "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/resources/accessibility/reading_mode_gdocs_helper_manifest.json",
+                            "extension": ".json",
+                            "size": 2375
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "example resume.pdf",
+        "path": "example resume.pdf",
+        "extension": ".pdf",
+        "size": 22358
+      },
+      {
+        "type": "directory",
+        "name": "examples",
+        "path": "examples",
+        "children": [
+          {
+            "type": "file",
+            "name": "example_resume.html",
+            "path": "examples/example_resume.html",
+            "extension": ".html",
+            "size": 3918
+          },
+          {
+            "type": "file",
+            "name": "index.html",
+            "path": "examples/index.html",
+            "extension": ".html",
+            "size": 3873
+          },
+          {
+            "type": "file",
+            "name": "resume_test.js",
+            "path": "examples/resume_test.js",
+            "extension": ".js",
+            "size": 8004
+          },
+          {
+            "type": "file",
+            "name": "sample_resume.html",
+            "path": "examples/sample_resume.html",
+            "extension": ".html",
+            "size": 5872
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "favicon",
+        "path": "favicon",
+        "children": [
+          {
+            "type": "file",
+            "name": "apple-touch-icon.png",
+            "path": "favicon/apple-touch-icon.png",
+            "extension": ".png",
+            "size": 10077
+          },
+          {
+            "type": "file",
+            "name": "favicon-96x96.png",
+            "path": "favicon/favicon-96x96.png",
+            "extension": ".png",
+            "size": 3856
+          },
+          {
+            "type": "file",
+            "name": "favicon.ico",
+            "path": "favicon/favicon.ico",
+            "extension": ".ico",
+            "size": 15086
+          },
+          {
+            "type": "file",
+            "name": "favicon.svg",
+            "path": "favicon/favicon.svg",
+            "extension": ".svg",
+            "size": 1879336
+          },
+          {
+            "type": "file",
+            "name": "site.webmanifest",
+            "path": "favicon/site.webmanifest",
+            "extension": ".webmanifest",
+            "size": 436
+          },
+          {
+            "type": "file",
+            "name": "web-app-manifest-192x192.png",
+            "path": "favicon/web-app-manifest-192x192.png",
+            "extension": ".png",
+            "size": 11022
+          },
+          {
+            "type": "file",
+            "name": "web-app-manifest-512x512.png",
+            "path": "favicon/web-app-manifest-512x512.png",
+            "extension": ".png",
+            "size": 58953
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "nx.json",
+        "path": "nx.json",
+        "extension": ".json",
+        "size": 571
+      },
+      {
+        "type": "file",
+        "name": "package.json",
+        "path": "package.json",
+        "extension": ".json",
+        "size": 1469
+      },
+      {
+        "type": "directory",
+        "name": "playwright-report",
+        "path": "playwright-report",
+        "children": [
+          {
+            "type": "directory",
+            "name": "data",
+            "path": "playwright-report/data",
+            "children": [
+              {
+                "type": "file",
+                "name": "0ec275215b87f5cc7130f3e028c6a9975b773d19.webm",
+                "path": "playwright-report/data/0ec275215b87f5cc7130f3e028c6a9975b773d19.webm",
+                "extension": ".webm",
+                "size": 217553
+              },
+              {
+                "type": "file",
+                "name": "480719ebddcbfbed5b56a2df04d7730cbb05bd98.png",
+                "path": "playwright-report/data/480719ebddcbfbed5b56a2df04d7730cbb05bd98.png",
+                "extension": ".png",
+                "size": 118800
+              },
+              {
+                "type": "file",
+                "name": "ab22853bc47720ec1aeef3a95a56d7d69bb9872c.webm",
+                "path": "playwright-report/data/ab22853bc47720ec1aeef3a95a56d7d69bb9872c.webm",
+                "extension": ".webm",
+                "size": 233850
+              },
+              {
+                "type": "file",
+                "name": "ab4a5bef8c514ac60e1eacba088866aa6880f744.webm",
+                "path": "playwright-report/data/ab4a5bef8c514ac60e1eacba088866aa6880f744.webm",
+                "extension": ".webm",
+                "size": 222469
+              },
+              {
+                "type": "file",
+                "name": "cdde7110b5e5dad0bf70c97c2c479cbc4717ae21.md",
+                "path": "playwright-report/data/cdde7110b5e5dad0bf70c97c2c479cbc4717ae21.md",
+                "extension": ".md",
+                "size": 14082
+              }
+            ]
+          },
+          {
+            "type": "file",
+            "name": "index.html",
+            "path": "playwright-report/index.html",
+            "extension": ".html",
+            "size": 464185
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "playwright.config.ts",
+        "path": "playwright.config.ts",
+        "extension": ".ts",
+        "size": 4728
+      },
+      {
+        "type": "file",
+        "name": "pnpm-lock.yaml",
+        "path": "pnpm-lock.yaml",
+        "extension": ".yaml",
+        "size": 336397
+      },
+      {
+        "type": "file",
+        "name": "pnpm-workspace.yaml",
+        "path": "pnpm-workspace.yaml",
+        "extension": ".yaml",
+        "size": 40
+      },
+      {
+        "type": "directory",
+        "name": "scripts",
+        "path": "scripts",
+        "children": [
+          {
+            "type": "file",
+            "name": "create-icons.js",
+            "path": "scripts/create-icons.js",
+            "extension": ".js",
+            "size": 2276
+          },
+          {
+            "type": "file",
+            "name": "load-extension.js",
+            "path": "scripts/load-extension.js",
+            "extension": ".js",
+            "size": 2552
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "test-results",
+        "path": "test-results",
+        "children": [
+          {
+            "type": "file",
+            "name": ".last-run.json",
+            "path": "test-results/.last-run.json",
+            "extension": ".json",
+            "size": 194
+          },
+          {
+            "type": "directory",
+            "name": "playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing",
+            "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing",
+            "children": [
+              {
+                "type": "file",
+                "name": "error-context.md",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing/error-context.md",
+                "extension": ".md",
+                "size": 14082
+              },
+              {
+                "type": "file",
+                "name": "test-failed-1.png",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing/test-failed-1.png",
+                "extension": ".png",
+                "size": 118800
+              },
+              {
+                "type": "file",
+                "name": "video.webm",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing/video.webm",
+                "extension": ".webm",
+                "size": 217553
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-debug",
+            "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-debug",
+            "children": [
+              {
+                "type": "file",
+                "name": "error-context.md",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-debug/error-context.md",
+                "extension": ".md",
+                "size": 14082
+              },
+              {
+                "type": "file",
+                "name": "test-failed-1.png",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-debug/test-failed-1.png",
+                "extension": ".png",
+                "size": 118800
+              },
+              {
+                "type": "file",
+                "name": "video.webm",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-debug/video.webm",
+                "extension": ".webm",
+                "size": 233850
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-headless",
+            "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-headless",
+            "children": [
+              {
+                "type": "file",
+                "name": "error-context.md",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-headless/error-context.md",
+                "extension": ".md",
+                "size": 14082
+              },
+              {
+                "type": "file",
+                "name": "test-failed-1.png",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-headless/test-failed-1.png",
+                "extension": ".png",
+                "size": 118800
+              },
+              {
+                "type": "file",
+                "name": "video.webm",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-headless/video.webm",
+                "extension": ".webm",
+                "size": 222469
+              }
+            ]
+          },
+          {
+            "type": "file",
+            "name": "results.json",
+            "path": "test-results/results.json",
+            "extension": ".json",
+            "size": 20650
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "test-results-20250613-224648.txt",
+        "path": "test-results-20250613-224648.txt",
+        "extension": ".txt",
+        "size": 88122
+      },
+      {
+        "type": "directory",
+        "name": "tests",
+        "path": "tests",
+        "children": [
+          {
+            "type": "directory",
+            "name": "e2e",
+            "path": "tests/e2e",
+            "children": [
+              {
+                "type": "file",
+                "name": "content-script-debug.spec.ts",
+                "path": "tests/e2e/content-script-debug.spec.ts",
+                "extension": ".ts",
+                "size": 4235
+              },
+              {
+                "type": "file",
+                "name": "extension-detection.spec.ts",
+                "path": "tests/e2e/extension-detection.spec.ts",
+                "extension": ".ts",
+                "size": 10310
+              },
+              {
+                "type": "file",
+                "name": "extension-persistent-context.spec.ts",
+                "path": "tests/e2e/extension-persistent-context.spec.ts",
+                "extension": ".ts",
+                "size": 3425
+              },
+              {
+                "type": "file",
+                "name": "extension-proper.spec.ts",
+                "path": "tests/e2e/extension-proper.spec.ts",
+                "extension": ".ts",
+                "size": 4570
+              },
+              {
+                "type": "file",
+                "name": "panel-debug.spec.ts",
+                "path": "tests/e2e/panel-debug.spec.ts",
+                "extension": ".ts",
+                "size": 3111
+              },
+              {
+                "type": "file",
+                "name": "playwright-direct.spec.ts",
+                "path": "tests/e2e/playwright-direct.spec.ts",
+                "extension": ".ts",
+                "size": 5463
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "fixtures",
+            "path": "tests/fixtures",
+            "children": [
+              {
+                "type": "file",
+                "name": "extension.ts",
+                "path": "tests/fixtures/extension.ts",
+                "extension": ".ts",
+                "size": 1663
+              },
+              {
+                "type": "file",
+                "name": "shared-extension.ts",
+                "path": "tests/fixtures/shared-extension.ts",
+                "extension": ".ts",
+                "size": 4187
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "tsconfig.base.json",
+        "path": "tsconfig.base.json",
+        "extension": ".json",
+        "size": 341
+      }
+    ],
+    "commonImportPaths": [
+      {
+        "path": "../types/profile",
+        "usageCount": 14
+      },
+      {
+        "path": "../ats",
+        "usageCount": 8
+      },
+      {
+        "path": "../../types/profile",
+        "usageCount": 8
+      },
+      {
+        "path": "../fixtures/shared-extension",
+        "usageCount": 3
+      },
+      {
+        "path": "./ats-platforms",
+        "usageCount": 2
+      },
+      {
+        "path": "./resumeParser",
+        "usageCount": 2
+      },
+      {
+        "path": "./utils/ats",
+        "usageCount": 1
+      },
+      {
+        "path": "./utils/ats-platforms",
+        "usageCount": 1
+      },
+      {
+        "path": "./utils/comprehensive-form-automation",
+        "usageCount": 1
+      },
+      {
+        "path": "./ui/floatingPanel",
+        "usageCount": 1
+      }
+    ],
+    "mainEntryPoints": []
+  },
+  "fullMetadata": {
+    "project": {
+      "name": "auto-apply",
+      "version": "0.1.0",
+      "scripts": {
+        "build": "nx run-many --target=build",
+        "test": "nx run-many --target=test",
+        "test:e2e": "playwright test",
+        "test:e2e:headed": "playwright test --headed",
+        "test:e2e:debug": "playwright test --debug",
+        "lint": "nx run-many --target=lint",
+        "dev": "nx run-many --target=serve --parallel",
+        "start": "nx run-many --target=serve --prod",
+        "load-extension": "node scripts/load-extension.js"
+      },
+      "dependencies": [
+        "@aws-sdk/client-s3",
+        "@fastify/cors",
+        "fastify",
+        "jose",
+        "pdf-parse",
+        "webext-bridge"
+      ],
+      "devDependencies": [
+        "@crxjs/vite-plugin",
+        "@nx/eslint-plugin",
+        "@nx/js",
+        "@nx/vite",
+        "@nx/workspace",
+        "@playwright/test",
+        "@types/chrome",
+        "@types/jest",
+        "@types/node",
+        "@types/react",
+        "@types/react-dom",
+        "@vitejs/plugin-react",
+        "eslint",
+        "jest",
+        "nx",
+        "playwright",
+        "prettier",
+        "react",
+        "react-dom",
+        "sharp",
+        "ts-jest",
+        "typescript",
+        "vite"
+      ]
+    },
+    "structure": {
+      "RepoMetadataGenerator.js": {
+        "path": "RepoMetadataGenerator.js",
+        "exports": [],
+        "imports": [],
+        "types": [],
+        "functions": [
+          "names"
+        ],
+        "classes": [
+          "RepoMetadataGenerator",
+          "names"
+        ],
+        "constants": []
+      },
+      "apps/extension/jest.config.ts": {
+        "path": "apps/extension/jest.config.ts",
+        "exports": [],
+        "imports": [],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/manifest.ts": {
+        "path": "apps/extension/manifest.ts",
+        "exports": [
+          "manifest"
+        ],
+        "imports": [
+          {
+            "source": "@crxjs/vite-plugin",
+            "imports": [
+              "defineManifest"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/ats.ts": {
+        "path": "apps/extension/src/ats.ts",
+        "exports": [],
+        "imports": [],
+        "types": [
+          "AtsInfo",
+          "FieldMap"
+        ],
+        "functions": [
+          "detectAts",
+          "fillFields",
+          "getProfileValue"
+        ],
+        "classes": [],
+        "constants": [
+          "ATS_DETECTORS"
+        ]
+      },
+      "apps/extension/src/background.ts": {
+        "path": "apps/extension/src/background.ts",
+        "exports": [],
+        "imports": [],
+        "types": [],
+        "functions": [
+          "fetchFieldMap",
+          "getAuthToken"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/components/ProfileDisplay.tsx": {
+        "path": "apps/extension/src/components/ProfileDisplay.tsx",
+        "exports": [
+          "ProfileDisplay"
+        ],
+        "imports": [
+          {
+            "source": "react",
+            "imports": [
+              "React"
+            ]
+          },
+          {
+            "source": "../types/profile",
+            "imports": [
+              "Profile",
+              "Skill"
+            ]
+          }
+        ],
+        "types": [
+          "ProfileDisplayProps"
+        ],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/components/ProfileForm.tsx": {
+        "path": "apps/extension/src/components/ProfileForm.tsx",
+        "exports": [
+          "ProfileForm"
+        ],
+        "imports": [
+          {
+            "source": "../types/profile",
+            "imports": [
+              "Profile",
+              "WorkExperience",
+              "Education",
+              "Skill"
+            ]
+          }
+        ],
+        "types": [
+          "ProfileFormProps"
+        ],
+        "functions": [
+          "handleInputChange",
+          "addWorkExperience",
+          "removeWorkExperience",
+          "addEducation",
+          "removeEducation",
+          "addSkill",
+          "removeSkill",
+          "handleSubmit"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/content.test.ts": {
+        "path": "apps/extension/src/content.test.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "./utils/ats",
+            "imports": [
+              "detectATS"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [
+          "panel"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/content.ts": {
+        "path": "apps/extension/src/content.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "./utils/ats-platforms",
+            "imports": [
+              "detectATS",
+              "detectResumeImportFeatures"
+            ]
+          },
+          {
+            "source": "./utils/comprehensive-form-automation",
+            "imports": [
+              "ComprehensiveFormAutomation",
+              "type UserProfile",
+              "type AutomationResult"
+            ]
+          },
+          {
+            "source": "./ui/floatingPanel",
+            "imports": [
+              "initFloatingPanel"
+            ]
+          },
+          {
+            "source": "./types/profile",
+            "imports": [
+              "Profile"
+            ]
+          }
+        ],
+        "types": [
+          "UserProfile",
+          "AutomationResult"
+        ],
+        "functions": [
+          "initialize",
+          "for"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/jobs/job_listings.js": {
+        "path": "apps/extension/src/jobs/job_listings.js",
+        "exports": [],
+        "imports": [],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/options/index.ts": {
+        "path": "apps/extension/src/options/index.ts",
+        "exports": [],
+        "imports": [],
+        "types": [
+          "ParsedData"
+        ],
+        "functions": [
+          "parseResume",
+          "simulateResumeParsing",
+          "updateProfileWithResumeData",
+          "createExperienceItem",
+          "createEducationItem",
+          "removeExperienceItem",
+          "removeEducationItem",
+          "loadExperienceItems",
+          "loadEducationItems",
+          "loadProfile"
+        ],
+        "classes": [
+          "from",
+          "to"
+        ],
+        "constants": []
+      },
+      "apps/extension/src/options/index.tsx": {
+        "path": "apps/extension/src/options/index.tsx",
+        "exports": [],
+        "imports": [
+          {
+            "source": "react-dom/client",
+            "imports": [
+              "createRoot"
+            ]
+          },
+          {
+            "source": "../types/profile",
+            "imports": [
+              "Profile",
+              "PartialProfile"
+            ]
+          },
+          {
+            "source": "../components/ProfileForm",
+            "imports": [
+              "ProfileForm"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [
+          "ResumeFormatTip",
+          "Options",
+          "checkApiStatus",
+          "testCorsConnection",
+          "handleSaveProfile",
+          "handleClearProfile",
+          "handleResumeUpload",
+          "convertApiResponseToProfile"
+        ],
+        "classes": [],
+        "constants": [
+          "API_BASE_URL",
+          "API_ENDPOINTS"
+        ]
+      },
+      "apps/extension/src/popup/EditProfile.tsx": {
+        "path": "apps/extension/src/popup/EditProfile.tsx",
+        "exports": [
+          "EditProfile"
+        ],
+        "imports": [
+          {
+            "source": "../types/profile",
+            "imports": [
+              "Profile",
+              "PartialProfile",
+              "WorkExperience",
+              "Education",
+              "Skill"
+            ]
+          }
+        ],
+        "types": [
+          "EditProfileProps"
+        ],
+        "functions": [
+          "handlePersonalChange",
+          "handleWorkExperienceChange",
+          "addWorkExperience",
+          "removeWorkExperience",
+          "handleEducationChange",
+          "addEducation",
+          "removeEducation",
+          "handleSkillChange",
+          "addSkill",
+          "removeSkill",
+          "handleSubmit"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/popup/ProfileDisplay.tsx": {
+        "path": "apps/extension/src/popup/ProfileDisplay.tsx",
+        "exports": [
+          "ProfileDisplay"
+        ],
+        "imports": [
+          {
+            "source": "react",
+            "imports": [
+              "React"
+            ]
+          },
+          {
+            "source": "../types/profile",
+            "imports": [
+              "PartialProfile"
+            ]
+          }
+        ],
+        "types": [
+          "ProfileDisplayProps"
+        ],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/popup/ProfileForm.tsx": {
+        "path": "apps/extension/src/popup/ProfileForm.tsx",
+        "exports": [
+          "ProfileForm"
+        ],
+        "imports": [
+          {
+            "source": "../types/profile",
+            "imports": [
+              "Profile",
+              "PartialProfile",
+              "WorkExperience",
+              "Education",
+              "Skill"
+            ]
+          }
+        ],
+        "types": [
+          "ProfileFormProps"
+        ],
+        "functions": [
+          "handleWorkExperienceChange",
+          "addWorkExperience",
+          "removeWorkExperience",
+          "handleEducationChange",
+          "addEducation",
+          "removeEducation",
+          "handleSkillChange",
+          "addSkill",
+          "removeSkill",
+          "handleSubmit"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/popup/index.tsx": {
+        "path": "apps/extension/src/popup/index.tsx",
+        "exports": [],
+        "imports": [
+          {
+            "source": "react-dom/client",
+            "imports": [
+              "createRoot"
+            ]
+          },
+          {
+            "source": "webext-bridge/popup",
+            "imports": [
+              "onMessage"
+            ]
+          },
+          {
+            "source": "./EditProfile",
+            "imports": [
+              "EditProfile"
+            ]
+          },
+          {
+            "source": "./ProfileDisplay",
+            "imports": [
+              "ProfileDisplay"
+            ]
+          },
+          {
+            "source": "../types/profile",
+            "imports": [
+              "PartialProfile",
+              "ATSMessageData",
+              "ATSFieldDescriptor"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [
+          "handleSaveProfile",
+          "handleFillPageOrAutoApply",
+          "openOptionsPage",
+          "openJobListingsPage"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/test/setup.ts": {
+        "path": "apps/extension/src/test/setup.ts",
+        "exports": [],
+        "imports": [],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/types/chrome.d.ts": {
+        "path": "apps/extension/src/types/chrome.d.ts",
+        "exports": [],
+        "imports": [],
+        "types": [
+          "Chrome"
+        ],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/types/css.d.ts": {
+        "path": "apps/extension/src/types/css.d.ts",
+        "exports": [
+          "css",
+          "scss",
+          "sass",
+          "less",
+          "styl"
+        ],
+        "imports": [],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/types/images.d.ts": {
+        "path": "apps/extension/src/types/images.d.ts",
+        "exports": [
+          "ReactComponent",
+          "src",
+          "content",
+          "content",
+          "content",
+          "content",
+          "content",
+          "content"
+        ],
+        "imports": [],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/types/nx-react.d.ts": {
+        "path": "apps/extension/src/types/nx-react.d.ts",
+        "exports": [
+          "classes",
+          "classes",
+          "classes",
+          "classes",
+          "classes"
+        ],
+        "imports": [],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/types/profile.ts": {
+        "path": "apps/extension/src/types/profile.ts",
+        "exports": [
+          "PersonalInfo",
+          "EEOData",
+          "WorkExperience",
+          "Education",
+          "Skill",
+          "Documents",
+          "Profile",
+          "PartialProfile",
+          "ATSFieldDescriptor",
+          "ATSMessageData"
+        ],
+        "imports": [],
+        "types": [
+          "PersonalInfo",
+          "EEOData",
+          "WorkExperience",
+          "Education",
+          "Skill",
+          "Documents",
+          "Profile",
+          "PartialProfile",
+          "ATSFieldDescriptor",
+          "ATSMessageData"
+        ],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/types/ui.ts": {
+        "path": "apps/extension/src/types/ui.ts",
+        "exports": [
+          "AutoApplyPanel"
+        ],
+        "imports": [],
+        "types": [
+          "AutoApplyPanel"
+        ],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/ui/floatingPanel.ts": {
+        "path": "apps/extension/src/ui/floatingPanel.ts",
+        "exports": [
+          "initFloatingPanel"
+        ],
+        "imports": [
+          {
+            "source": "../utils/ats-platforms",
+            "imports": [
+              "ATS"
+            ]
+          },
+          {
+            "source": "../types/profile",
+            "imports": [
+              "Profile"
+            ]
+          }
+        ],
+        "types": [
+          "FloatingPanelOptions",
+          "fillButton"
+        ],
+        "functions": [
+          "initFloatingPanel",
+          "makeDraggable",
+          "dragMouseDown",
+          "whenever",
+          "elementDrag",
+          "closeDragElement"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/ui.ts": {
+        "path": "apps/extension/src/ui.ts",
+        "exports": [
+          "createFloatingPanel",
+          "updateFilledCount"
+        ],
+        "imports": [],
+        "types": [],
+        "functions": [
+          "createFloatingPanel",
+          "updateFilledCount"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/utils/__tests__/ats-ashby.test.ts": {
+        "path": "apps/extension/src/utils/__tests__/ats-ashby.test.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "../ats",
+            "imports": [
+              "detectATS",
+              "fillATSFields",
+              "isAshbyJobListingPage",
+              "clickAshbyApplyButton"
+            ]
+          },
+          {
+            "source": "../../types/profile",
+            "imports": [
+              "Profile"
+            ]
+          }
+        ],
+        "types": [
+          "selectors"
+        ],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/utils/__tests__/ats-greenhouse.test.ts": {
+        "path": "apps/extension/src/utils/__tests__/ats-greenhouse.test.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "../ats",
+            "imports": [
+              "detectATS",
+              "fillATSFields"
+            ]
+          },
+          {
+            "source": "../../types/profile",
+            "imports": [
+              "Profile"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/utils/__tests__/ats-icims.test.ts": {
+        "path": "apps/extension/src/utils/__tests__/ats-icims.test.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "../ats",
+            "imports": [
+              "detectATS",
+              "fillATSFields"
+            ]
+          },
+          {
+            "source": "../../types/profile",
+            "imports": [
+              "Profile"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/utils/__tests__/ats-lever.test.ts": {
+        "path": "apps/extension/src/utils/__tests__/ats-lever.test.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "../ats",
+            "imports": [
+              "detectATS",
+              "fillATSFields"
+            ]
+          },
+          {
+            "source": "../../types/profile",
+            "imports": [
+              "Profile"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/utils/__tests__/ats-workable.test.ts": {
+        "path": "apps/extension/src/utils/__tests__/ats-workable.test.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "../ats",
+            "imports": [
+              "detectATS",
+              "fillATSFields"
+            ]
+          },
+          {
+            "source": "../../types/profile",
+            "imports": [
+              "Profile"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/utils/__tests__/ats-workday.test.ts": {
+        "path": "apps/extension/src/utils/__tests__/ats-workday.test.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "../ats",
+            "imports": [
+              "detectATS",
+              "fillATSFields"
+            ]
+          },
+          {
+            "source": "../../types/profile",
+            "imports": [
+              "Profile"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/utils/__tests__/ats.test.ts": {
+        "path": "apps/extension/src/utils/__tests__/ats.test.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "../ats",
+            "imports": [
+              "detectATS",
+              "fillATSFields"
+            ]
+          },
+          {
+            "source": "../../types/profile",
+            "imports": [
+              "Profile"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/utils/__tests__/playwright-integration.test.ts": {
+        "path": "apps/extension/src/utils/__tests__/playwright-integration.test.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "../ats-enhanced",
+            "imports": [
+              "EnhancedATSFiller",
+              "EnhancedFillOptions"
+            ]
+          },
+          {
+            "source": "../ats",
+            "imports": [
+              "ATSPlatform"
+            ]
+          },
+          {
+            "source": "../../types/profile",
+            "imports": [
+              "Profile"
+            ]
+          },
+          {
+            "source": "../playwright-background-service",
+            "imports": [
+              "getPlaywrightService"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [
+          "require",
+          "require"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/utils/ats-platforms.ts": {
+        "path": "apps/extension/src/utils/ats-platforms.ts",
+        "exports": [
+          "ATS",
+          "ATSPlatform",
+          "supportedPlatforms",
+          "detectATS",
+          "detectResumeImportFeatures",
+          "isJobListingPage",
+          "isAshbyJobListingPage",
+          "clickAshbyApplyButton"
+        ],
+        "imports": [],
+        "types": [
+          "ATS",
+          "ATSPlatform"
+        ],
+        "functions": [
+          "detectATS",
+          "detectATSByDOM",
+          "detectResumeImportFeatures",
+          "isJobListingPage",
+          "isAshbyJobListingPage",
+          "clickAshbyApplyButton",
+          "isElementVisible"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/utils/ats.test.ts": {
+        "path": "apps/extension/src/utils/ats.test.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "./ats",
+            "imports": [
+              "detectATS",
+              "fillATSFields"
+            ]
+          },
+          {
+            "source": "../types/profile",
+            "imports": [
+              "Profile"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/utils/captcha-handler.ts": {
+        "path": "apps/extension/src/utils/captcha-handler.ts",
+        "exports": [
+          "CaptchaHandler",
+          "type CaptchaInfo"
+        ],
+        "imports": [],
+        "types": [
+          "CaptchaInfo",
+          "Object",
+          "as",
+          "CaptchaInfo"
+        ],
+        "functions": [],
+        "classes": [
+          "CaptchaHandler"
+        ],
+        "constants": []
+      },
+      "apps/extension/src/utils/comprehensive-form-automation.ts": {
+        "path": "apps/extension/src/utils/comprehensive-form-automation.ts",
+        "exports": [
+          "ComprehensiveFormAutomation"
+        ],
+        "imports": [
+          {
+            "source": "./human-like-automation",
+            "imports": [
+              "HumanLikeAutomation",
+              "type HumanBehaviorConfig"
+            ]
+          },
+          {
+            "source": "./captcha-handler",
+            "imports": [
+              "CaptchaHandler",
+              "type CaptchaInfo"
+            ]
+          },
+          {
+            "source": "./ats-platforms",
+            "imports": [
+              "detectATS",
+              "type ATSPlatform"
+            ]
+          }
+        ],
+        "types": [
+          "HumanBehaviorConfig",
+          "CaptchaInfo",
+          "ATSPlatform",
+          "PageContext",
+          "FieldInfo",
+          "AutomationResult",
+          "UserProfile",
+          "based"
+        ],
+        "functions": [
+          "type"
+        ],
+        "classes": [
+          "ComprehensiveFormAutomation",
+          "export"
+        ],
+        "constants": []
+      },
+      "apps/extension/src/utils/enhancedPdfParser.ts": {
+        "path": "apps/extension/src/utils/enhancedPdfParser.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "../types/profile",
+            "imports": [
+              "Profile"
+            ]
+          },
+          {
+            "source": "pdfjs-dist",
+            "imports": [
+              "pdfjsLib"
+            ]
+          },
+          {
+            "source": "pdf-parse",
+            "imports": [
+              "pdfParse"
+            ]
+          },
+          {
+            "source": "./resumeParser",
+            "imports": [
+              "parseResumeFile as originalParseResumeFile"
+            ]
+          }
+        ],
+        "types": [
+          "and",
+          "ParsedResume",
+          "FeatureSet"
+        ],
+        "functions": [
+          "from",
+          "to",
+          "calculateFeatureScore",
+          "to",
+          "to",
+          "extractLocation",
+          "to",
+          "extractDates",
+          "parseResumeText",
+          "parseResumeFile",
+          "extractPdfTextWithFallbacks",
+          "isValidText",
+          "calculateTextQualityScore",
+          "extractTextWithPositioningFromPDF",
+          "extractTextFromPDF",
+          "extractTextFromPDFFallback",
+          "extractNonPdfText",
+          "extractTextFromDoc",
+          "formatDate",
+          "isNewJobStart"
+        ],
+        "classes": [],
+        "constants": [
+          "FEATURE_SETS"
+        ]
+      },
+      "apps/extension/src/utils/human-like-automation.ts": {
+        "path": "apps/extension/src/utils/human-like-automation.ts",
+        "exports": [
+          "HumanLikeAutomation",
+          "type HumanBehaviorConfig"
+        ],
+        "imports": [],
+        "types": [
+          "HumanBehaviorConfig",
+          "HumanBehaviorConfig"
+        ],
+        "functions": [],
+        "classes": [
+          "HumanLikeAutomation"
+        ],
+        "constants": []
+      },
+      "apps/extension/src/utils/mockData.ts": {
+        "path": "apps/extension/src/utils/mockData.ts",
+        "exports": [
+          "generateMockParsedProfile",
+          "sampleProfile"
+        ],
+        "imports": [
+          {
+            "source": "../types/profile",
+            "imports": [
+              "Profile"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [
+          "generateMockParsedProfile"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/utils/nodeTestParsePdf.js": {
+        "path": "apps/extension/src/utils/nodeTestParsePdf.js",
+        "exports": [],
+        "imports": [
+          {
+            "source": "fs",
+            "imports": [
+              "fs"
+            ]
+          },
+          {
+            "source": "pdf-parse",
+            "imports": [
+              "pdf"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/utils/playwright-automation.ts": {
+        "path": "apps/extension/src/utils/playwright-automation.ts",
+        "exports": [
+          "PlaywrightAutomationOptions",
+          "AutomationResult",
+          "ComplexField",
+          "PlaywrightAutomationService",
+          "shouldUsePlaywright",
+          "createPlaywrightAutomation"
+        ],
+        "imports": [
+          {
+            "source": "playwright",
+            "imports": [
+              "chromium",
+              "Browser",
+              "Page",
+              "BrowserContext"
+            ]
+          },
+          {
+            "source": "../types/profile",
+            "imports": [
+              "Profile"
+            ]
+          },
+          {
+            "source": "./ats-platforms",
+            "imports": [
+              "ATSPlatform"
+            ]
+          }
+        ],
+        "types": [
+          "PlaywrightAutomationOptions",
+          "AutomationResult",
+          "ComplexField",
+          "in"
+        ],
+        "functions": [
+          "to",
+          "shouldUsePlaywright",
+          "to",
+          "createPlaywrightAutomation"
+        ],
+        "classes": [
+          "PlaywrightAutomationService"
+        ],
+        "constants": []
+      },
+      "apps/extension/src/utils/resumeParser.ts": {
+        "path": "apps/extension/src/utils/resumeParser.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "../types/profile",
+            "imports": [
+              "Profile"
+            ]
+          },
+          {
+            "source": "pdfjs-dist",
+            "imports": [
+              "pdfjsLib"
+            ]
+          }
+        ],
+        "types": [
+          "ParsedResume"
+        ],
+        "functions": [
+          "extractResumeContent",
+          "extractTextFromPDF",
+          "extractTextFromDoc",
+          "extractTextFromPDFFallback",
+          "parseResumeText",
+          "to",
+          "parseResumeFile"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/utils/testPdfParser.js": {
+        "path": "apps/extension/src/utils/testPdfParser.js",
+        "exports": [],
+        "imports": [],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/utils/testResumeParsing.ts": {
+        "path": "apps/extension/src/utils/testResumeParsing.ts",
+        "exports": [
+          "initTestResumeParser"
+        ],
+        "imports": [
+          {
+            "source": "./resumeParser",
+            "imports": [
+              "parseResumeFile"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [
+          "initTestResumeParser",
+          "to"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "apps/extension/src/utils/unnecessaryPdfParser.ts": {
+        "path": "apps/extension/src/utils/unnecessaryPdfParser.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "../types/profile",
+            "imports": [
+              "Profile"
+            ]
+          },
+          {
+            "source": "pdfjs-dist",
+            "imports": [
+              "pdfjsLib"
+            ]
+          }
+        ],
+        "types": [
+          "ParsedResume",
+          "FeatureSet"
+        ],
+        "functions": [
+          "to",
+          "calculateFeatureScore",
+          "to",
+          "findBestMatch",
+          "to",
+          "detectSubsections",
+          "to",
+          "parseResumeText",
+          "parseResumeFile",
+          "extractTextFromPDF",
+          "profileContent",
+          "formatDate"
+        ],
+        "classes": [],
+        "constants": [
+          "FEATURE_SETS"
+        ]
+      },
+      "apps/extension/vite.config.ts": {
+        "path": "apps/extension/vite.config.ts",
+        "exports": [
+          "defineConfig"
+        ],
+        "imports": [
+          {
+            "source": "vite",
+            "imports": [
+              "defineConfig"
+            ]
+          },
+          {
+            "source": "@crxjs/vite-plugin",
+            "imports": [
+              "crx"
+            ]
+          },
+          {
+            "source": "@vitejs/plugin-react",
+            "imports": [
+              "react"
+            ]
+          },
+          {
+            "source": "path",
+            "imports": [
+              "resolve"
+            ]
+          },
+          {
+            "source": "./manifest",
+            "imports": [
+              "manifest"
+            ]
+          },
+          {
+            "source": "fs",
+            "imports": [
+              "fs"
+            ]
+          },
+          {
+            "source": "path",
+            "imports": [
+              "path"
+            ]
+          },
+          {
+            "source": "child_process",
+            "imports": [
+              "spawn"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [
+          "sharp",
+          "findWorkerFile"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "apps/resume-api/server.js": {
+        "path": "apps/resume-api/server.js",
+        "exports": [],
+        "imports": [],
+        "types": [
+          "and",
+          "const",
+          "const",
+          "but",
+          "but"
+        ],
+        "functions": [
+          "to",
+          "extractStructuredResumeData",
+          "to",
+          "isLikelyNewJobEntry",
+          "getLastDayOfMonth",
+          "extractMonthNumber",
+          "start"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "chrome/mac-137.0.7151.70/chrome-mac-x64/resources/accessibility/reading_mode_gdocs_helper/content.js": {
+        "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/resources/accessibility/reading_mode_gdocs_helper/content.js",
+        "exports": [],
+        "imports": [],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "chrome/mac-137.0.7151.70/chrome-mac-x64/resources/accessibility/reading_mode_gdocs_helper/gdocs_script.js": {
+        "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/resources/accessibility/reading_mode_gdocs_helper/gdocs_script.js",
+        "exports": [],
+        "imports": [],
+        "types": [],
+        "functions": [
+          "triggerDocsCanvasAnnotationMode"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "examples/resume_test.js": {
+        "path": "examples/resume_test.js",
+        "exports": [
+          "ResumeTester"
+        ],
+        "imports": [
+          {
+            "source": "../apps/extension/src/utils/enhancedPdfParser.ts",
+            "imports": [
+              "parseResumeFile"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [],
+        "classes": [
+          "ResumeTester"
+        ],
+        "constants": []
+      },
+      "playwright.config.ts": {
+        "path": "playwright.config.ts",
+        "exports": [
+          "defineConfig"
+        ],
+        "imports": [
+          {
+            "source": "@playwright/test",
+            "imports": [
+              "defineConfig",
+              "devices"
+            ]
+          },
+          {
+            "source": "path",
+            "imports": [
+              "path"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "scripts/create-icons.js": {
+        "path": "scripts/create-icons.js",
+        "exports": [],
+        "imports": [],
+        "types": [],
+        "functions": [
+          "createPlaceholderPNG"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "scripts/load-extension.js": {
+        "path": "scripts/load-extension.js",
+        "exports": [],
+        "imports": [],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "tests/e2e/content-script-debug.spec.ts": {
+        "path": "tests/e2e/content-script-debug.spec.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "../fixtures/shared-extension",
+            "imports": [
+              "test",
+              "expect"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "tests/e2e/extension-detection.spec.ts": {
+        "path": "tests/e2e/extension-detection.spec.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "@playwright/test",
+            "imports": [
+              "test",
+              "expect"
+            ]
+          },
+          {
+            "source": "path",
+            "imports": [
+              "path"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [
+          "return",
+          "getExtensionLogs",
+          "simulateExtensionClick"
+        ],
+        "classes": [],
+        "constants": []
+      },
+      "tests/e2e/extension-persistent-context.spec.ts": {
+        "path": "tests/e2e/extension-persistent-context.spec.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "../fixtures/shared-extension",
+            "imports": [
+              "test",
+              "expect"
+            ]
+          },
+          {
+            "source": "path",
+            "imports": [
+              "path"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "tests/e2e/extension-proper.spec.ts": {
+        "path": "tests/e2e/extension-proper.spec.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "@playwright/test",
+            "imports": [
+              "test",
+              "expect"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "tests/e2e/panel-debug.spec.ts": {
+        "path": "tests/e2e/panel-debug.spec.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "../fixtures/shared-extension",
+            "imports": [
+              "test",
+              "expect"
+            ]
+          }
+        ],
+        "types": [],
+        "functions": [],
+        "classes": [
+          "const"
+        ],
+        "constants": []
+      },
+      "tests/e2e/playwright-direct.spec.ts": {
+        "path": "tests/e2e/playwright-direct.spec.ts",
+        "exports": [],
+        "imports": [
+          {
+            "source": "@playwright/test",
+            "imports": [
+              "test",
+              "expect"
+            ]
+          }
+        ],
+        "types": [
+          "declaration",
+          "Window"
+        ],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "tests/fixtures/extension.ts": {
+        "path": "tests/fixtures/extension.ts",
+        "exports": [
+          "test",
+          "expect"
+        ],
+        "imports": [
+          {
+            "source": "@playwright/test",
+            "imports": [
+              "test as base",
+              "chromium",
+              "type BrowserContext"
+            ]
+          },
+          {
+            "source": "path",
+            "imports": [
+              "path"
+            ]
+          }
+        ],
+        "types": [
+          "BrowserContext"
+        ],
+        "functions": [],
+        "classes": [],
+        "constants": []
+      },
+      "tests/fixtures/shared-extension.ts": {
+        "path": "tests/fixtures/shared-extension.ts",
+        "exports": [
+          "test",
+          "expect "
+        ],
+        "imports": [
+          {
+            "source": "@playwright/test",
+            "imports": [
+              "test as base",
+              "chromium",
+              "Browser",
+              "BrowserContext",
+              "Page"
+            ]
+          },
+          {
+            "source": "path",
+            "imports": [
+              "path"
+            ]
+          }
+        ],
+        "types": [
+          "ExtensionFixtures",
+          "ExtensionWorkerFixtures"
+        ],
+        "functions": [
+          "to",
+          "waitForExtensionReady",
+          "to",
+          "getExtensionDebugInfo"
+        ],
+        "classes": [],
+        "constants": []
+      }
+    },
+    "exports": {
+      "apps/extension/manifest.ts": [
+        "manifest"
+      ],
+      "apps/extension/src/components/ProfileDisplay.tsx": [
+        "ProfileDisplay"
+      ],
+      "apps/extension/src/components/ProfileForm.tsx": [
+        "ProfileForm"
+      ],
+      "apps/extension/src/popup/EditProfile.tsx": [
+        "EditProfile"
+      ],
+      "apps/extension/src/popup/ProfileDisplay.tsx": [
+        "ProfileDisplay"
+      ],
+      "apps/extension/src/popup/ProfileForm.tsx": [
+        "ProfileForm"
+      ],
+      "apps/extension/src/types/css.d.ts": [
+        "css",
+        "scss",
+        "sass",
+        "less",
+        "styl"
+      ],
+      "apps/extension/src/types/images.d.ts": [
+        "ReactComponent",
+        "src",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content"
+      ],
+      "apps/extension/src/types/nx-react.d.ts": [
+        "classes",
+        "classes",
+        "classes",
+        "classes",
+        "classes"
+      ],
+      "apps/extension/src/types/profile.ts": [
+        "PersonalInfo",
+        "EEOData",
+        "WorkExperience",
+        "Education",
+        "Skill",
+        "Documents",
+        "Profile",
+        "PartialProfile",
+        "ATSFieldDescriptor",
+        "ATSMessageData"
+      ],
+      "apps/extension/src/types/ui.ts": [
+        "AutoApplyPanel"
+      ],
+      "apps/extension/src/ui/floatingPanel.ts": [
+        "initFloatingPanel"
+      ],
+      "apps/extension/src/ui.ts": [
+        "createFloatingPanel",
+        "updateFilledCount"
+      ],
+      "apps/extension/src/utils/ats-platforms.ts": [
+        "ATS",
+        "ATSPlatform",
+        "supportedPlatforms",
+        "detectATS",
+        "detectResumeImportFeatures",
+        "isJobListingPage",
+        "isAshbyJobListingPage",
+        "clickAshbyApplyButton"
+      ],
+      "apps/extension/src/utils/captcha-handler.ts": [
+        "CaptchaHandler",
+        "type CaptchaInfo"
+      ],
+      "apps/extension/src/utils/comprehensive-form-automation.ts": [
+        "ComprehensiveFormAutomation"
+      ],
+      "apps/extension/src/utils/human-like-automation.ts": [
+        "HumanLikeAutomation",
+        "type HumanBehaviorConfig"
+      ],
+      "apps/extension/src/utils/mockData.ts": [
+        "generateMockParsedProfile",
+        "sampleProfile"
+      ],
+      "apps/extension/src/utils/playwright-automation.ts": [
+        "PlaywrightAutomationOptions",
+        "AutomationResult",
+        "ComplexField",
+        "PlaywrightAutomationService",
+        "shouldUsePlaywright",
+        "createPlaywrightAutomation"
+      ],
+      "apps/extension/src/utils/testResumeParsing.ts": [
+        "initTestResumeParser"
+      ],
+      "apps/extension/vite.config.ts": [
+        "defineConfig"
+      ],
+      "examples/resume_test.js": [
+        "ResumeTester"
+      ],
+      "playwright.config.ts": [
+        "defineConfig"
+      ],
+      "tests/fixtures/extension.ts": [
+        "test",
+        "expect"
+      ],
+      "tests/fixtures/shared-extension.ts": [
+        "test",
+        "expect "
+      ]
+    },
+    "imports": {
+      "apps/extension/manifest.ts": [
+        {
+          "source": "@crxjs/vite-plugin",
+          "imports": [
+            "defineManifest"
+          ]
+        }
+      ],
+      "apps/extension/src/components/ProfileDisplay.tsx": [
+        {
+          "source": "react",
+          "imports": [
+            "React"
+          ]
+        },
+        {
+          "source": "../types/profile",
+          "imports": [
+            "Profile",
+            "Skill"
+          ]
+        }
+      ],
+      "apps/extension/src/components/ProfileForm.tsx": [
+        {
+          "source": "../types/profile",
+          "imports": [
+            "Profile",
+            "WorkExperience",
+            "Education",
+            "Skill"
+          ]
+        }
+      ],
+      "apps/extension/src/content.test.ts": [
+        {
+          "source": "./utils/ats",
+          "imports": [
+            "detectATS"
+          ]
+        }
+      ],
+      "apps/extension/src/content.ts": [
+        {
+          "source": "./utils/ats-platforms",
+          "imports": [
+            "detectATS",
+            "detectResumeImportFeatures"
+          ]
+        },
+        {
+          "source": "./utils/comprehensive-form-automation",
+          "imports": [
+            "ComprehensiveFormAutomation",
+            "type UserProfile",
+            "type AutomationResult"
+          ]
+        },
+        {
+          "source": "./ui/floatingPanel",
+          "imports": [
+            "initFloatingPanel"
+          ]
+        },
+        {
+          "source": "./types/profile",
+          "imports": [
+            "Profile"
+          ]
+        }
+      ],
+      "apps/extension/src/options/index.tsx": [
+        {
+          "source": "react-dom/client",
+          "imports": [
+            "createRoot"
+          ]
+        },
+        {
+          "source": "../types/profile",
+          "imports": [
+            "Profile",
+            "PartialProfile"
+          ]
+        },
+        {
+          "source": "../components/ProfileForm",
+          "imports": [
+            "ProfileForm"
+          ]
+        }
+      ],
+      "apps/extension/src/popup/EditProfile.tsx": [
+        {
+          "source": "../types/profile",
+          "imports": [
+            "Profile",
+            "PartialProfile",
+            "WorkExperience",
+            "Education",
+            "Skill"
+          ]
+        }
+      ],
+      "apps/extension/src/popup/ProfileDisplay.tsx": [
+        {
+          "source": "react",
+          "imports": [
+            "React"
+          ]
+        },
+        {
+          "source": "../types/profile",
+          "imports": [
+            "PartialProfile"
+          ]
+        }
+      ],
+      "apps/extension/src/popup/ProfileForm.tsx": [
+        {
+          "source": "../types/profile",
+          "imports": [
+            "Profile",
+            "PartialProfile",
+            "WorkExperience",
+            "Education",
+            "Skill"
+          ]
+        }
+      ],
+      "apps/extension/src/popup/index.tsx": [
+        {
+          "source": "react-dom/client",
+          "imports": [
+            "createRoot"
+          ]
+        },
+        {
+          "source": "webext-bridge/popup",
+          "imports": [
+            "onMessage"
+          ]
+        },
+        {
+          "source": "./EditProfile",
+          "imports": [
+            "EditProfile"
+          ]
+        },
+        {
+          "source": "./ProfileDisplay",
+          "imports": [
+            "ProfileDisplay"
+          ]
+        },
+        {
+          "source": "../types/profile",
+          "imports": [
+            "PartialProfile",
+            "ATSMessageData",
+            "ATSFieldDescriptor"
+          ]
+        }
+      ],
+      "apps/extension/src/ui/floatingPanel.ts": [
+        {
+          "source": "../utils/ats-platforms",
+          "imports": [
+            "ATS"
+          ]
+        },
+        {
+          "source": "../types/profile",
+          "imports": [
+            "Profile"
+          ]
+        }
+      ],
+      "apps/extension/src/utils/__tests__/ats-ashby.test.ts": [
+        {
+          "source": "../ats",
+          "imports": [
+            "detectATS",
+            "fillATSFields",
+            "isAshbyJobListingPage",
+            "clickAshbyApplyButton"
+          ]
+        },
+        {
+          "source": "../../types/profile",
+          "imports": [
+            "Profile"
+          ]
+        }
+      ],
+      "apps/extension/src/utils/__tests__/ats-greenhouse.test.ts": [
+        {
+          "source": "../ats",
+          "imports": [
+            "detectATS",
+            "fillATSFields"
+          ]
+        },
+        {
+          "source": "../../types/profile",
+          "imports": [
+            "Profile"
+          ]
+        }
+      ],
+      "apps/extension/src/utils/__tests__/ats-icims.test.ts": [
+        {
+          "source": "../ats",
+          "imports": [
+            "detectATS",
+            "fillATSFields"
+          ]
+        },
+        {
+          "source": "../../types/profile",
+          "imports": [
+            "Profile"
+          ]
+        }
+      ],
+      "apps/extension/src/utils/__tests__/ats-lever.test.ts": [
+        {
+          "source": "../ats",
+          "imports": [
+            "detectATS",
+            "fillATSFields"
+          ]
+        },
+        {
+          "source": "../../types/profile",
+          "imports": [
+            "Profile"
+          ]
+        }
+      ],
+      "apps/extension/src/utils/__tests__/ats-workable.test.ts": [
+        {
+          "source": "../ats",
+          "imports": [
+            "detectATS",
+            "fillATSFields"
+          ]
+        },
+        {
+          "source": "../../types/profile",
+          "imports": [
+            "Profile"
+          ]
+        }
+      ],
+      "apps/extension/src/utils/__tests__/ats-workday.test.ts": [
+        {
+          "source": "../ats",
+          "imports": [
+            "detectATS",
+            "fillATSFields"
+          ]
+        },
+        {
+          "source": "../../types/profile",
+          "imports": [
+            "Profile"
+          ]
+        }
+      ],
+      "apps/extension/src/utils/__tests__/ats.test.ts": [
+        {
+          "source": "../ats",
+          "imports": [
+            "detectATS",
+            "fillATSFields"
+          ]
+        },
+        {
+          "source": "../../types/profile",
+          "imports": [
+            "Profile"
+          ]
+        }
+      ],
+      "apps/extension/src/utils/__tests__/playwright-integration.test.ts": [
+        {
+          "source": "../ats-enhanced",
+          "imports": [
+            "EnhancedATSFiller",
+            "EnhancedFillOptions"
+          ]
+        },
+        {
+          "source": "../ats",
+          "imports": [
+            "ATSPlatform"
+          ]
+        },
+        {
+          "source": "../../types/profile",
+          "imports": [
+            "Profile"
+          ]
+        },
+        {
+          "source": "../playwright-background-service",
+          "imports": [
+            "getPlaywrightService"
+          ]
+        }
+      ],
+      "apps/extension/src/utils/ats.test.ts": [
+        {
+          "source": "./ats",
+          "imports": [
+            "detectATS",
+            "fillATSFields"
+          ]
+        },
+        {
+          "source": "../types/profile",
+          "imports": [
+            "Profile"
+          ]
+        }
+      ],
+      "apps/extension/src/utils/comprehensive-form-automation.ts": [
+        {
+          "source": "./human-like-automation",
+          "imports": [
+            "HumanLikeAutomation",
+            "type HumanBehaviorConfig"
+          ]
+        },
+        {
+          "source": "./captcha-handler",
+          "imports": [
+            "CaptchaHandler",
+            "type CaptchaInfo"
+          ]
+        },
+        {
+          "source": "./ats-platforms",
+          "imports": [
+            "detectATS",
+            "type ATSPlatform"
+          ]
+        }
+      ],
+      "apps/extension/src/utils/enhancedPdfParser.ts": [
+        {
+          "source": "../types/profile",
+          "imports": [
+            "Profile"
+          ]
+        },
+        {
+          "source": "pdfjs-dist",
+          "imports": [
+            "pdfjsLib"
+          ]
+        },
+        {
+          "source": "pdf-parse",
+          "imports": [
+            "pdfParse"
+          ]
+        },
+        {
+          "source": "./resumeParser",
+          "imports": [
+            "parseResumeFile as originalParseResumeFile"
+          ]
+        }
+      ],
+      "apps/extension/src/utils/mockData.ts": [
+        {
+          "source": "../types/profile",
+          "imports": [
+            "Profile"
+          ]
+        }
+      ],
+      "apps/extension/src/utils/nodeTestParsePdf.js": [
+        {
+          "source": "fs",
+          "imports": [
+            "fs"
+          ]
+        },
+        {
+          "source": "pdf-parse",
+          "imports": [
+            "pdf"
+          ]
+        }
+      ],
+      "apps/extension/src/utils/playwright-automation.ts": [
+        {
+          "source": "playwright",
+          "imports": [
+            "chromium",
+            "Browser",
+            "Page",
+            "BrowserContext"
+          ]
+        },
+        {
+          "source": "../types/profile",
+          "imports": [
+            "Profile"
+          ]
+        },
+        {
+          "source": "./ats-platforms",
+          "imports": [
+            "ATSPlatform"
+          ]
+        }
+      ],
+      "apps/extension/src/utils/resumeParser.ts": [
+        {
+          "source": "../types/profile",
+          "imports": [
+            "Profile"
+          ]
+        },
+        {
+          "source": "pdfjs-dist",
+          "imports": [
+            "pdfjsLib"
+          ]
+        }
+      ],
+      "apps/extension/src/utils/testResumeParsing.ts": [
+        {
+          "source": "./resumeParser",
+          "imports": [
+            "parseResumeFile"
+          ]
+        }
+      ],
+      "apps/extension/src/utils/unnecessaryPdfParser.ts": [
+        {
+          "source": "../types/profile",
+          "imports": [
+            "Profile"
+          ]
+        },
+        {
+          "source": "pdfjs-dist",
+          "imports": [
+            "pdfjsLib"
+          ]
+        }
+      ],
+      "apps/extension/vite.config.ts": [
+        {
+          "source": "vite",
+          "imports": [
+            "defineConfig"
+          ]
+        },
+        {
+          "source": "@crxjs/vite-plugin",
+          "imports": [
+            "crx"
+          ]
+        },
+        {
+          "source": "@vitejs/plugin-react",
+          "imports": [
+            "react"
+          ]
+        },
+        {
+          "source": "path",
+          "imports": [
+            "resolve"
+          ]
+        },
+        {
+          "source": "./manifest",
+          "imports": [
+            "manifest"
+          ]
+        },
+        {
+          "source": "fs",
+          "imports": [
+            "fs"
+          ]
+        },
+        {
+          "source": "path",
+          "imports": [
+            "path"
+          ]
+        },
+        {
+          "source": "child_process",
+          "imports": [
+            "spawn"
+          ]
+        }
+      ],
+      "examples/resume_test.js": [
+        {
+          "source": "../apps/extension/src/utils/enhancedPdfParser.ts",
+          "imports": [
+            "parseResumeFile"
+          ]
+        }
+      ],
+      "playwright.config.ts": [
+        {
+          "source": "@playwright/test",
+          "imports": [
+            "defineConfig",
+            "devices"
+          ]
+        },
+        {
+          "source": "path",
+          "imports": [
+            "path"
+          ]
+        }
+      ],
+      "tests/e2e/content-script-debug.spec.ts": [
+        {
+          "source": "../fixtures/shared-extension",
+          "imports": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "tests/e2e/extension-detection.spec.ts": [
+        {
+          "source": "@playwright/test",
+          "imports": [
+            "test",
+            "expect"
+          ]
+        },
+        {
+          "source": "path",
+          "imports": [
+            "path"
+          ]
+        }
+      ],
+      "tests/e2e/extension-persistent-context.spec.ts": [
+        {
+          "source": "../fixtures/shared-extension",
+          "imports": [
+            "test",
+            "expect"
+          ]
+        },
+        {
+          "source": "path",
+          "imports": [
+            "path"
+          ]
+        }
+      ],
+      "tests/e2e/extension-proper.spec.ts": [
+        {
+          "source": "@playwright/test",
+          "imports": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "tests/e2e/panel-debug.spec.ts": [
+        {
+          "source": "../fixtures/shared-extension",
+          "imports": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "tests/e2e/playwright-direct.spec.ts": [
+        {
+          "source": "@playwright/test",
+          "imports": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "tests/fixtures/extension.ts": [
+        {
+          "source": "@playwright/test",
+          "imports": [
+            "test as base",
+            "chromium",
+            "type BrowserContext"
+          ]
+        },
+        {
+          "source": "path",
+          "imports": [
+            "path"
+          ]
+        }
+      ],
+      "tests/fixtures/shared-extension.ts": [
+        {
+          "source": "@playwright/test",
+          "imports": [
+            "test as base",
+            "chromium",
+            "Browser",
+            "BrowserContext",
+            "Page"
+          ]
+        },
+        {
+          "source": "path",
+          "imports": [
+            "path"
+          ]
+        }
+      ]
+    },
+    "types": {
+      "apps/extension/src/ats.ts": [
+        "AtsInfo",
+        "FieldMap"
+      ],
+      "apps/extension/src/components/ProfileDisplay.tsx": [
+        "ProfileDisplayProps"
+      ],
+      "apps/extension/src/components/ProfileForm.tsx": [
+        "ProfileFormProps"
+      ],
+      "apps/extension/src/content.ts": [
+        "UserProfile",
+        "AutomationResult"
+      ],
+      "apps/extension/src/options/index.ts": [
+        "ParsedData"
+      ],
+      "apps/extension/src/popup/EditProfile.tsx": [
+        "EditProfileProps"
+      ],
+      "apps/extension/src/popup/ProfileDisplay.tsx": [
+        "ProfileDisplayProps"
+      ],
+      "apps/extension/src/popup/ProfileForm.tsx": [
+        "ProfileFormProps"
+      ],
+      "apps/extension/src/types/chrome.d.ts": [
+        "Chrome"
+      ],
+      "apps/extension/src/types/profile.ts": [
+        "PersonalInfo",
+        "EEOData",
+        "WorkExperience",
+        "Education",
+        "Skill",
+        "Documents",
+        "Profile",
+        "PartialProfile",
+        "ATSFieldDescriptor",
+        "ATSMessageData"
+      ],
+      "apps/extension/src/types/ui.ts": [
+        "AutoApplyPanel"
+      ],
+      "apps/extension/src/ui/floatingPanel.ts": [
+        "FloatingPanelOptions",
+        "fillButton"
+      ],
+      "apps/extension/src/utils/__tests__/ats-ashby.test.ts": [
+        "selectors"
+      ],
+      "apps/extension/src/utils/ats-platforms.ts": [
+        "ATS",
+        "ATSPlatform"
+      ],
+      "apps/extension/src/utils/captcha-handler.ts": [
+        "CaptchaInfo",
+        "Object",
+        "as",
+        "CaptchaInfo"
+      ],
+      "apps/extension/src/utils/comprehensive-form-automation.ts": [
+        "HumanBehaviorConfig",
+        "CaptchaInfo",
+        "ATSPlatform",
+        "PageContext",
+        "FieldInfo",
+        "AutomationResult",
+        "UserProfile",
+        "based"
+      ],
+      "apps/extension/src/utils/enhancedPdfParser.ts": [
+        "and",
+        "ParsedResume",
+        "FeatureSet"
+      ],
+      "apps/extension/src/utils/human-like-automation.ts": [
+        "HumanBehaviorConfig",
+        "HumanBehaviorConfig"
+      ],
+      "apps/extension/src/utils/playwright-automation.ts": [
+        "PlaywrightAutomationOptions",
+        "AutomationResult",
+        "ComplexField",
+        "in"
+      ],
+      "apps/extension/src/utils/resumeParser.ts": [
+        "ParsedResume"
+      ],
+      "apps/extension/src/utils/unnecessaryPdfParser.ts": [
+        "ParsedResume",
+        "FeatureSet"
+      ],
+      "apps/resume-api/server.js": [
+        "and",
+        "const",
+        "const",
+        "but",
+        "but"
+      ],
+      "tests/e2e/playwright-direct.spec.ts": [
+        "declaration",
+        "Window"
+      ],
+      "tests/fixtures/extension.ts": [
+        "BrowserContext"
+      ],
+      "tests/fixtures/shared-extension.ts": [
+        "ExtensionFixtures",
+        "ExtensionWorkerFixtures"
+      ]
+    },
+    "scripts": {
+      "build": "nx run-many --target=build",
+      "test": "nx run-many --target=test",
+      "test:e2e": "playwright test",
+      "test:e2e:headed": "playwright test --headed",
+      "test:e2e:debug": "playwright test --debug",
+      "lint": "nx run-many --target=lint",
+      "dev": "nx run-many --target=serve --parallel",
+      "start": "nx run-many --target=serve --prod",
+      "load-extension": "node scripts/load-extension.js"
+    },
+    "dependencies": {
+      "production": {
+        "@aws-sdk/client-s3": "^3.461.0",
+        "@fastify/cors": "^8.4.1",
+        "fastify": "^4.24.3",
+        "jose": "^4.15.4",
+        "pdf-parse": "^1.1.1",
+        "webext-bridge": "^6.0.1"
+      },
+      "development": {
+        "@crxjs/vite-plugin": "2.0.0-beta.18",
+        "@nx/eslint-plugin": "16.10.0",
+        "@nx/js": "16.10.0",
+        "@nx/vite": "16.10.0",
+        "@nx/workspace": "16.10.0",
+        "@playwright/test": "^1.53.0",
+        "@types/chrome": "^0.0.246",
+        "@types/jest": "^29.5.8",
+        "@types/node": "^20.9.1",
+        "@types/react": "^18.3.20",
+        "@types/react-dom": "^18.3.6",
+        "@vitejs/plugin-react": "^4.1.1",
+        "eslint": "^8.53.0",
+        "jest": "^29.7.0",
+        "nx": "16.10.0",
+        "playwright": "^1.53.0",
+        "prettier": "^3.1.0",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "sharp": "^0.34.2",
+        "ts-jest": "^29.1.1",
+        "typescript": "^5.2.2",
+        "vite": "^4.5.0"
+      }
+    },
+    "fileTree": [
+      {
+        "type": "directory",
+        "name": ".nx",
+        "path": ".nx",
+        "children": [
+          {
+            "type": "directory",
+            "name": "cache",
+            "path": ".nx/cache",
+            "children": [
+              {
+                "type": "directory",
+                "name": "10866889271505677233",
+                "path": ".nx/cache/10866889271505677233",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "code",
+                    "path": ".nx/cache/10866889271505677233/code",
+                    "extension": "",
+                    "size": 1
+                  },
+                  {
+                    "type": "directory",
+                    "name": "outputs",
+                    "path": ".nx/cache/10866889271505677233/outputs",
+                    "children": []
+                  },
+                  {
+                    "type": "file",
+                    "name": "source",
+                    "path": ".nx/cache/10866889271505677233/source",
+                    "extension": "",
+                    "size": 64
+                  },
+                  {
+                    "type": "file",
+                    "name": "terminalOutput",
+                    "path": ".nx/cache/10866889271505677233/terminalOutput",
+                    "extension": "",
+                    "size": 4609
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "10866889271505677233.commit",
+                "path": ".nx/cache/10866889271505677233.commit",
+                "extension": ".commit",
+                "size": 4
+              },
+              {
+                "type": "directory",
+                "name": "15174611973012607379",
+                "path": ".nx/cache/15174611973012607379",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "code",
+                    "path": ".nx/cache/15174611973012607379/code",
+                    "extension": "",
+                    "size": 1
+                  },
+                  {
+                    "type": "directory",
+                    "name": "outputs",
+                    "path": ".nx/cache/15174611973012607379/outputs",
+                    "children": []
+                  },
+                  {
+                    "type": "file",
+                    "name": "source",
+                    "path": ".nx/cache/15174611973012607379/source",
+                    "extension": "",
+                    "size": 64
+                  },
+                  {
+                    "type": "file",
+                    "name": "terminalOutput",
+                    "path": ".nx/cache/15174611973012607379/terminalOutput",
+                    "extension": "",
+                    "size": 4603
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "15174611973012607379.commit",
+                "path": ".nx/cache/15174611973012607379.commit",
+                "extension": ".commit",
+                "size": 4
+              },
+              {
+                "type": "directory",
+                "name": "1963808459420626804",
+                "path": ".nx/cache/1963808459420626804",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "code",
+                    "path": ".nx/cache/1963808459420626804/code",
+                    "extension": "",
+                    "size": 1
+                  },
+                  {
+                    "type": "directory",
+                    "name": "outputs",
+                    "path": ".nx/cache/1963808459420626804/outputs",
+                    "children": []
+                  },
+                  {
+                    "type": "file",
+                    "name": "source",
+                    "path": ".nx/cache/1963808459420626804/source",
+                    "extension": "",
+                    "size": 64
+                  },
+                  {
+                    "type": "file",
+                    "name": "terminalOutput",
+                    "path": ".nx/cache/1963808459420626804/terminalOutput",
+                    "extension": "",
+                    "size": 4769
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "1963808459420626804.commit",
+                "path": ".nx/cache/1963808459420626804.commit",
+                "extension": ".commit",
+                "size": 4
+              },
+              {
+                "type": "directory",
+                "name": "8616631161631229740",
+                "path": ".nx/cache/8616631161631229740",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "code",
+                    "path": ".nx/cache/8616631161631229740/code",
+                    "extension": "",
+                    "size": 1
+                  },
+                  {
+                    "type": "directory",
+                    "name": "outputs",
+                    "path": ".nx/cache/8616631161631229740/outputs",
+                    "children": []
+                  },
+                  {
+                    "type": "file",
+                    "name": "source",
+                    "path": ".nx/cache/8616631161631229740/source",
+                    "extension": "",
+                    "size": 64
+                  },
+                  {
+                    "type": "file",
+                    "name": "terminalOutput",
+                    "path": ".nx/cache/8616631161631229740/terminalOutput",
+                    "extension": "",
+                    "size": 4704
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "8616631161631229740.commit",
+                "path": ".nx/cache/8616631161631229740.commit",
+                "extension": ".commit",
+                "size": 4
+              },
+              {
+                "type": "directory",
+                "name": "888129865988551965",
+                "path": ".nx/cache/888129865988551965",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "code",
+                    "path": ".nx/cache/888129865988551965/code",
+                    "extension": "",
+                    "size": 1
+                  },
+                  {
+                    "type": "directory",
+                    "name": "outputs",
+                    "path": ".nx/cache/888129865988551965/outputs",
+                    "children": []
+                  },
+                  {
+                    "type": "file",
+                    "name": "source",
+                    "path": ".nx/cache/888129865988551965/source",
+                    "extension": "",
+                    "size": 64
+                  },
+                  {
+                    "type": "file",
+                    "name": "terminalOutput",
+                    "path": ".nx/cache/888129865988551965/terminalOutput",
+                    "extension": "",
+                    "size": 4772
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "888129865988551965.commit",
+                "path": ".nx/cache/888129865988551965.commit",
+                "extension": ".commit",
+                "size": 4
+              },
+              {
+                "type": "directory",
+                "name": "d",
+                "path": ".nx/cache/d",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "server-process.json",
+                    "path": ".nx/cache/d/server-process.json",
+                    "extension": ".json",
+                    "size": 20
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "file-map.json",
+                "path": ".nx/cache/file-map.json",
+                "extension": ".json",
+                "size": 58706
+              },
+              {
+                "type": "file",
+                "name": "lockfile.hash",
+                "path": ".nx/cache/lockfile.hash",
+                "extension": ".hash",
+                "size": 20
+              },
+              {
+                "type": "file",
+                "name": "parsed-lock-file.json",
+                "path": ".nx/cache/parsed-lock-file.json",
+                "extension": ".json",
+                "size": 351807
+              },
+              {
+                "type": "file",
+                "name": "project-graph.json",
+                "path": ".nx/cache/project-graph.json",
+                "extension": ".json",
+                "size": 356526
+              },
+              {
+                "type": "file",
+                "name": "run.json",
+                "path": ".nx/cache/run.json",
+                "extension": ".json",
+                "size": 508
+              },
+              {
+                "type": "directory",
+                "name": "terminalOutputs",
+                "path": ".nx/cache/terminalOutputs",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "10866889271505677233",
+                    "path": ".nx/cache/terminalOutputs/10866889271505677233",
+                    "extension": "",
+                    "size": 4609
+                  },
+                  {
+                    "type": "file",
+                    "name": "15174611973012607379",
+                    "path": ".nx/cache/terminalOutputs/15174611973012607379",
+                    "extension": "",
+                    "size": 4603
+                  },
+                  {
+                    "type": "file",
+                    "name": "16117515415257420797",
+                    "path": ".nx/cache/terminalOutputs/16117515415257420797",
+                    "extension": "",
+                    "size": 845
+                  },
+                  {
+                    "type": "file",
+                    "name": "18212760966587062082",
+                    "path": ".nx/cache/terminalOutputs/18212760966587062082",
+                    "extension": "",
+                    "size": 3365
+                  },
+                  {
+                    "type": "file",
+                    "name": "1963808459420626804",
+                    "path": ".nx/cache/terminalOutputs/1963808459420626804",
+                    "extension": "",
+                    "size": 4769
+                  },
+                  {
+                    "type": "file",
+                    "name": "3189769316084929834",
+                    "path": ".nx/cache/terminalOutputs/3189769316084929834",
+                    "extension": "",
+                    "size": 186
+                  },
+                  {
+                    "type": "file",
+                    "name": "4435722346215497822",
+                    "path": ".nx/cache/terminalOutputs/4435722346215497822",
+                    "extension": "",
+                    "size": 3388
+                  },
+                  {
+                    "type": "file",
+                    "name": "7796305130330444601",
+                    "path": ".nx/cache/terminalOutputs/7796305130330444601",
+                    "extension": "",
+                    "size": 186
+                  },
+                  {
+                    "type": "file",
+                    "name": "8616631161631229740",
+                    "path": ".nx/cache/terminalOutputs/8616631161631229740",
+                    "extension": "",
+                    "size": 4704
+                  },
+                  {
+                    "type": "file",
+                    "name": "888129865988551965",
+                    "path": ".nx/cache/terminalOutputs/888129865988551965",
+                    "extension": "",
+                    "size": 4772
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "README.md",
+        "path": "README.md",
+        "extension": ".md",
+        "size": 3819
+      },
+      {
+        "type": "file",
+        "name": "RepoMetadataGenerator.js",
+        "path": "RepoMetadataGenerator.js",
+        "extension": ".js",
+        "size": 11577
+      },
+      {
+        "type": "directory",
+        "name": "apps",
+        "path": "apps",
+        "children": [
+          {
+            "type": "directory",
+            "name": "extension",
+            "path": "apps/extension",
+            "children": [
+              {
+                "type": "file",
+                "name": "PLAYWRIGHT_INTEGRATION.md",
+                "path": "apps/extension/PLAYWRIGHT_INTEGRATION.md",
+                "extension": ".md",
+                "size": 15216
+              },
+              {
+                "type": "directory",
+                "name": "assets",
+                "path": "apps/extension/assets",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "icon-128.png",
+                    "path": "apps/extension/assets/icon-128.png",
+                    "extension": ".png",
+                    "size": 3856
+                  },
+                  {
+                    "type": "file",
+                    "name": "icon-16.png",
+                    "path": "apps/extension/assets/icon-16.png",
+                    "extension": ".png",
+                    "size": 3856
+                  },
+                  {
+                    "type": "file",
+                    "name": "icon-48.png",
+                    "path": "apps/extension/assets/icon-48.png",
+                    "extension": ".png",
+                    "size": 3856
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "content.css",
+                "path": "apps/extension/content.css",
+                "extension": ".css",
+                "size": 1230
+              },
+              {
+                "type": "file",
+                "name": "index.html",
+                "path": "apps/extension/index.html",
+                "extension": ".html",
+                "size": 338
+              },
+              {
+                "type": "file",
+                "name": "jest.config.ts",
+                "path": "apps/extension/jest.config.ts",
+                "extension": ".ts",
+                "size": 642
+              },
+              {
+                "type": "file",
+                "name": "manifest.json",
+                "path": "apps/extension/manifest.json",
+                "extension": ".json",
+                "size": 1518
+              },
+              {
+                "type": "file",
+                "name": "manifest.ts",
+                "path": "apps/extension/manifest.ts",
+                "extension": ".ts",
+                "size": 1494
+              },
+              {
+                "type": "file",
+                "name": "package.json",
+                "path": "apps/extension/package.json",
+                "extension": ".json",
+                "size": 724
+              },
+              {
+                "type": "file",
+                "name": "project.json",
+                "path": "apps/extension/project.json",
+                "extension": ".json",
+                "size": 2048
+              },
+              {
+                "type": "directory",
+                "name": "src",
+                "path": "apps/extension/src",
+                "children": [
+                  {
+                    "type": "directory",
+                    "name": "assets",
+                    "path": "apps/extension/src/assets",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "icon.svg",
+                        "path": "apps/extension/src/assets/icon.svg",
+                        "extension": ".svg",
+                        "size": 514
+                      }
+                    ]
+                  },
+                  {
+                    "type": "file",
+                    "name": "ats.ts",
+                    "path": "apps/extension/src/ats.ts",
+                    "extension": ".ts",
+                    "size": 2605
+                  },
+                  {
+                    "type": "file",
+                    "name": "background.ts",
+                    "path": "apps/extension/src/background.ts",
+                    "extension": ".ts",
+                    "size": 3256
+                  },
+                  {
+                    "type": "directory",
+                    "name": "components",
+                    "path": "apps/extension/src/components",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "ProfileDisplay.tsx",
+                        "path": "apps/extension/src/components/ProfileDisplay.tsx",
+                        "extension": ".tsx",
+                        "size": 4638
+                      },
+                      {
+                        "type": "file",
+                        "name": "ProfileForm.tsx",
+                        "path": "apps/extension/src/components/ProfileForm.tsx",
+                        "extension": ".tsx",
+                        "size": 22313
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory",
+                    "name": "content",
+                    "path": "apps/extension/src/content",
+                    "children": []
+                  },
+                  {
+                    "type": "file",
+                    "name": "content.css",
+                    "path": "apps/extension/src/content.css",
+                    "extension": ".css",
+                    "size": 1230
+                  },
+                  {
+                    "type": "file",
+                    "name": "content.test.ts",
+                    "path": "apps/extension/src/content.test.ts",
+                    "extension": ".ts",
+                    "size": 14702
+                  },
+                  {
+                    "type": "file",
+                    "name": "content.ts",
+                    "path": "apps/extension/src/content.ts",
+                    "extension": ".ts",
+                    "size": 8870
+                  },
+                  {
+                    "type": "directory",
+                    "name": "jobs",
+                    "path": "apps/extension/src/jobs",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "index.html",
+                        "path": "apps/extension/src/jobs/index.html",
+                        "extension": ".html",
+                        "size": 633
+                      },
+                      {
+                        "type": "file",
+                        "name": "job_listings.js",
+                        "path": "apps/extension/src/jobs/job_listings.js",
+                        "extension": ".js",
+                        "size": 2092
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory",
+                    "name": "options",
+                    "path": "apps/extension/src/options",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "index.html",
+                        "path": "apps/extension/src/options/index.html",
+                        "extension": ".html",
+                        "size": 280
+                      },
+                      {
+                        "type": "file",
+                        "name": "index.ts",
+                        "path": "apps/extension/src/options/index.ts",
+                        "extension": ".ts",
+                        "size": 22953
+                      },
+                      {
+                        "type": "file",
+                        "name": "index.tsx",
+                        "path": "apps/extension/src/options/index.tsx",
+                        "extension": ".tsx",
+                        "size": 25063
+                      },
+                      {
+                        "type": "file",
+                        "name": "styles.css",
+                        "path": "apps/extension/src/options/styles.css",
+                        "extension": ".css",
+                        "size": 11584
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory",
+                    "name": "popup",
+                    "path": "apps/extension/src/popup",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "EditProfile.tsx",
+                        "path": "apps/extension/src/popup/EditProfile.tsx",
+                        "extension": ".tsx",
+                        "size": 14512
+                      },
+                      {
+                        "type": "file",
+                        "name": "ProfileDisplay.tsx",
+                        "path": "apps/extension/src/popup/ProfileDisplay.tsx",
+                        "extension": ".tsx",
+                        "size": 5117
+                      },
+                      {
+                        "type": "file",
+                        "name": "ProfileForm.tsx",
+                        "path": "apps/extension/src/popup/ProfileForm.tsx",
+                        "extension": ".tsx",
+                        "size": 14490
+                      },
+                      {
+                        "type": "file",
+                        "name": "index.html",
+                        "path": "apps/extension/src/popup/index.html",
+                        "extension": ".html",
+                        "size": 314
+                      },
+                      {
+                        "type": "file",
+                        "name": "index.tsx",
+                        "path": "apps/extension/src/popup/index.tsx",
+                        "extension": ".tsx",
+                        "size": 6362
+                      },
+                      {
+                        "type": "file",
+                        "name": "styles.css",
+                        "path": "apps/extension/src/popup/styles.css",
+                        "extension": ".css",
+                        "size": 18416
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory",
+                    "name": "test",
+                    "path": "apps/extension/src/test",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "setup.ts",
+                        "path": "apps/extension/src/test/setup.ts",
+                        "extension": ".ts",
+                        "size": 1969
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory",
+                    "name": "types",
+                    "path": "apps/extension/src/types",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "chrome.d.ts",
+                        "path": "apps/extension/src/types/chrome.d.ts",
+                        "extension": ".ts",
+                        "size": 705
+                      },
+                      {
+                        "type": "file",
+                        "name": "css.d.ts",
+                        "path": "apps/extension/src/types/css.d.ts",
+                        "extension": ".ts",
+                        "size": 461
+                      },
+                      {
+                        "type": "file",
+                        "name": "images.d.ts",
+                        "path": "apps/extension/src/types/images.d.ts",
+                        "extension": ".ts",
+                        "size": 668
+                      },
+                      {
+                        "type": "file",
+                        "name": "nx-react.d.ts",
+                        "path": "apps/extension/src/types/nx-react.d.ts",
+                        "extension": ".ts",
+                        "size": 815
+                      },
+                      {
+                        "type": "file",
+                        "name": "profile.ts",
+                        "path": "apps/extension/src/types/profile.ts",
+                        "extension": ".ts",
+                        "size": 1982
+                      },
+                      {
+                        "type": "file",
+                        "name": "ui.ts",
+                        "path": "apps/extension/src/types/ui.ts",
+                        "extension": ".ts",
+                        "size": 142
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory",
+                    "name": "ui",
+                    "path": "apps/extension/src/ui",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "floatingPanel.ts",
+                        "path": "apps/extension/src/ui/floatingPanel.ts",
+                        "extension": ".ts",
+                        "size": 12827
+                      }
+                    ]
+                  },
+                  {
+                    "type": "file",
+                    "name": "ui.ts",
+                    "path": "apps/extension/src/ui.ts",
+                    "extension": ".ts",
+                    "size": 1861
+                  },
+                  {
+                    "type": "directory",
+                    "name": "utils",
+                    "path": "apps/extension/src/utils",
+                    "children": [
+                      {
+                        "type": "directory",
+                        "name": "__tests__",
+                        "path": "apps/extension/src/utils/__tests__",
+                        "children": [
+                          {
+                            "type": "file",
+                            "name": "ats-ashby.test.ts",
+                            "path": "apps/extension/src/utils/__tests__/ats-ashby.test.ts",
+                            "extension": ".ts",
+                            "size": 19564
+                          },
+                          {
+                            "type": "file",
+                            "name": "ats-greenhouse.test.ts",
+                            "path": "apps/extension/src/utils/__tests__/ats-greenhouse.test.ts",
+                            "extension": ".ts",
+                            "size": 19309
+                          },
+                          {
+                            "type": "file",
+                            "name": "ats-icims.test.ts",
+                            "path": "apps/extension/src/utils/__tests__/ats-icims.test.ts",
+                            "extension": ".ts",
+                            "size": 16009
+                          },
+                          {
+                            "type": "file",
+                            "name": "ats-lever.test.ts",
+                            "path": "apps/extension/src/utils/__tests__/ats-lever.test.ts",
+                            "extension": ".ts",
+                            "size": 20094
+                          },
+                          {
+                            "type": "file",
+                            "name": "ats-workable.test.ts",
+                            "path": "apps/extension/src/utils/__tests__/ats-workable.test.ts",
+                            "extension": ".ts",
+                            "size": 18569
+                          },
+                          {
+                            "type": "file",
+                            "name": "ats-workday.test.ts",
+                            "path": "apps/extension/src/utils/__tests__/ats-workday.test.ts",
+                            "extension": ".ts",
+                            "size": 16174
+                          },
+                          {
+                            "type": "file",
+                            "name": "ats.test.ts",
+                            "path": "apps/extension/src/utils/__tests__/ats.test.ts",
+                            "extension": ".ts",
+                            "size": 12843
+                          },
+                          {
+                            "type": "file",
+                            "name": "playwright-integration.test.ts",
+                            "path": "apps/extension/src/utils/__tests__/playwright-integration.test.ts",
+                            "extension": ".ts",
+                            "size": 15375
+                          }
+                        ]
+                      },
+                      {
+                        "type": "file",
+                        "name": "ats-platforms.ts",
+                        "path": "apps/extension/src/utils/ats-platforms.ts",
+                        "extension": ".ts",
+                        "size": 9988
+                      },
+                      {
+                        "type": "file",
+                        "name": "ats.test.ts",
+                        "path": "apps/extension/src/utils/ats.test.ts",
+                        "extension": ".ts",
+                        "size": 11844
+                      },
+                      {
+                        "type": "file",
+                        "name": "captcha-handler.ts",
+                        "path": "apps/extension/src/utils/captcha-handler.ts",
+                        "extension": ".ts",
+                        "size": 7979
+                      },
+                      {
+                        "type": "file",
+                        "name": "comprehensive-form-automation.ts",
+                        "path": "apps/extension/src/utils/comprehensive-form-automation.ts",
+                        "extension": ".ts",
+                        "size": 21769
+                      },
+                      {
+                        "type": "file",
+                        "name": "enhancedPdfParser.ts",
+                        "path": "apps/extension/src/utils/enhancedPdfParser.ts",
+                        "extension": ".ts",
+                        "size": 42980
+                      },
+                      {
+                        "type": "file",
+                        "name": "human-like-automation.ts",
+                        "path": "apps/extension/src/utils/human-like-automation.ts",
+                        "extension": ".ts",
+                        "size": 9298
+                      },
+                      {
+                        "type": "file",
+                        "name": "mockData.ts",
+                        "path": "apps/extension/src/utils/mockData.ts",
+                        "extension": ".ts",
+                        "size": 3925
+                      },
+                      {
+                        "type": "file",
+                        "name": "nodeTestParsePdf.js",
+                        "path": "apps/extension/src/utils/nodeTestParsePdf.js",
+                        "extension": ".js",
+                        "size": 977
+                      },
+                      {
+                        "type": "file",
+                        "name": "playwright-automation.ts",
+                        "path": "apps/extension/src/utils/playwright-automation.ts",
+                        "extension": ".ts",
+                        "size": 13745
+                      },
+                      {
+                        "type": "file",
+                        "name": "resumeParser.ts",
+                        "path": "apps/extension/src/utils/resumeParser.ts",
+                        "extension": ".ts",
+                        "size": 33522
+                      },
+                      {
+                        "type": "file",
+                        "name": "testPdfParser.js",
+                        "path": "apps/extension/src/utils/testPdfParser.js",
+                        "extension": ".js",
+                        "size": 3826
+                      },
+                      {
+                        "type": "file",
+                        "name": "testResumeParsing.ts",
+                        "path": "apps/extension/src/utils/testResumeParsing.ts",
+                        "extension": ".ts",
+                        "size": 3498
+                      },
+                      {
+                        "type": "file",
+                        "name": "unnecessaryPdfParser.ts",
+                        "path": "apps/extension/src/utils/unnecessaryPdfParser.ts",
+                        "extension": ".ts",
+                        "size": 20415
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "directory",
+                "name": "test-results",
+                "path": "apps/extension/test-results",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "extension-ui-desktop.png",
+                    "path": "apps/extension/test-results/extension-ui-desktop.png",
+                    "extension": ".png",
+                    "size": 31635
+                  },
+                  {
+                    "type": "file",
+                    "name": "extension-ui-mobile.png",
+                    "path": "apps/extension/test-results/extension-ui-mobile.png",
+                    "extension": ".png",
+                    "size": 24799
+                  },
+                  {
+                    "type": "file",
+                    "name": "extension-ui.png",
+                    "path": "apps/extension/test-results/extension-ui.png",
+                    "extension": ".png",
+                    "size": 26544
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "tsconfig.app.json",
+                "path": "apps/extension/tsconfig.app.json",
+                "extension": ".json",
+                "size": 263
+              },
+              {
+                "type": "file",
+                "name": "tsconfig.json",
+                "path": "apps/extension/tsconfig.json",
+                "extension": ".json",
+                "size": 665
+              },
+              {
+                "type": "file",
+                "name": "tsconfig.spec.json",
+                "path": "apps/extension/tsconfig.spec.json",
+                "extension": ".json",
+                "size": 373
+              },
+              {
+                "type": "file",
+                "name": "vite.config.ts",
+                "path": "apps/extension/vite.config.ts",
+                "extension": ".ts",
+                "size": 10848
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "jobs-web",
+            "path": "apps/jobs-web",
+            "children": []
+          },
+          {
+            "type": "directory",
+            "name": "resume-api",
+            "path": "apps/resume-api",
+            "children": [
+              {
+                "type": "file",
+                "name": "README.md",
+                "path": "apps/resume-api/README.md",
+                "extension": ".md",
+                "size": 1910
+              },
+              {
+                "type": "file",
+                "name": "package-lock.json",
+                "path": "apps/resume-api/package-lock.json",
+                "extension": ".json",
+                "size": 46746
+              },
+              {
+                "type": "file",
+                "name": "package.json",
+                "path": "apps/resume-api/package.json",
+                "extension": ".json",
+                "size": 440
+              },
+              {
+                "type": "directory",
+                "name": "public",
+                "path": "apps/resume-api/public",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "index.html",
+                    "path": "apps/resume-api/public/index.html",
+                    "extension": ".html",
+                    "size": 4363
+                  }
+                ]
+              },
+              {
+                "type": "file",
+                "name": "server.js",
+                "path": "apps/resume-api/server.js",
+                "extension": ".js",
+                "size": 33432
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "chrome",
+        "path": "chrome",
+        "children": [
+          {
+            "type": "file",
+            "name": ".metadata",
+            "path": "chrome/.metadata",
+            "extension": "",
+            "size": 52
+          },
+          {
+            "type": "directory",
+            "name": "mac-137.0.7151.70",
+            "path": "chrome/mac-137.0.7151.70",
+            "children": [
+              {
+                "type": "directory",
+                "name": "chrome-mac-x64",
+                "path": "chrome/mac-137.0.7151.70/chrome-mac-x64",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "ABOUT",
+                    "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/ABOUT",
+                    "extension": "",
+                    "size": 248
+                  },
+                  {
+                    "type": "directory",
+                    "name": "Google Chrome for Testing.app",
+                    "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app",
+                    "children": [
+                      {
+                        "type": "directory",
+                        "name": "Contents",
+                        "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents",
+                        "children": [
+                          {
+                            "type": "directory",
+                            "name": "Frameworks",
+                            "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/Frameworks",
+                            "children": []
+                          },
+                          {
+                            "type": "file",
+                            "name": "Info.plist",
+                            "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/Info.plist",
+                            "extension": ".plist",
+                            "size": 10964
+                          },
+                          {
+                            "type": "directory",
+                            "name": "MacOS",
+                            "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS",
+                            "children": []
+                          },
+                          {
+                            "type": "file",
+                            "name": "PkgInfo",
+                            "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/PkgInfo",
+                            "extension": "",
+                            "size": 8
+                          },
+                          {
+                            "type": "directory",
+                            "name": "Resources",
+                            "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/Google Chrome for Testing.app/Contents/Resources",
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory",
+                    "name": "PrivacySandboxAttestationsPreloaded",
+                    "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/PrivacySandboxAttestationsPreloaded",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "manifest.json",
+                        "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/PrivacySandboxAttestationsPreloaded/manifest.json",
+                        "extension": ".json",
+                        "size": 122
+                      },
+                      {
+                        "type": "file",
+                        "name": "privacy-sandbox-attestations.dat",
+                        "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/PrivacySandboxAttestationsPreloaded/privacy-sandbox-attestations.dat",
+                        "extension": ".dat",
+                        "size": 7581
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory",
+                    "name": "resources",
+                    "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/resources",
+                    "children": [
+                      {
+                        "type": "directory",
+                        "name": "accessibility",
+                        "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/resources/accessibility",
+                        "children": [
+                          {
+                            "type": "directory",
+                            "name": "reading_mode_gdocs_helper",
+                            "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/resources/accessibility/reading_mode_gdocs_helper",
+                            "children": []
+                          },
+                          {
+                            "type": "file",
+                            "name": "reading_mode_gdocs_helper_manifest.json",
+                            "path": "chrome/mac-137.0.7151.70/chrome-mac-x64/resources/accessibility/reading_mode_gdocs_helper_manifest.json",
+                            "extension": ".json",
+                            "size": 2375
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "example resume.pdf",
+        "path": "example resume.pdf",
+        "extension": ".pdf",
+        "size": 22358
+      },
+      {
+        "type": "directory",
+        "name": "examples",
+        "path": "examples",
+        "children": [
+          {
+            "type": "file",
+            "name": "example_resume.html",
+            "path": "examples/example_resume.html",
+            "extension": ".html",
+            "size": 3918
+          },
+          {
+            "type": "file",
+            "name": "index.html",
+            "path": "examples/index.html",
+            "extension": ".html",
+            "size": 3873
+          },
+          {
+            "type": "file",
+            "name": "resume_test.js",
+            "path": "examples/resume_test.js",
+            "extension": ".js",
+            "size": 8004
+          },
+          {
+            "type": "file",
+            "name": "sample_resume.html",
+            "path": "examples/sample_resume.html",
+            "extension": ".html",
+            "size": 5872
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "favicon",
+        "path": "favicon",
+        "children": [
+          {
+            "type": "file",
+            "name": "apple-touch-icon.png",
+            "path": "favicon/apple-touch-icon.png",
+            "extension": ".png",
+            "size": 10077
+          },
+          {
+            "type": "file",
+            "name": "favicon-96x96.png",
+            "path": "favicon/favicon-96x96.png",
+            "extension": ".png",
+            "size": 3856
+          },
+          {
+            "type": "file",
+            "name": "favicon.ico",
+            "path": "favicon/favicon.ico",
+            "extension": ".ico",
+            "size": 15086
+          },
+          {
+            "type": "file",
+            "name": "favicon.svg",
+            "path": "favicon/favicon.svg",
+            "extension": ".svg",
+            "size": 1879336
+          },
+          {
+            "type": "file",
+            "name": "site.webmanifest",
+            "path": "favicon/site.webmanifest",
+            "extension": ".webmanifest",
+            "size": 436
+          },
+          {
+            "type": "file",
+            "name": "web-app-manifest-192x192.png",
+            "path": "favicon/web-app-manifest-192x192.png",
+            "extension": ".png",
+            "size": 11022
+          },
+          {
+            "type": "file",
+            "name": "web-app-manifest-512x512.png",
+            "path": "favicon/web-app-manifest-512x512.png",
+            "extension": ".png",
+            "size": 58953
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "nx.json",
+        "path": "nx.json",
+        "extension": ".json",
+        "size": 571
+      },
+      {
+        "type": "file",
+        "name": "package.json",
+        "path": "package.json",
+        "extension": ".json",
+        "size": 1469
+      },
+      {
+        "type": "directory",
+        "name": "playwright-report",
+        "path": "playwright-report",
+        "children": [
+          {
+            "type": "directory",
+            "name": "data",
+            "path": "playwright-report/data",
+            "children": [
+              {
+                "type": "file",
+                "name": "0ec275215b87f5cc7130f3e028c6a9975b773d19.webm",
+                "path": "playwright-report/data/0ec275215b87f5cc7130f3e028c6a9975b773d19.webm",
+                "extension": ".webm",
+                "size": 217553
+              },
+              {
+                "type": "file",
+                "name": "480719ebddcbfbed5b56a2df04d7730cbb05bd98.png",
+                "path": "playwright-report/data/480719ebddcbfbed5b56a2df04d7730cbb05bd98.png",
+                "extension": ".png",
+                "size": 118800
+              },
+              {
+                "type": "file",
+                "name": "ab22853bc47720ec1aeef3a95a56d7d69bb9872c.webm",
+                "path": "playwright-report/data/ab22853bc47720ec1aeef3a95a56d7d69bb9872c.webm",
+                "extension": ".webm",
+                "size": 233850
+              },
+              {
+                "type": "file",
+                "name": "ab4a5bef8c514ac60e1eacba088866aa6880f744.webm",
+                "path": "playwright-report/data/ab4a5bef8c514ac60e1eacba088866aa6880f744.webm",
+                "extension": ".webm",
+                "size": 222469
+              },
+              {
+                "type": "file",
+                "name": "cdde7110b5e5dad0bf70c97c2c479cbc4717ae21.md",
+                "path": "playwright-report/data/cdde7110b5e5dad0bf70c97c2c479cbc4717ae21.md",
+                "extension": ".md",
+                "size": 14082
+              }
+            ]
+          },
+          {
+            "type": "file",
+            "name": "index.html",
+            "path": "playwright-report/index.html",
+            "extension": ".html",
+            "size": 464185
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "playwright.config.ts",
+        "path": "playwright.config.ts",
+        "extension": ".ts",
+        "size": 4728
+      },
+      {
+        "type": "file",
+        "name": "pnpm-lock.yaml",
+        "path": "pnpm-lock.yaml",
+        "extension": ".yaml",
+        "size": 336397
+      },
+      {
+        "type": "file",
+        "name": "pnpm-workspace.yaml",
+        "path": "pnpm-workspace.yaml",
+        "extension": ".yaml",
+        "size": 40
+      },
+      {
+        "type": "directory",
+        "name": "scripts",
+        "path": "scripts",
+        "children": [
+          {
+            "type": "file",
+            "name": "create-icons.js",
+            "path": "scripts/create-icons.js",
+            "extension": ".js",
+            "size": 2276
+          },
+          {
+            "type": "file",
+            "name": "load-extension.js",
+            "path": "scripts/load-extension.js",
+            "extension": ".js",
+            "size": 2552
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "test-results",
+        "path": "test-results",
+        "children": [
+          {
+            "type": "file",
+            "name": ".last-run.json",
+            "path": "test-results/.last-run.json",
+            "extension": ".json",
+            "size": 194
+          },
+          {
+            "type": "directory",
+            "name": "playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing",
+            "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing",
+            "children": [
+              {
+                "type": "file",
+                "name": "error-context.md",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing/error-context.md",
+                "extension": ".md",
+                "size": 14082
+              },
+              {
+                "type": "file",
+                "name": "test-failed-1.png",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing/test-failed-1.png",
+                "extension": ".png",
+                "size": 118800
+              },
+              {
+                "type": "file",
+                "name": "video.webm",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing/video.webm",
+                "extension": ".webm",
+                "size": 217553
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-debug",
+            "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-debug",
+            "children": [
+              {
+                "type": "file",
+                "name": "error-context.md",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-debug/error-context.md",
+                "extension": ".md",
+                "size": 14082
+              },
+              {
+                "type": "file",
+                "name": "test-failed-1.png",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-debug/test-failed-1.png",
+                "extension": ".png",
+                "size": 118800
+              },
+              {
+                "type": "file",
+                "name": "video.webm",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-debug/video.webm",
+                "extension": ".webm",
+                "size": 233850
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-headless",
+            "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-headless",
+            "children": [
+              {
+                "type": "file",
+                "name": "error-context.md",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-headless/error-context.md",
+                "extension": ".md",
+                "size": 14082
+              },
+              {
+                "type": "file",
+                "name": "test-failed-1.png",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-headless/test-failed-1.png",
+                "extension": ".png",
+                "size": 118800
+              },
+              {
+                "type": "file",
+                "name": "video.webm",
+                "path": "test-results/playwright-direct-AutoAppl-5c57c-m-using-Playwright-directly-chrome-for-testing-headless/video.webm",
+                "extension": ".webm",
+                "size": 222469
+              }
+            ]
+          },
+          {
+            "type": "file",
+            "name": "results.json",
+            "path": "test-results/results.json",
+            "extension": ".json",
+            "size": 20650
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "test-results-20250613-224648.txt",
+        "path": "test-results-20250613-224648.txt",
+        "extension": ".txt",
+        "size": 88122
+      },
+      {
+        "type": "directory",
+        "name": "tests",
+        "path": "tests",
+        "children": [
+          {
+            "type": "directory",
+            "name": "e2e",
+            "path": "tests/e2e",
+            "children": [
+              {
+                "type": "file",
+                "name": "content-script-debug.spec.ts",
+                "path": "tests/e2e/content-script-debug.spec.ts",
+                "extension": ".ts",
+                "size": 4235
+              },
+              {
+                "type": "file",
+                "name": "extension-detection.spec.ts",
+                "path": "tests/e2e/extension-detection.spec.ts",
+                "extension": ".ts",
+                "size": 10310
+              },
+              {
+                "type": "file",
+                "name": "extension-persistent-context.spec.ts",
+                "path": "tests/e2e/extension-persistent-context.spec.ts",
+                "extension": ".ts",
+                "size": 3425
+              },
+              {
+                "type": "file",
+                "name": "extension-proper.spec.ts",
+                "path": "tests/e2e/extension-proper.spec.ts",
+                "extension": ".ts",
+                "size": 4570
+              },
+              {
+                "type": "file",
+                "name": "panel-debug.spec.ts",
+                "path": "tests/e2e/panel-debug.spec.ts",
+                "extension": ".ts",
+                "size": 3111
+              },
+              {
+                "type": "file",
+                "name": "playwright-direct.spec.ts",
+                "path": "tests/e2e/playwright-direct.spec.ts",
+                "extension": ".ts",
+                "size": 5463
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "fixtures",
+            "path": "tests/fixtures",
+            "children": [
+              {
+                "type": "file",
+                "name": "extension.ts",
+                "path": "tests/fixtures/extension.ts",
+                "extension": ".ts",
+                "size": 1663
+              },
+              {
+                "type": "file",
+                "name": "shared-extension.ts",
+                "path": "tests/fixtures/shared-extension.ts",
+                "extension": ".ts",
+                "size": 4187
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "tsconfig.base.json",
+        "path": "tsconfig.base.json",
+        "extension": ".json",
+        "size": 341
+      }
+    ]
+  }
+}

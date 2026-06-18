@@ -1,0 +1,55 @@
+{
+  "personal": {
+    "firstName": "",
+    "lastName": "",
+    "email": "",
+    "phone": "",
+    "address": "",
+    "city": "",
+    "state": "",
+    "zipCode": "",
+    "country": "United States",
+    "linkedIn": "",
+    "github": "",
+    "website": ""
+  },
+  "preferences": {
+    "desiredSalary": "",
+    "availableStartDate": "",
+    "usWorkAuth": "Yes",
+    "sponsorshipRequired": "No",
+    "willingToRelocate": "Yes",
+    "remotePreference": "Remote or Hybrid"
+  },
+  "resumePath": "",
+  "coverLetterBase": "I am a senior software engineer with extensive experience building AI/LLM systems and infrastructure. I'm excited about this role because it aligns with my expertise in [specific skill] and my passion for [company mission]. I look forward to contributing to your team.",
+  "workExperience": [
+    {
+      "company": "",
+      "title": "",
+      "startDate": "",
+      "endDate": "",
+      "currentlyWorkHere": false,
+      "description": ""
+    }
+  ],
+  "education": [
+    {
+      "institution": "",
+      "degree": "",
+      "fieldOfStudy": "",
+      "startDate": "",
+      "endDate": "",
+      "gpa": ""
+    }
+  ],
+  "skills": ["Python", "TypeScript", "PyTorch", "LLMs", "React", "Kubernetes", "AWS", "RAG", "Vector DBs", "MLOps"],
+  "eeo": {
+    "gender": "",
+    "ethnicity": "",
+    "veteranStatus": "",
+    "disabilityStatus": ""
+  },
+  "urls": [],
+  "coverLetterPerCompany": {}
+}
