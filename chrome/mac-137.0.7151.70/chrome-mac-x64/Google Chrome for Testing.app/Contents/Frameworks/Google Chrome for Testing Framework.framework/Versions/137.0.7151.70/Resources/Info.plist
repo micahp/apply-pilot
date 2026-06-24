@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleExecutable</key>
+	<string>Google Chrome for Testing Framework</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.google.chrome.for.testing.framework</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>FMWK</string>
+	<key>CFBundleShortVersionString</key>
+	<string>137.0.7151.70</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>7151.70</string>
+	<key>DTCompiler</key>
+	<string>com.apple.compilers.llvm.clang.1_0</string>
+	<key>DTSDKBuild</key>
+	<string>24E241</string>
+	<key>DTSDKName</key>
+	<string>macosx15.4</string>
+	<key>DTXcode</key>
+	<string>1630</string>
+	<key>DTXcodeBuild</key>
+	<string>16E140</string>
+	<key>SCMRevision</key>
+	<string>dfa4dc56b2abb56eb2a14cad006ea5e68c60d5de-refs/branch-heads/7151@{#1875}</string>
+</dict>
+</plist>

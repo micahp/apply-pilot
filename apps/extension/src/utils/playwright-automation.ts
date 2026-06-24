@@ -1,6 +1,6 @@
 import { chromium, Browser, Page, BrowserContext } from 'playwright';
 import { Profile } from '../types/profile';
-import { ATSPlatform } from './ats';
+import { ATSPlatform } from './ats-platforms';
 
 export interface PlaywrightAutomationOptions {
   headless?: boolean;
