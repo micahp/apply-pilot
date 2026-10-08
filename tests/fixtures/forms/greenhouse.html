@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Job Application for Senior AI Engineer at Acme</title>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"JobPosting","title":"Senior AI Engineer","hiringOrganization":{"@type":"Organization","name":"Acme AI"},"jobLocation":{"@type":"Place","address":{"addressLocality":"Austin","addressRegion":"TX"}},"description":"<p>Build <b>LLM</b> systems.</p>"}
+</script>
+</head>
+<body>
+<header><input type="search" name="q" placeholder="Search jobs"></header>
+<div id="app_body">
+<h1 class="app-title">Senior AI Engineer</h1>
+<form id="application_form" action="/apply" method="post">
+  <div class="field"><label for="first_name">First Name <span class="asterisk">*</span></label><input id="first_name" name="job_application[first_name]" type="text" aria-required="true"></div>
+  <div class="field"><label for="last_name">Last Name <span class="asterisk">*</span></label><input id="last_name" name="job_application[last_name]" type="text" aria-required="true"></div>
+  <div class="field"><label for="email">Email <span class="asterisk">*</span></label><input id="email" name="job_application[email]" type="text" aria-required="true"></div>
+  <div class="field"><label for="phone">Phone <span class="asterisk">*</span></label><input id="phone" name="job_application[phone]" type="text" aria-required="true"></div>
+  <div class="field"><label for="resume">Resume/CV <span class="asterisk">*</span></label><input id="resume" name="job_application[resume]" type="file" required></div>
+  <div class="field"><label for="q_linkedin">LinkedIn Profile</label><input id="q_linkedin" name="job_application[answers_attributes][0][text_value]" type="text"></div>
+  <div class="field"><label for="q_auth">Are you legally authorized to work in the United States? <span class="asterisk">*</span></label>
+    <select id="q_auth" name="job_application[answers_attributes][1][boolean_value]" aria-required="true"><option value="">--</option><option value="1">Yes</option><option value="0">No</option></select></div>
+  <div class="field"><label for="q_sponsor">Will you now or in the future require sponsorship for employment visa status (e.g. H-1B visa status)? <span class="asterisk">*</span></label>
+    <select id="q_sponsor" name="job_application[answers_attributes][2][boolean_value]" aria-required="true"><option value="">--</option><option value="1">Yes</option><option value="0">No</option></select></div>
+  <div class="field"><label for="q_why">Why do you want to work at Acme? <span class="asterisk">*</span></label><textarea id="q_why" name="job_application[answers_attributes][3][text_value]" required></textarea></div>
+  <div class="field"><label for="q_hear">How did you hear about this job?</label><input id="q_hear" name="job_application[answers_attributes][4][text_value]" type="text"></div>
+  <input type="text" name="job_application[website_confirm]" style="display:none" tabindex="-1">
+  <div id="eeoc_fields">
+    <div class="field"><label for="gender">Gender</label><select id="gender" name="job_application[gender]"><option value="">Please select</option><option value="1">Male</option><option value="2">Female</option><option value="3">Decline To Self Identify</option></select></div>
+    <div class="field"><label for="hispanic">Are you Hispanic/Latino?</label><select id="hispanic" name="job_application[hispanic_ethnicity]"><option value="">Please select</option><option value="Yes">Yes</option><option value="No">No</option><option value="Decline">Decline To Self Identify</option></select></div>
+    <div class="field"><label for="veteran">Veteran Status</label><select id="veteran" name="job_application[veteran_status]"><option value="">Please select</option><option value="1">I am not a protected veteran</option><option value="2">I identify as one or more of the classifications of protected veteran</option><option value="3">I don't wish to answer</option></select></div>
+    <div class="field"><label for="disability">Disability Status</label><select id="disability" name="job_application[disability_status]"><option value="">Please select</option><option value="1">Yes, I have a disability (or previously had a disability)</option><option value="2">No, I do not have a disability and have not had one in the past</option><option value="3">I do not want to answer</option></select></div>
+  </div>
+  <div class="g-recaptcha" data-size="invisible" data-sitekey="test"></div>
+  <button type="submit" id="submit_app">Submit Application</button>
+</form>
+</div>
+<script src="mock-submit.js"></script>
+</body>
+</html>

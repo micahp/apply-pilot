@@ -1,0 +1,12 @@
+export { fillForm, scanFields } from './engine';
+export type { FieldKind, FieldResult, FieldStatus, FillOptions, FillReport, ScannedField } from './engine';
+export { classifyField } from './classify';
+export type { FieldKey } from './classify';
+export { matchOption } from './options';
+export type { Answer } from './options';
+export { normalizeProfile, renderTemplate, validateProfile } from './profile';
+export type { ApplicantProfile } from './profile';
+export { detectCaptcha, detectConfirmation, findApplicationRoot, findSubmitButton, validationErrors } from './page';
+export type { CaptchaState } from './page';
+export { extractJobInfo } from './job-info';
+export type { JobInfo } from './job-info';
