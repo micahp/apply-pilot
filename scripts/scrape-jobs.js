@@ -1,453 +1,323 @@
 #!/usr/bin/env node
 /**
- * AI/LLM Job Scraper
- * 
- * Scrapes AI/LLM engineering job listings from multiple sources:
- * 1. Y Combinator Work at a Startup (public API)
- * 2. Wellfound (AngelList Talent) job listings
- * 3. Hacker News "Who is Hiring" monthly thread
- * 4. Known AI company career pages (Greenhouse/Lever)
- * 
+ * Job scraper: pulls postings from the public job-board APIs of the companies in
+ * scripts/companies.json (Greenhouse, Lever, Ashby) and from the latest Hacker News
+ * "Who is hiring?" thread, scores them against your keywords, and writes jobs.json
+ * for scripts/auto-apply-playwright.js.
+ *
  * Usage:
- *   node scripts/scrape-jobs.js                    # Scrape all sources, output to stdout
- *   node scripts/scrape-jobs.js --output jobs.json  # Scrape and save to file
- *   node scripts/scrape-jobs.js --source yc         # Only scrape YC jobs
- *   node scripts/scrape-jobs.js --limit 50          # Limit results per source
- * 
- * Output: JSON array of job objects with normalized schema
+ *   pnpm scrape                                   # all sources -> jobs.json
+ *   pnpm scrape -- --source greenhouse,ashby      # some sources
+ *   pnpm scrape -- --keywords "llm,rag,pytorch" --location "remote|austin" --min-score 30
+ *   pnpm scrape -- --any-role                     # keep non-engineering titles too
+ *   pnpm scrape -- --companies my-companies.json --output jobs.json
  */
 
 const fs = require('fs');
+const path = require('path');
+const { parseArgs } = require('util');
 
-// ─── Configuration ──────────────────────────────────────────────────
+const ROOT = path.resolve(__dirname, '..');
 
-const AI_KEYWORDS = [
-  'ai', 'artificial intelligence', 'machine learning', 'llm', 'large language model',
-  'deep learning', 'nlp', 'natural language', 'transformer', 'gpt', 'generative ai',
-  'gen ai', 'neural network', 'computer vision', 'reinforcement learning',
-  'vector database', 'embedding', 'rag', 'retrieval augmented', 'langchain',
-  'fine-tuning', 'fine tuning', 'prompt engineering', 'diffusion', 'stable diffusion',
-  'llama', 'mistral', 'anthropic', 'openai', 'mlops', 'ml infra', 'ai infrastructure',
-  'ai/ml', 'ai / ml', 'ml engineer', 'ai engineer', 'ml research',
+const DEFAULT_KEYWORDS = [
+  'ai', 'ml', 'llm', 'llms', 'machine learning', 'deep learning', 'artificial intelligence', 'generative ai', 'genai',
+  'nlp', 'natural language', 'large language model', 'transformer', 'transformers', 'rag', 'retrieval', 'embeddings',
+  'vector database', 'fine-tuning', 'fine tuning', 'inference', 'pytorch', 'evals', 'agents', 'mlops', 'computer vision',
+  'reinforcement learning', 'prompt engineering',
 ];
 
-const AI_COMPANY_CAREERS = [
-  // Format: [name, url, type]
-  // Greenhouse boards (verified working as of May 2026)
-  ['Anthropic', 'https://boards.greenhouse.io/anthropic', 'greenhouse'],
-  ['Scale AI', 'https://boards.greenhouse.io/scaleai', 'greenhouse'],
-  ['Databricks', 'https://boards.greenhouse.io/databricks', 'greenhouse'],
-  ['Samsara', 'https://boards.greenhouse.io/samsara', 'greenhouse'],
-  ['Applied Intuition', 'https://boards.greenhouse.io/appliedintuition', 'greenhouse'],
-  ['Mercury', 'https://boards.greenhouse.io/mercury', 'greenhouse'],
-  ['Figma', 'https://boards.greenhouse.io/figma', 'greenhouse'],
-  ['Vercel', 'https://boards.greenhouse.io/vercel', 'greenhouse'],
-  ['xAI', 'https://boards.greenhouse.io/xai', 'greenhouse'],
-  ['Stripe', 'https://boards.greenhouse.io/stripe', 'greenhouse'],
-  ['Cloudflare', 'https://boards.greenhouse.io/cloudflare', 'greenhouse'],
-  ['Discord', 'https://boards.greenhouse.io/discord', 'greenhouse'],
-  ['Reddit', 'https://boards.greenhouse.io/reddit', 'greenhouse'],
-  ['Roblox', 'https://boards.greenhouse.io/roblox', 'greenhouse'],
-  ['Airbnb', 'https://boards.greenhouse.io/airbnb', 'greenhouse'],
-  ['Instacart', 'https://boards.greenhouse.io/instacart', 'greenhouse'],
-  ['Brex', 'https://boards.greenhouse.io/brex', 'greenhouse'],
-  // Lever boards
-  ['Mistral AI', 'https://jobs.lever.co/mistral', 'lever'],
-];
+const NON_ENGINEERING_TITLE = /\b(recruit(er|ing)|sourcer|sales|account (executive|manager)|marketing|counsel|legal|attorney|paralegal|administrative|business partner|executive assistant|customer success|talent)\b/i;
+const ENGINEERING_TITLE = /\b(engineer|engineering|developer|scientist|research(er)?|architect|swe|sde|technical staff|mts|programmer|tech lead)\b/i;
 
-// ─── Types ──────────────────────────────────────────────────────────
+// ─── Text helpers ───────────────────────────────────────────────────
+
+const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', '#39': "'", '#x27': "'", '#x2F': '/' };
+
+function decodeEntities(text) {
+  return String(text || '').replace(/&(#x[0-9a-f]+|#\d+|[a-z]+\d*);/gi, (m, code) => {
+    if (ENTITIES[code] !== undefined) return ENTITIES[code];
+    if (code[0] === '#') {
+      const n = code[1].toLowerCase() === 'x' ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10);
+      return Number.isFinite(n) ? String.fromCodePoint(n) : m;
+    }
+    return m;
+  });
+}
+
+/** HTML (possibly entity-escaped, as Greenhouse returns it) to readable plain text. */
+function htmlToText(html) {
+  let text = decodeEntities(html);
+  if (/<[a-z]/i.test(text)) {
+    text = text
+      .replace(/<(script|style)[\s\S]*?<\/\1>/gi, '')
+      .replace(/<(br|\/p|\/div|\/li|\/h\d)\s*\/?>/gi, '\n')
+      .replace(/<li[^>]*>/gi, '\n- ')
+      .replace(/<[^>]+>/g, '');
+    text = decodeEntities(text);
+  }
+  return text.replace(/[ \t]+/g, ' ').replace(/\n\s*\n\s*/g, '\n\n').trim();
+}
+
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 /**
- * @typedef {Object} JobListing
- * @property {string} id - Unique identifier
- * @property {string} title - Job title
- * @property {string} company - Company name
- * @property {string} [location] - Job location
- * @property {string} [description] - Job description snippet
- * @property {string} url - Link to the job posting
- * @property {string} source - Source where this job was found
- * @property {number} [score] - AI relevance score (0-100)
- * @property {string} [postedAt] - When the job was posted
+ * Score 0-100 from whole-word keyword hits: title hits count much more than description
+ * hits. Plain substring matching (the old approach) made "ai" match "maintain".
  */
+function scoreJob(title, description, keywords = DEFAULT_KEYWORDS) {
+  const matched = [];
+  let titleScore = 0;
+  let descriptionScore = 0;
+  for (const kw of keywords) {
+    const re = new RegExp(`(^|[^a-z0-9])${escapeRegex(kw.toLowerCase())}([^a-z0-9]|$)`, 'i');
+    if (re.test(title)) {
+      titleScore += 30;
+      matched.push(kw);
+    } else if (re.test(description)) {
+      descriptionScore += 5;
+      matched.push(kw);
+    }
+  }
+  // Title relevance dominates; a long description can't make an unrelated title rank high.
+  return { score: Math.min(60, titleScore) + Math.min(40, descriptionScore), matched };
+}
 
-// ─── HTTP Helper ────────────────────────────────────────────────────
+// ─── Source parsers (pure; exported for tests) ──────────────────────
 
-async function fetchJSON(url, headers = {}) {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
+function parseGreenhouse(data, company) {
+  return (data.jobs || []).map((j) => {
+    const remote = /remote/i.test(j.location?.name || '') || (j.metadata || []).some((m) => /remote/i.test(String(m.value)));
+    return {
+      id: `greenhouse:${company.slug}:${j.id}`,
+      title: j.title,
+      company: j.company_name || company.name,
+      location: j.location?.name || '',
+      remote,
+      department: j.departments?.[0]?.name || '',
+      url: j.absolute_url,
+      platform: 'greenhouse',
+      postedAt: j.first_published || j.updated_at || null,
+      description: htmlToText(j.content),
+    };
+  });
+}
 
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'AutoApply-JobScraper/1.0',
-        'Accept': 'application/json',
-        ...headers,
-      },
-      signal: controller.signal,
+function parseLever(data, company) {
+  return (Array.isArray(data) ? data : []).map((j) => {
+    const location = (j.categories?.allLocations || [j.categories?.location]).filter(Boolean).join('; ');
+    return {
+      id: `lever:${company.slug}:${j.id}`,
+      title: j.text,
+      company: company.name,
+      location,
+      remote: j.workplaceType === 'remote' || /remote/i.test(location),
+      department: j.categories?.team || '',
+      url: j.hostedUrl,
+      platform: 'lever',
+      postedAt: j.createdAt ? new Date(j.createdAt).toISOString() : null,
+      description: (j.descriptionPlain || htmlToText(j.description)).trim(),
+    };
+  });
+}
+
+function parseAshby(data, company) {
+  return (data.jobs || [])
+    .filter((j) => j.isListed !== false)
+    .map((j) => {
+      const locations = [j.location, ...(j.secondaryLocations || []).map((l) => l.location)].filter(Boolean);
+      return {
+        id: `ashby:${company.slug}:${j.id}`,
+        title: j.title,
+        company: company.name,
+        location: locations.join('; '),
+        remote: j.isRemote === true || j.workplaceType === 'Remote' || /remote/i.test(locations.join(' ')),
+        department: j.department || '',
+        url: j.jobUrl,
+        platform: 'ashby',
+        postedAt: j.publishedAt || null,
+        compensation: j.compensation?.compensationTierSummary || undefined,
+        description: (j.descriptionPlain || htmlToText(j.descriptionHtml)).trim(),
+      };
     });
-
-    clearTimeout(timeout);
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error(`[scrape-jobs] Error fetching ${url}:`, error.message);
-    return null;
-  }
 }
 
-// ─── AI Relevance Scoring ──────────────────────────────────────────
-
-function scoreAIRelevance(title, description = '') {
-  const text = `${title} ${description}`.toLowerCase();
-  let score = 0;
-
-  for (const kw of AI_KEYWORDS) {
-    if (text.includes(kw)) {
-      score += 8;
-      if (kw.includes('engineer') || kw.includes('research')) score += 4;
-    }
-  }
-
-  // Title bonus
-  const titleLower = title.toLowerCase();
-  if (/ai|llm|ml|machine learning/i.test(titleLower)) score += 20;
-  if (/engineer|developer/i.test(titleLower)) score += 5;
-  if (/senior|staff|principal|lead/i.test(titleLower)) score += 2;
-
-  return Math.min(100, score);
-}
-
-// ─── Y Combinator Work at a Startup ─────────────────────────────────
-
-async function scrapeYCJobs(limit = 50) {
-  console.log('[scrape-jobs] Fetching YC Work at a Startup jobs...');
+/**
+ * HN "Who is hiring?" comments conventionally start "Company | Role | Location | ...".
+ * We keep comments whose header has at least 3 segments, and point `url` at the first
+ * link in the post (usually the careers page) or the comment itself.
+ */
+function parseHnItem(item) {
   const jobs = [];
-
-  // YC Work at a Startup has a public API endpoint
-  const data = await fetchJSON('https://www.workatastartup.com/api/jobs');
-
-  if (!data || !Array.isArray(data)) {
-    console.log('[scrape-jobs] YC API returned no data (may need browser scraping)');
-    return jobs;
+  for (const c of item.children || []) {
+    if (!c.text) continue;
+    const firstLine = htmlToText(c.text.split(/<p>/i)[0]).split('\n')[0];
+    const segments = firstLine.split(/\s+[|—–]\s+|\s\|\s?/).map((s) => s.trim()).filter(Boolean);
+    if (segments.length < 3) continue;
+    const role = segments.find((s, i) => i > 0 && ENGINEERING_TITLE.test(s)) || segments[1];
+    const location = segments.find((s) => /remote|onsite|on-site|hybrid|\b[A-Z]{2}\b|,/i.test(s) && s !== role && s !== segments[0]) || '';
+    const link = decodeEntities((c.text.match(/href="([^"]+)"/) || [])[1] || '');
+    const commentUrl = `https://news.ycombinator.com/item?id=${c.id}`;
+    jobs.push({
+      id: `hn:${c.id}`,
+      title: role,
+      company: segments[0].replace(/\s*\(.*?\)\s*$/, ''),
+      location,
+      remote: /remote/i.test(firstLine),
+      department: '',
+      url: link && /^https?:/.test(link) ? link : commentUrl,
+      discussionUrl: commentUrl,
+      platform: 'hn',
+      postedAt: c.created_at || item.created_at || null,
+      description: htmlToText(c.text),
+    });
   }
-
-  for (const job of data.slice(0, limit * 2)) {
-    const title = job.title || job.role || '';
-    const company = job.company_name || job.company || '';
-    const desc = job.description || job.body || '';
-
-    const score = scoreAIRelevance(title, desc);
-
-    if (score > 15 || AI_KEYWORDS.some(k => desc.toLowerCase().includes(k))) {
-      jobs.push({
-        id: `yc-${job.id || Math.random().toString(36).slice(2)}`,
-        title,
-        company,
-        location: job.location || 'Remote',
-        description: (desc || '').slice(0, 500),
-        url: job.url || `https://www.workatastartup.com/jobs/${job.id}`,
-        source: 'Y Combinator',
-        score,
-        postedAt: job.created_at || job.posted_at || null,
-      });
-    }
-
-    if (jobs.length >= limit) break;
-  }
-
-  console.log(`[scrape-jobs] YC: found ${jobs.length} AI-relevant jobs`);
   return jobs;
 }
 
-// ─── Wellfound / AngelList Talent ───────────────────────────────────
+// ─── HTTP ───────────────────────────────────────────────────────────
 
-async function scrapeWellfoundJobs(limit = 50) {
-  console.log('[scrape-jobs] Fetching Wellfound jobs...');
-  const jobs = [];
-
-  // Wellfound's public listing page
-  const searchTerms = ['ai', 'llm', 'machine-learning', 'deep-learning', 'generative-ai'];
-  
-  for (const term of searchTerms.slice(0, 2)) { // Limit to 2 terms to avoid rate limiting
+async function fetchJson(url, { retries = 3, timeoutMs = 20000 } = {}) {
+  for (let attempt = 0; ; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const data = await fetchJSON(
-        `https://wellfound.com/api/job_listings?search=${term}&size=${Math.min(limit, 25)}`,
-        { 'X-Requested-With': 'XMLHttpRequest' }
-      );
-
-      if (data && Array.isArray(data)) {
-        for (const job of data) {
-          const title = job.title || '';
-          const company = job.company_name || job.startup?.name || '';
-          const desc = job.description || job.body || '';
-
-          jobs.push({
-            id: `wf-${job.id || Math.random().toString(36).slice(2)}`,
-            title,
-            company,
-            location: job.location || job.locations?.join(', ') || 'Remote',
-            description: (desc || '').slice(0, 500),
-            url: job.url || (job.id ? `https://wellfound.com/jobs/${job.id}` : ''),
-            source: 'Wellfound',
-            score: scoreAIRelevance(title, desc),
-            postedAt: job.published_at || job.created_at || null,
-          });
-        }
-      }
-    } catch (e) {
-      console.log(`[scrape-jobs] Wellfound search for "${term}" failed:`, e.message);
+      const res = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'apply-pilot-job-scraper' }, signal: controller.signal });
+      if (res.ok) return await res.json();
+      const retryable = res.status === 429 || res.status >= 500;
+      if (!retryable || attempt >= retries) throw new Error(`HTTP ${res.status} for ${url}`);
+    } catch (error) {
+      if (attempt >= retries || /HTTP 4\d\d/.test(error.message)) throw error;
+    } finally {
+      clearTimeout(timer);
     }
+    await new Promise((r) => setTimeout(r, 1000 * 2 ** attempt));
   }
-
-  console.log(`[scrape-jobs] Wellfound: found ${jobs.length} jobs`);
-  return jobs;
 }
 
-// ─── AI Company Career Pages ────────────────────────────────────────
+async function pool(items, limit, fn) {
+  const results = [];
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, async () => {
+      while (next < items.length) {
+        const i = next++;
+        results[i] = await fn(items[i]);
+      }
+    })
+  );
+  return results;
+}
 
-async function scrapeAICompanyCareers(limit = 50) {
-  console.log('[scrape-jobs] Fetching AI company career pages...');
-  const jobs = [];
-  const companiesToFetch = AI_COMPANY_CAREERS; // Fetch all companies
+const BOARD_APIS = {
+  greenhouse: (slug) => `https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(slug)}/jobs?content=true`,
+  lever: (slug) => `https://api.lever.co/v0/postings/${encodeURIComponent(slug)}?mode=json`,
+  ashby: (slug) => `https://api.ashbyhq.com/posting-api/job-board/${encodeURIComponent(slug)}?includeCompensation=true`,
+};
+const PARSERS = { greenhouse: parseGreenhouse, lever: parseLever, ashby: parseAshby };
 
-  for (const [company, baseUrl, platform] of companiesToFetch) {
+async function scrapeCompanies(companies) {
+  const report = [];
+  const results = await pool(companies, 6, async (company) => {
     try {
-      let apiUrl;
-      if (platform === 'greenhouse') {
-        // Greenhouse public API v1: https://developers.greenhouse.io/job-board.html
-        const boardToken = baseUrl.split('/').pop();
-        apiUrl = `https://api.greenhouse.io/v1/boards/${boardToken}/jobs?content=true`;
-      } else if (platform === 'lever') {
-        const companySlug = baseUrl.split('/').pop();
-        apiUrl = `https://api.lever.co/v0/postings/${companySlug}?mode=json`;
-      } else if (platform === 'workable') {
-        const companySlug = baseUrl.split('/').pop();
-        apiUrl = `https://apply.workable.com/api/v1/widget/accounts/${companySlug}`;
-      } else if (platform === 'ashby') {
-        const companySlug = baseUrl.split('/').pop();
-        apiUrl = `https://jobs.ashbyhq.com/api/non-user/${companySlug}`;
-      }
-
-      if (!apiUrl) continue;
-
-      const data = await fetchJSON(apiUrl);
-
-      if (!data) continue;
-
-      // Parse responses differently based on platform
-      let rawJobs = [];
-      if (platform === 'greenhouse') {
-        // Greenhouse v1 API: { jobs: [...] }
-        rawJobs = data.jobs || [];
-      } else if (platform === 'lever') {
-        rawJobs = Array.isArray(data) ? data : (data.postings || data.data || []);
-      } else if (platform === 'workable') {
-        rawJobs = data.jobs || data.results || [];
-      } else if (platform === 'ashby') {
-        rawJobs = data.jobs || [];
-      }
-
-      for (const job of rawJobs) {
-        let title, desc, score, jobUrl;
-
-        if (platform === 'greenhouse') {
-          title = job.title || '';
-          desc = (job.content || '').replace(/<[^>]*>/g, '').slice(0, 500);
-          jobUrl = job.absolute_url || (job.id ? `${baseUrl}/${job.id}` : baseUrl);
-          score = scoreAIRelevance(title, desc);
-        } else {
-          title = job.title || job.text || '';
-          desc = (job.description || job.descriptionPlain || '').slice(0, 500);
-          score = scoreAIRelevance(title, desc);
-
-          if (platform === 'lever') {
-            jobUrl = job.hostedUrl || job.applyUrl || (job.id ? `${baseUrl}/${job.id}` : baseUrl);
-          } else if (platform === 'workable') {
-            jobUrl = job.url || job.shortlink || baseUrl;
-          } else {
-            jobUrl = job.url || job.applyUrl || baseUrl;
-          }
-        }
-
-        if (score > 15) {
-          // Greenhouse location is nested: { name: "San Francisco, CA" }
-          let loc = job.location;
-          if (loc && typeof loc === 'object' && loc.name) loc = loc.name;
-
-          jobs.push({
-            id: `${company.toLowerCase().replace(/\s+/g, '-')}-${job.id || Math.random().toString(36).slice(2)}`,
-            title,
-            company,
-            location: loc || 'Remote',
-            description: desc,
-            url: jobUrl,
-            source: `${company} Careers`,
-            score,
-            postedAt: job.updated_at || job.first_published || job.created_at || job.published_at || null,
-          });
-        }
-      }
-    } catch (e) {
-      console.log(`[scrape-jobs] Failed to fetch ${company} (${platform}):`, e.message);
+      const jobs = PARSERS[company.platform](await fetchJson(BOARD_APIS[company.platform](company.slug)), company);
+      report.push({ source: `${company.platform}:${company.slug}`, ok: true, count: jobs.length });
+      return jobs;
+    } catch (error) {
+      report.push({ source: `${company.platform}:${company.slug}`, ok: false, error: error.message });
+      return [];
     }
-  }
-
-  console.log(`[scrape-jobs] AI companies: found ${jobs.length} AI-relevant jobs`);
-  return jobs;
+  });
+  return { jobs: results.flat(), report };
 }
 
-// ─── Hacker News "Who is Hiring" ────────────────────────────────────
-
-async function scrapeHNJobs(limit = 30) {
-  console.log('[scrape-jobs] Fetching Hacker News Who Is Hiring...');
-  const jobs = [];
-
+async function scrapeHn() {
   try {
-    // Use Algolia search API to find the latest "Who is Hiring" thread
-    const searchData = await fetchJSON(
-      'https://hn.algolia.com/api/v1/search?query=Ask+HN:+Who+is+hiring?&tags=story&hitsPerPage=3'
-    );
-
-    if (!searchData?.hits?.length) {
-      console.log('[scrape-jobs] HN: no hiring thread found');
-      return jobs;
-    }
-
-    const hiringThread = searchData.hits.find(h =>
-      h.title?.toLowerCase().includes('who is hiring') &&
-      h.title?.toLowerCase().includes(new Date().getFullYear().toString())
-    );
-
-    if (!hiringThread) {
-      console.log('[scrape-jobs] HN: no recent hiring thread found');
-      return jobs;
-    }
-
-    // Fetch the actual thread items via the HN API
-    const threadId = hiringThread.objectID;
-    const itemData = await fetchJSON(
-      `https://hn.algolia.com/api/v1/items/${threadId}`
-    );
-
-    if (!itemData?.children?.length) {
-      console.log('[scrape-jobs] HN: no comments in hiring thread');
-      return jobs;
-    }
-
-    for (const comment of itemData.children) {
-      const text = comment.text || '';
-      if (!text) continue;
-
-      const score = scoreAIRelevance('', text);
-      if (score < 15) continue;
-
-      // Extract company and title from the first line
-      const firstLine = text.split('\n')[0].trim();
-      const parts = firstLine.split('|').map(s => s.trim());
-      const company = parts[0] || 'Unknown';
-      const title = parts[1] || parts[0] || '';
-      const location = parts[2] || '';
-
-      jobs.push({
-        id: `hn-${comment.id || Math.random().toString(36).slice(2)}`,
-        title: title || 'See description',
-        company,
-        location: location || 'Remote',
-        description: text.slice(0, 500),
-        url: `https://news.ycombinator.com/item?id=${threadId}#${comment.id}`,
-        source: 'Hacker News',
-        score,
-        postedAt: hiringThread.created_at,
-      });
-
-      if (jobs.length >= limit) break;
-    }
-  } catch (e) {
-    console.log('[scrape-jobs] HN scraping failed:', e.message);
+    const search = await fetchJson('https://hn.algolia.com/api/v1/search_by_date?tags=story,author_whoishiring&hitsPerPage=10');
+    const thread = (search.hits || []).find((h) => /who is hiring/i.test(h.title));
+    if (!thread) return { jobs: [], report: [{ source: 'hn', ok: false, error: 'no "Who is hiring?" thread found' }] };
+    const jobs = parseHnItem(await fetchJson(`https://hn.algolia.com/api/v1/items/${thread.objectID}`, { timeoutMs: 60000 }));
+    return { jobs, report: [{ source: `hn:${thread.title}`, ok: true, count: jobs.length }] };
+  } catch (error) {
+    return { jobs: [], report: [{ source: 'hn', ok: false, error: error.message }] };
   }
-
-  console.log(`[scrape-jobs] HN: found ${jobs.length} AI-relevant jobs`);
-  return jobs;
 }
 
-// ─── Main ───────────────────────────────────────────────────────────
+// ─── Filtering ──────────────────────────────────────────────────────
+
+function rankJobs(jobs, opts) {
+  const location = opts.location ? new RegExp(opts.location, 'i') : null;
+  const seen = new Set();
+  return jobs
+    .filter((j) => j.url && j.title && !seen.has(j.url) && seen.add(j.url))
+    .filter((j) => opts.anyRole || (ENGINEERING_TITLE.test(j.title) && !NON_ENGINEERING_TITLE.test(j.title)))
+    .filter((j) => !location || location.test(j.location) || (j.remote && location.test('remote')))
+    .map((j) => ({ ...j, ...scoreJob(j.title, j.description, opts.keywords), description: j.description.slice(0, 4000) }))
+    .filter((j) => j.score >= opts.minScore)
+    .sort((a, b) => b.score - a.score);
+}
+
+// ─── CLI ────────────────────────────────────────────────────────────
+
+function parseCli(argv) {
+  const { values } = parseArgs({
+    args: argv,
+    options: {
+      source: { type: 'string', default: 'greenhouse,lever,ashby,hn' },
+      companies: { type: 'string', default: path.join(__dirname, 'companies.json') },
+      output: { type: 'string', default: path.join(ROOT, 'jobs.json') },
+      keywords: { type: 'string' },
+      location: { type: 'string' },
+      'min-score': { type: 'string', default: '20' },
+      'any-role': { type: 'boolean', default: false },
+    },
+  });
+  const sources = values.source.split(',').map((s) => s.trim()).filter(Boolean);
+  const unknown = sources.filter((s) => !['greenhouse', 'lever', 'ashby', 'hn'].includes(s));
+  if (unknown.length) throw new Error(`unknown --source ${unknown.join(', ')} (use greenhouse, lever, ashby, hn)`);
+  const minScore = Number(values['min-score']);
+  if (!Number.isFinite(minScore)) throw new Error('--min-score must be a number');
+  return {
+    sources,
+    companiesFile: path.resolve(values.companies),
+    output: path.resolve(values.output),
+    keywords: values.keywords ? values.keywords.split(',').map((k) => k.trim()).filter(Boolean) : DEFAULT_KEYWORDS,
+    location: values.location,
+    minScore,
+    anyRole: values['any-role'],
+  };
+}
 
 async function main() {
-  const args = process.argv.slice(2);
-  const outputFile = args.includes('--output') ? args[args.indexOf('--output') + 1] : null;
-  const sourceFilter = args.includes('--source') ? args[args.indexOf('--source') + 1] : null;
-  const limit = parseInt(args.includes('--limit') ? args[args.indexOf('--limit') + 1] : '50', 10);
+  const opts = parseCli(process.argv.slice(2));
+  const companies = JSON.parse(fs.readFileSync(opts.companiesFile, 'utf8')).filter((c) => opts.sources.includes(c.platform));
 
-  const scrapers = {
-    yc: scrapeYCJobs,
-    wellfound: scrapeWellfoundJobs,
-    aicompanies: scrapeAICompanyCareers,
-    hn: scrapeHNJobs,
-  };
+  const parts = await Promise.all([
+    scrapeCompanies(companies),
+    opts.sources.includes('hn') ? scrapeHn() : Promise.resolve({ jobs: [], report: [] }),
+  ]);
+  const all = parts.flatMap((p) => p.jobs);
+  const report = parts.flatMap((p) => p.report);
+  const ranked = rankJobs(all, opts);
 
-  const sourcesToRun = sourceFilter
-    ? [[sourceFilter, scrapers[sourceFilter]]].filter(([, fn]) => fn)
-    : Object.entries(scrapers);
+  const failed = report.filter((r) => !r.ok);
+  console.log(`[scrape] ${report.length - failed.length}/${report.length} sources ok · ${all.length} postings · ${ranked.length} kept (min score ${opts.minScore})`);
+  for (const r of failed) console.warn(`[scrape] FAILED ${r.source}: ${r.error}`);
 
-  if (sourcesToRun.length === 0) {
-    console.error(`Unknown source: ${sourceFilter}. Available: ${Object.keys(scrapers).join(', ')}`);
-    process.exit(1);
+  fs.writeFileSync(opts.output, JSON.stringify(ranked, null, 2));
+  console.log(`[scrape] wrote ${path.relative(process.cwd(), opts.output)}`);
+  for (const j of ranked.slice(0, 15)) {
+    console.log(`  ${String(j.score).padStart(3)}  ${j.title} @ ${j.company} — ${j.location || (j.remote ? 'Remote' : '?')}`);
   }
-
-  const allJobs = [];
-  const results = await Promise.allSettled(
-    sourcesToRun.map(([name, fn]) => fn(limit))
-  );
-
-  for (const result of results) {
-    if (result.status === 'fulfilled') {
-      allJobs.push(...result.value);
-    }
-  }
-
-  // Deduplicate by URL
-  const seen = new Set();
-  const uniqueJobs = allJobs.filter(job => {
-    if (seen.has(job.url)) return false;
-    seen.add(job.url);
-    return true;
-  });
-
-  // Sort by AI relevance score (highest first)
-  uniqueJobs.sort((a, b) => (b.score || 0) - (a.score || 0));
-
-  const output = JSON.stringify(uniqueJobs, null, 2);
-
-  if (outputFile) {
-    fs.writeFileSync(outputFile, output);
-    console.log(`\n✅ Saved ${uniqueJobs.length} AI/LLM jobs to ${outputFile}`);
-  } else {
-    console.log(`\n✅ Found ${uniqueJobs.length} AI/LLM job listings:\n`);
-    // Print summary
-    for (const job of uniqueJobs.slice(0, 20)) {
-      const scoreBar = '█'.repeat(Math.round((job.score || 0) / 10));
-      console.log(`  ${scoreBar.padEnd(10)} ${job.title} @ ${job.company} — ${job.location || 'Remote'}`);
-      console.log(`             ${job.url}`);
-      console.log();
-    }
-    if (uniqueJobs.length > 20) {
-      console.log(`  ... and ${uniqueJobs.length - 20} more jobs. Use --output to save all.`);
-    }
-  }
-
-  return uniqueJobs;
+  if (report.length > 0 && failed.length === report.length) process.exitCode = 1;
 }
 
-// Run if called directly
 if (require.main === module) {
-  main().catch(err => {
-    console.error('Fatal error:', err);
+  main().catch((error) => {
+    console.error(`[scrape] ${error.message}`);
     process.exit(1);
   });
 }
 
-module.exports = { main, scoreAIRelevance };
+module.exports = { htmlToText, parseAshby, parseGreenhouse, parseHnItem, parseLever, rankJobs, scoreJob, DEFAULT_KEYWORDS };

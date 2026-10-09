@@ -2,35 +2,33 @@ name: CI
 
 on:
   pull_request:
-    branches: [main, master]
   push:
-    branches: [main, master]
+    branches: [main]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - run: npm ci
-      - run: npm test --if-present
-      - run: npm run lint --if-present
-      - run: npm run build --if-present
-
-  typecheck:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci
-      - run: npx tsc --noEmit --if-present
-
-  security:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: npx audit-ci --moderate --if-present
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck extension
+        run: pnpm exec tsc -p apps/extension/tsconfig.app.json --noEmit
+      - name: Unit tests (autofill engine, cover letters)
+        run: pnpm --dir apps/extension exec jest
+      - name: Script tests (scraper, runner)
+        run: pnpm test:scripts
+      - name: Build extension and engine bundle
+        run: |
+          pnpm --dir apps/extension exec vite build
+          pnpm build:autofill
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: End-to-end tests (runner and built extension against fixtures)
+        run: pnpm exec playwright test

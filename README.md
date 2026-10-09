@@ -57,47 +57,56 @@ More platforms will be added in future updates.
 
 ## Usage
 
-1. After installing the extension, click on the AutoApply icon in your Chrome toolbar to open the popup.
-2. Set up your profile with personal information, work experience, education, and skills.
-3. Navigate to a supported job application page.
-4. The extension will automatically detect the form and fill in the fields with your information.
-5. Review the filled information before submitting the application.
+### Extension
+
+1. Open the AutoApply popup and fill in your profile: contact details, location, screening answers (work authorization, sponsorship), voluntary EEO choices (blank = decline), a cover letter template, **custom answers** for questions specific to you, and your resume file. Or use **Import** to load a `profile.json` (same format as the script below).
+2. Open an application form on a supported ATS. A floating AutoApply panel appears.
+3. Click **Autofill application**. The panel reports how many fields were filled and lists every required question it could not answer; those are outlined on the page. Click one to jump to it.
+4. Review and submit yourself. The extension never submits.
+
+### Command line: scrape and apply
+
+```bash
+pnpm install
+cp profile.example.json profile.json   # fill it in; resumePath is relative to profile.json
+pnpm scrape                            # writes jobs.json from scripts/companies.json + HN "Who is hiring?"
+pnpm auto-apply                        # review mode: fills each form, waits for you, never submits
+pnpm auto-apply -- --submit            # submits only forms with every required question answered
+```
+
+`pnpm scrape` options: `--source greenhouse,lever,ashby,hn`, `--keywords "llm,rag"`, `--location "remote|austin"`, `--min-score 30`, `--any-role`, `--companies file.json`. Edit `scripts/companies.json` to change which company boards are pulled.
+
+`pnpm auto-apply` options: `--limit N`, `--min-score N`, `--location <regex>`, `--only <url substring>`, `--headless`, `--retry`.
+
+Every attempt is recorded in `apply-results.json` with one of these statuses:
+
+| Status | Meaning |
+| --- | --- |
+| `submitted` | The site showed an application-received confirmation |
+| `ready` | Complete, not submitted (review mode) |
+| `needs-review` | Required questions unanswered; they're listed, and the run summary ranks the most common so you can add `customAnswers` |
+| `needs-human` | A CAPTCHA challenge appeared |
+| `rejected` | Submit clicked, site reported validation errors |
+| `unconfirmed` | Submit clicked, no confirmation seen |
+| `no-form` | No application form found (account-gated or external) |
+| `error` | Navigation/script failure |
+
+A job already `submitted` is never applied to again.
 
 ## Development
 
-This project uses:
-- TypeScript for type-safe JavaScript
-- React for the UI components
-- NX for monorepo management
-- Vite for fast builds
+The form-filling engine lives in `apps/extension/src/autofill/` and is shared: the extension imports it, and `pnpm build:autofill` bundles it for the Playwright runner, so both fill forms identically.
 
-### Project Structure
+### Tests
 
-```
-auto-apply/
-├── apps/
-│   └── extension/      # Chrome extension code
-│       ├── src/
-│       │   ├── popup/  # Extension popup UI
-│       │   ├── options/ # Options page
-│       │   ├── types/  # TypeScript type definitions
-│       │   ├── content.ts  # Content script for form filling
-│       │   ├── background.ts # Background service worker
-│       │   └── ats.ts  # ATS detection and mapping
-│       ├── manifest.json
-│       └── tsconfig.json
-├── packages/           # Shared packages (for future use)
-├── scripts/            # Utility scripts
-└── dist/               # Build output
+```bash
+pnpm --dir apps/extension exec jest     # engine + cover letter unit tests (jsdom)
+pnpm test:scripts                        # scraper parsers (real API fixtures) and runner logic
+(cd apps/extension && npx vite build)    # build the extension
+pnpm test:e2e                            # runner and built extension against local form fixtures
 ```
 
-### Available Scripts
-
-- `npm run build` - Build the extension
-- `npm run dev` - Start development server
-- `npm run lint` - Lint the code
-- `npm run test` - Run tests
-- `npm run load-extension` - Help load the extension in Chrome
+End-to-end tests never touch live job sites; ATS pages are served from `tests/fixtures/forms` with a mock backend that enforces required fields.
 
 ## Contributing
 

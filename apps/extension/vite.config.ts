@@ -59,6 +59,21 @@ export default defineConfig({
     },
     crx({ manifest }),
     {
+      // @crxjs beta marks content-script chunks `use_dynamic_url: true`, but chunks those scripts
+      // import are then requested by their static URL and Chrome blocks them, so the content
+      // script dies on load whenever it shares a chunk with the popup.
+      name: 'static-web-accessible-urls',
+      apply: 'build',
+      enforce: 'post',
+      writeBundle(options) {
+        const file = path.resolve(options.dir || path.resolve(__dirname, '../../dist/apps/extension'), 'manifest.json');
+        if (!fs.existsSync(file)) return;
+        const built = JSON.parse(fs.readFileSync(file, 'utf8'));
+        for (const entry of built.web_accessible_resources || []) entry.use_dynamic_url = false;
+        fs.writeFileSync(file, JSON.stringify(built, null, 2));
+      },
+    },
+    {
       name: 'copy-assets',
       apply: 'build',
       enforce: 'post',

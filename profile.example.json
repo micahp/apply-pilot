@@ -2,9 +2,9 @@
   "personal": {
     "firstName": "",
     "lastName": "",
+    "preferredName": "",
     "email": "",
     "phone": "",
-    "address": "",
     "city": "",
     "state": "",
     "zipCode": "",
@@ -13,43 +13,36 @@
     "github": "",
     "website": ""
   },
-  "preferences": {
-    "desiredSalary": "",
-    "availableStartDate": "",
-    "usWorkAuth": "Yes",
-    "sponsorshipRequired": "No",
-    "willingToRelocate": "Yes",
-    "remotePreference": "Remote or Hybrid"
-  },
-  "resumePath": "",
-  "coverLetterBase": "I am a senior software engineer with extensive experience building AI/LLM systems and infrastructure. I'm excited about this role because it aligns with my expertise in [specific skill] and my passion for [company mission]. I look forward to contributing to your team.",
   "workExperience": [
-    {
-      "company": "",
-      "title": "",
-      "startDate": "",
-      "endDate": "",
-      "currentlyWorkHere": false,
-      "description": ""
-    }
+    { "company": "", "title": "", "startDate": "2022-01", "endDate": "", "current": true, "location": "", "description": "" }
   ],
   "education": [
-    {
-      "institution": "",
-      "degree": "",
-      "fieldOfStudy": "",
-      "startDate": "",
-      "endDate": "",
-      "gpa": ""
-    }
+    { "institution": "", "degree": "Bachelor's", "fieldOfStudy": "", "startDate": "", "endDate": "", "gpa": "" }
   ],
-  "skills": ["Python", "TypeScript", "PyTorch", "LLMs", "React", "Kubernetes", "AWS", "RAG", "Vector DBs", "MLOps"],
+  "skills": ["Python", "TypeScript"],
+  "preferences": {
+    "workAuthorized": "Yes",
+    "requiresSponsorship": "No",
+    "willingToRelocate": "",
+    "desiredSalary": "",
+    "availableStartDate": "",
+    "howDidYouHear": "Company website"
+  },
   "eeo": {
     "gender": "",
-    "ethnicity": "",
+    "race": "",
+    "hispanicOrLatino": "",
     "veteranStatus": "",
     "disabilityStatus": ""
   },
-  "urls": [],
-  "coverLetterPerCompany": {}
+  "documents": {
+    "coverLetter": "I'm excited to apply for the {{title}} role at {{company}}..."
+  },
+  "customAnswers": [
+    { "question": "years of experience", "answer": "8" },
+    { "question": "/why (do you want to|are you interested in) (work|join)/", "answer": "..." },
+    { "question": "privacy", "answer": "Yes" }
+  ],
+  "resumePath": "./resume.pdf",
+  "coverLetterPath": ""
 }

@@ -12,7 +12,8 @@
     "load-extension": "node scripts/load-extension.js",
     "build:autofill": "node scripts/build-autofill.js",
     "auto-apply": "node scripts/build-autofill.js && node scripts/auto-apply-playwright.js",
-    "scrape": "node scripts/scrape-jobs.js"
+    "scrape": "node scripts/scrape-jobs.js",
+    "test:scripts": "node --test tests/node/*.test.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.461.0",
