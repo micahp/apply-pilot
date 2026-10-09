@@ -1,549 +1,386 @@
 #!/usr/bin/env node
 /**
- * Auto-Apply Playwright Automation Script
- * 
- * Reads scraped jobs from jobs.json and a user profile from profile.json,
- * then navigates to each job's application page, fills in the form,
- * and submits (or stops for review based on --mode).
- * 
+ * Auto-apply runner.
+ *
+ * For each job in jobs.json: open the application form, fill it with the same engine the
+ * extension uses, attach the resume, and either stop for review (default) or submit.
+ * It only submits when every required question is answered and no CAPTCHA is showing,
+ * and only records "submitted" after the site confirms it.
+ *
  * Usage:
- *   node scripts/auto-apply-playwright.js                    # Review mode (fills, stops before submit)
- *   node scripts/auto-apply-playwright.js --submit           # Auto-submit mode
- *   node scripts/auto-apply-playwright.js --headless         # Run headless
- *   node scripts/auto-apply-playwright.js --limit 5          # Limit applications
- *   node scripts/auto-apply-playwright.js --profile my-profile.json
+ *   pnpm auto-apply                      # fill + screenshot/review, never submit
+ *   pnpm auto-apply -- --submit          # submit forms that are complete
+ *   Options: --jobs jobs.json --profile profile.json --results apply-results.json
+ *            --limit N --min-score N --location <regex> --only <url substring>
+ *            --headless --retry (re-attempt jobs that previously needed review/failed)
+ *
+ * Statuses written to the results file:
+ *   submitted     site showed an application-received confirmation
+ *   ready         complete and valid, not submitted (review mode)
+ *   needs-review  required questions unanswered; see `unanswered` and add customAnswers
+ *   needs-human   a CAPTCHA challenge is showing
+ *   rejected      submit was clicked but the site reported validation errors
+ *   unconfirmed   submit was clicked but no confirmation appeared
+ *   no-form       no application form could be found
+ *   error         navigation or script failure
  */
 
-const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
+const readline = require('readline');
+const { parseArgs } = require('util');
 
-// ─── Configuration ───────────────────────────────────────────────
+const ROOT = path.resolve(__dirname, '..');
+const ENGINE_IIFE = path.join(ROOT, 'dist/autofill/autofill.iife.js');
+const ENGINE_CJS = path.join(ROOT, 'dist/autofill/autofill.cjs');
 
-const JOBS_FILE = path.resolve(__dirname, '..', 'jobs.json');
-const DEFAULT_PROFILE = path.resolve(__dirname, '..', 'profile.json');
-const RESULTS_FILE = path.resolve(__dirname, '..', 'apply-results.json');
-const EXTENSION_PATH = path.resolve(__dirname, '..', 'dist', 'apps', 'extension');
+const RETRYABLE = new Set(['needs-review', 'needs-human', 'rejected', 'unconfirmed', 'no-form', 'error']);
 
-// ─── Parse Args ──────────────────────────────────────────────────
+// ─── Pure helpers (exported for tests) ──────────────────────────────
 
-const args = process.argv.slice(2);
-const config = {
-  submit: args.includes('--submit'),
-  headless: args.includes('--headless'),
-  resume: args.includes('--resume'),
-  limit: parseInt(args.includes('--limit') ? args[args.indexOf('--limit') + 1] : '999', 10),
-  profilePath: args.includes('--profile') ? args[args.indexOf('--profile') + 1] : DEFAULT_PROFILE,
-};
-
-console.log(`[auto-apply] Mode: ${config.submit ? 'AUTO-SUBMIT' : 'REVIEW (fills, stops before submit)'}`);
-console.log(`[auto-apply] Headless: ${config.headless}`);
-console.log(`[auto-apply] Max applications: ${config.limit}`);
-
-// ─── Load Data ────────────────────────────────────────────────────
-
-let jobs, profileData;
-
-try {
-  jobs = JSON.parse(fs.readFileSync(JOBS_FILE, 'utf-8'));
-  console.log(`[auto-apply] Loaded ${jobs.length} jobs from jobs.json`);
-} catch (e) {
-  console.error(`[auto-apply] ERROR: Could not load jobs.json: ${e.message}`);
-  process.exit(1);
-}
-
-try {
-  profileData = JSON.parse(fs.readFileSync(config.profilePath, 'utf-8'));
-  console.log(`[auto-apply] Loaded profile from ${config.profilePath}`);
-} catch (e) {
-  console.error(`[auto-apply] ERROR: Could not load profile.json: ${e.message}`);
-  console.error(`[auto-apply] Create one from profile.example.json`);
-  process.exit(1);
-}
-
-// Validate profile
-if (!profileData.personal?.firstName || !profileData.personal?.email) {
-  console.error('[auto-apply] ERROR: Profile must have at least firstName and email set.');
-  process.exit(1);
-}
-
-// ─── Utility Functions ────────────────────────────────────────────
-
-/**
- * Human-like typing with random delays
- */
-async function typeLikeHuman(page, selector, text, options = {}) {
-  if (!text) return;
-  try {
-    await page.waitForSelector(selector, { timeout: 5000 });
-    await page.click(selector);
-    await page.fill(selector, '');
-    // Slow type with delay
-    await page.type(selector, text, { delay: Math.random() * 50 + 20 });
-    if (options.blur) await page.keyboard.press('Tab');
-  } catch (e) {
-    // Silently skip if field not found
-  }
-}
-
-/**
- * Select from dropdown/radio/checkbox
- */
-async function selectOption(page, selector, value) {
-  if (!value) return;
-  try {
-    await page.waitForSelector(selector, { timeout: 3000 });
-    await page.selectOption(selector, { label: value });
-  } catch {
-    try {
-      await page.selectOption(selector, value);
-    } catch {
-      // Skip
-    }
-  }
-}
-
-/**
- * Click a radio button by label text
- */
-async function clickRadio(page, labelPattern) {
-  try {
-    const label = page.locator('label').filter({ hasText: labelPattern }).first();
-    if (await label.count() > 0) {
-      await label.click();
-      return true;
-    }
-    // Try clicking the radio input directly
-    const radio = page.locator(`input[type="radio"][value*="${labelPattern}" i]`).first();
-    if (await radio.count() > 0) {
-      await radio.click();
-      return true;
-    }
-  } catch {}
-  return false;
-}
-
-/**
- * Detect ATS platform from URL
- */
 function detectPlatform(url) {
-  if (url.includes('greenhouse.io') || url.includes('job-boards.greenhouse.io')) return 'greenhouse';
-  if (url.includes('jobs.lever.co') || url.includes('lever.co')) return 'lever';
-  if (url.includes('workable.com')) return 'workable';
-  if (url.includes('ashbyhq.com')) return 'ashby';
-  if (url.includes('myworkdayjobs.com') || url.includes('workday.com')) return 'workday';
-  return 'generic';
+  const host = new URL(url).hostname;
+  if (/greenhouse\.io$/.test(host)) return 'greenhouse';
+  if (host === 'jobs.lever.co') return 'lever';
+  if (host === 'jobs.ashbyhq.com') return 'ashby';
+  if (/workable\.com$/.test(host)) return 'workable';
+  if (/myworkdayjobs\.com$/.test(host)) return 'workday';
+  return 'other';
 }
 
-// ─── Platform-Specific Fillers ────────────────────────────────────
+/** Where the application form lives, when the platform puts it on a predictable URL. */
+function applicationUrl(url) {
+  const u = new URL(url);
+  const clean = u.pathname.replace(/\/+$/, '');
+  switch (detectPlatform(url)) {
+    case 'lever':
+      return clean.endsWith('/apply') ? u.href : `${u.origin}${clean}/apply`;
+    case 'ashby':
+      return clean.endsWith('/application') ? u.href : `${u.origin}${clean}/application`;
+    case 'workable':
+      return /\/apply$/.test(clean) ? u.href : `${u.origin}${clean}/apply/`;
+    default:
+      return u.href;
+  }
+}
 
-async function fillGreenhouse(page, profile) {
-  console.log('  [greenhouse] Filling application...');
-  const p = profile.personal;
-  const prefs = profile.preferences || {};
+function selectJobs(jobs, previous, opts) {
+  const location = opts.location ? new RegExp(opts.location, 'i') : null;
+  return jobs
+    .filter((job) => job && job.url)
+    .filter((job) => (job.score ?? 0) >= opts.minScore)
+    .filter((job) => !location || location.test(`${job.location || ''} ${job.remote ? 'remote' : ''}`))
+    .filter((job) => !opts.only || job.url.includes(opts.only))
+    .filter((job) => {
+      const prior = previous.get(job.url);
+      if (!prior) return true;
+      if (prior.status === 'submitted') return false; // never apply twice
+      return opts.retry && RETRYABLE.has(prior.status);
+    })
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+    .slice(0, opts.limit);
+}
 
-  // Name fields
-  await typeLikeHuman(page, '#first_name', p.firstName);
-  await typeLikeHuman(page, '#last_name', p.lastName);
-  await typeLikeHuman(page, 'input[name*="email" i]', p.email, { blur: true });
-  await typeLikeHuman(page, 'input[name*="phone" i]', p.phone, { blur: true });
+function decide(report) {
+  if (report.captcha.blocking) return { status: 'needs-human', reason: `CAPTCHA (${report.captcha.kinds.join(', ')})` };
+  if (report.requiredUnanswered.length > 0) {
+    return { status: 'needs-review', reason: `${report.requiredUnanswered.length} required question(s) unanswered` };
+  }
+  return { status: 'ready', reason: 'all required questions answered' };
+}
 
-  // Location
-  await typeLikeHuman(page, 'input[name*="location" i], input[id*="location" i]', `${p.city}, ${p.state}`, { blur: true });
+function loadResults(file) {
+  if (!fs.existsSync(file)) return new Map();
+  const records = JSON.parse(fs.readFileSync(file, 'utf8'));
+  return new Map(records.map((r) => [r.url, r]));
+}
 
-  // LinkedIn / GitHub
-  await typeLikeHuman(page, 'input[name*="linkedin" i], input[id*="linkedin" i]', p.linkedIn, { blur: true });
-  await typeLikeHuman(page, 'input[name*="github" i], input[id*="github" i]', p.github, { blur: true });
-  await typeLikeHuman(page, 'input[name*="website" i], input[id*="website" i]', p.website, { blur: true });
+function saveResults(file, results) {
+  fs.writeFileSync(file, JSON.stringify(Array.from(results.values()), null, 2));
+}
 
-  // Resume upload
-  if (profile.resumePath && fs.existsSync(profile.resumePath)) {
-    try {
-      const fileInput = page.locator('input[type="file"]').first();
-      if (await fileInput.count() > 0) {
-        await fileInput.setInputFiles(profile.resumePath);
-        console.log('  [greenhouse] Resume uploaded');
+function slug(text) {
+  return String(text || 'job').replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '').slice(0, 60);
+}
+
+// ─── Browser steps ──────────────────────────────────────────────────
+
+const engineSource = () => fs.readFileSync(ENGINE_IIFE, 'utf8');
+
+async function injectEngine(frame) {
+  const loaded = await frame.evaluate(() => Boolean(window.AutoApplyEngine)).catch(() => false);
+  if (!loaded) await frame.addScriptTag({ content: engineSource() });
+}
+
+/** The frame holding the application form (Greenhouse is often embedded in an iframe). */
+async function findFormFrame(page, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    for (const frame of page.frames()) {
+      try {
+        await injectEngine(frame);
+        const found = await frame.evaluate(() => {
+          const root = window.AutoApplyEngine.findApplicationRoot(document);
+          return root !== document.body || Boolean(document.querySelector('input[type="email"], input[name*="email" i]'));
+        });
+        if (found) return frame;
+      } catch {
+        // Frame navigated or detached mid-check; try again next round.
       }
-    } catch {}
+    }
+    await page.waitForTimeout(500);
   }
+  return null;
+}
 
-  // Cover letter
-  const coverLetterText = profile.documents?.coverLetterText || profile.coverLetterBase || '';
-  const coverLetterField = page.locator('textarea[name*="cover" i], textarea[id*="cover" i], #cover_letter_text').first();
-  if (coverLetterText && await coverLetterField.count() > 0) {
-    await coverLetterField.fill(coverLetterText);
+/** On a job description page, click through to the application form. */
+async function clickApply(page) {
+  const apply = page
+    .locator('a, button')
+    .filter({ hasText: /^\s*(apply( now| for this (job|position|role))?|i'?m interested)\s*$/i })
+    .first();
+  if ((await apply.count()) === 0) return page;
+  const popup = page.context().waitForEvent('page', { timeout: 5000 }).catch(() => null);
+  await apply.click();
+  const opened = await popup;
+  const target = opened || page;
+  await target.waitForLoadState('domcontentloaded').catch(() => {});
+  return target;
+}
+
+async function fill(frame, profile, job, options = {}) {
+  return frame.evaluate(
+    async ({ profile, job, options }) => {
+      const engine = window.AutoApplyEngine;
+      return engine.fillForm(engine.findApplicationRoot(document), engine.normalizeProfile(profile), { job, ...options });
+    },
+    { profile, job, options }
+  );
+}
+
+async function attachFiles(frame, report, profile) {
+  const attached = [];
+  for (const field of report.filesNeeded) {
+    const file = field.key === 'resume' ? profile.resumePath : field.key === 'coverLetterFile' ? profile.coverLetterPath : null;
+    if (!file) continue;
+    await frame.setInputFiles(`[data-autoapply-id="${field.id}"]`, file);
+    attached.push(field.key);
   }
+  return attached;
+}
 
-  // Work authorization
-  if (prefs.usWorkAuth) {
-    const workAuthVal = prefs.usWorkAuth.toLowerCase().includes('yes') ? 'Yes' : 'No';
-    await selectOption(page, 'select[name*="authorization" i], select[id*="authorization" i]', workAuthVal);
-    await clickRadio(page, 'authorized');
-    await clickRadio(page, 'eligible');
-  }
+async function submit(page, frame) {
+  const marked = await frame.evaluate(() => {
+    const engine = window.AutoApplyEngine;
+    const button = engine.findSubmitButton(engine.findApplicationRoot(document));
+    if (!button) return false;
+    button.setAttribute('data-autoapply-submit', 'true');
+    return true;
+  });
+  if (!marked) return { status: 'unconfirmed', reason: 'no submit button found' };
 
-  // Sponsorship
-  if (prefs.sponsorshipRequired) {
-    const sponsorVal = prefs.sponsorshipRequired.toLowerCase().includes('no') ? 'No' : 'Yes';
-    await clickRadio(page, sponsorVal);
-  }
+  const startUrl = page.url();
+  await frame.click('[data-autoapply-submit="true"]');
 
-  // EEO / Demographic questions (optional — skip if configured)
-  // Most Greenhouse forms have these at the end
-
-  // Add any custom questions from profile
-  if (profile.customAnswers) {
-    for (const [question, answer] of Object.entries(profile.customAnswers)) {
-      await typeLikeHuman(page, `input[aria-label*="${question}" i], textarea[aria-label*="${question}" i]`, answer);
+  const deadline = Date.now() + 20000;
+  while (Date.now() < deadline) {
+    await page.waitForTimeout(1000);
+    for (const f of page.frames()) {
+      try {
+        await injectEngine(f);
+        const state = await f.evaluate(() => ({
+          confirmed: window.AutoApplyEngine.detectConfirmation(document),
+          captcha: window.AutoApplyEngine.detectCaptcha(document),
+          errors: window.AutoApplyEngine.validationErrors(document),
+        }));
+        if (state.confirmed) return { status: 'submitted', reason: 'confirmation shown' };
+        if (state.captcha.blocking) return { status: 'needs-human', reason: 'CAPTCHA challenge after submit' };
+        if (state.errors.length > 0 && f === frame) return { status: 'rejected', reason: state.errors.join('; ') };
+      } catch {
+        // Navigation in progress.
+      }
+    }
+    if (/confirm|thank|success|submitted/i.test(page.url()) && page.url() !== startUrl) {
+      return { status: 'submitted', reason: `redirected to ${page.url()}` };
     }
   }
-
-  return { filled: true, platform: 'greenhouse' };
+  return { status: 'unconfirmed', reason: 'no confirmation within 20s' };
 }
 
-async function fillLever(page, profile) {
-  console.log('  [lever] Filling application...');
-  const p = profile.personal;
-  const prefs = profile.preferences || {};
-
-  // Lever uses card-based form — typically name, email, phone, resume, links
-  await typeLikeHuman(page, 'input[name="name"]', `${p.firstName} ${p.lastName}`);
-  await typeLikeHuman(page, 'input[name="email"]', p.email);
-  await typeLikeHuman(page, 'input[name="phone"]', p.phone);
-
-  // Location (often a text field or autocomplete)
-  await typeLikeHuman(page, 'input[name*="location" i]', `${p.city}, ${p.state}`, { blur: true });
-
-  // LinkedIn
-  await typeLikeHuman(page, 'input[name*="urls[LinkedIn]" i], input[name*="linkedin" i]', p.linkedIn);
-  await typeLikeHuman(page, 'input[name*="urls[GitHub]" i], input[name*="github" i]', p.github);
-  await typeLikeHuman(page, 'input[name*="urls[Portfolio]" i], input[name*="urls[Website]" i]', p.website);
-
-  // Resume upload
-  if (profile.resumePath && fs.existsSync(profile.resumePath)) {
-    try {
-      const fileInput = page.locator('input[type="file"]').first();
-      if (await fileInput.count() > 0) {
-        await fileInput.setInputFiles(profile.resumePath);
-        console.log('  [lever] Resume uploaded');
-      }
-    } catch {}
-  }
-
-  // Cover letter
-  const coverText = profile.documents?.coverLetterText || profile.coverLetterBase || '';
-  const coverField = page.locator('textarea[name*="comments" i], textarea[name*="cover" i]').first();
-  if (coverText && await coverField.count() > 0) {
-    await coverField.fill(coverText);
-  }
-
-  // Work authorization
-  if (prefs.usWorkAuth) await clickRadio(page, 'Yes');
-  if (prefs.sponsorshipRequired) await clickRadio(page, 'No');
-
-  return { filled: true, platform: 'lever' };
+function waitForEnter(prompt) {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise((resolve) => rl.question(prompt, () => {
+    rl.close();
+    resolve();
+  }));
 }
 
-async function fillWorkable(page, profile) {
-  console.log('  [workable] Filling application...');
-  const p = profile.personal;
-  const prefs = profile.preferences || {};
-
-  await typeLikeHuman(page, 'input[name="firstname"]', p.firstName);
-  await typeLikeHuman(page, 'input[name="lastname"]', p.lastName);
-  await typeLikeHuman(page, 'input[name="email"]', p.email);
-  await typeLikeHuman(page, 'input[name="phone"]', p.phone);
-  await typeLikeHuman(page, 'input[name="headline"]', 'Senior Software Engineer — AI/LLM');
-
-  // Resume
-  if (profile.resumePath && fs.existsSync(profile.resumePath)) {
-    try {
-      const fileInput = page.locator('input[type="file"]').first();
-      if (await fileInput.count() > 0) {
-        await fileInput.setInputFiles(profile.resumePath);
-        console.log('  [workable] Resume uploaded');
-      }
-    } catch {}
-  }
-
-  // Cover letter / summary
-  const coverText = profile.documents?.coverLetterText || profile.coverLetterBase || '';
-  const summaryField = page.locator('textarea[name*="summary" i], textarea[name*="cover" i]').first();
-  if (coverText && await summaryField.count() > 0) {
-    await summaryField.fill(coverText);
-  }
-
-  return { filled: true, platform: 'workable' };
-}
-
-async function fillGeneric(page, profile) {
-  console.log('  [generic] Attempting generic form fill...');
-  const p = profile.personal;
-  const prefs = profile.preferences || {};
-
-  // Try common field patterns
-  const fieldMap = {
-    'first': p.firstName,
-    'last': p.lastName,
-    'email': p.email,
-    'phone': p.phone,
-    'address': p.address || `${p.city}, ${p.state} ${p.zipCode}`,
-    'city': p.city,
-    'state': p.state,
-    'zip': p.zipCode,
-    'linkedin': p.linkedIn,
-    'github': p.github,
-    'website': p.website,
-    'portfolio': p.website,
-  };
-
-  for (const [key, value] of Object.entries(fieldMap)) {
-    if (!value) continue;
-    try {
-      const inputs = page.locator(`input[name*="${key}" i], input[id*="${key}" i], input[placeholder*="${key}" i]`);
-      const count = await inputs.count();
-      for (let i = 0; i < count; i++) {
-        const input = inputs.nth(i);
-        if (await input.isVisible()) {
-          await input.fill(value);
-          break;
-        }
-      }
-    } catch {}
-  }
-
-  // Resume upload
-  if (profile.resumePath && fs.existsSync(profile.resumePath)) {
-    try {
-      const fileInput = page.locator('input[type="file"]').first();
-      if (await fileInput.count() > 0) {
-        await fileInput.setInputFiles(profile.resumePath);
-        console.log('  [generic] Resume uploaded');
-      }
-    } catch {}
-  }
-
-  // Cover letter
-  const coverText = profile.documents?.coverLetterText || profile.coverLetterBase || '';
-  if (coverText) {
-    try {
-      const textareas = page.locator('textarea');
-      const count = await textareas.count();
-      for (let i = 0; i < count; i++) {
-        const ta = textareas.nth(i);
-        if (await ta.isVisible()) {
-          await ta.fill(coverText);
-          break;
-        }
-      }
-    } catch {}
-  }
-
-  return { filled: true, platform: 'generic' };
-}
-
-// ─── Main Application Flow ────────────────────────────────────────
-
-async function applyToJob(browser, job, profile, index, total) {
-  console.log(`\n[${index + 1}/${total}] ${job.title}`);
-  console.log(`  Company: ${job.company}`);
-  console.log(`  URL: ${job.url}`);
-  console.log(`  Score: ${job.score || 'N/A'}`);
-
-  const context = await browser.newContext({
-    viewport: { width: 1280, height: 900 },
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-  });
-
-  const page = await context.newPage();
-  let result = { success: false, error: null, filled: false, submitted: false };
+/**
+ * Apply to one job in a fresh browser context. Returns a result record; never throws.
+ */
+async function applyToJob(browser, job, profile, opts) {
+  const record = { url: job.url, title: job.title, company: job.company, attemptedAt: new Date().toISOString() };
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  let page = await context.newPage();
 
   try {
-    // Navigate to job page
-    console.log('  Navigating...');
-    await page.goto(job.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await page.waitForTimeout(2000);
+    await page.goto(applicationUrl(job.url), { waitUntil: 'domcontentloaded', timeout: 45000 });
+    let frame = await findFormFrame(page, 8000);
+    if (!frame) {
+      page = await clickApply(page);
+      frame = await findFormFrame(page, 10000);
+    }
+    if (!frame) return { ...record, status: 'no-form', reason: 'no application form found (may require an account or external site)' };
 
-    const platform = detectPlatform(job.url);
-    console.log(`  Detected platform: ${platform}`);
-
-    // Click the "Apply" button — varies by platform
-    let applyClicked = false;
-
-    if (platform === 'greenhouse') {
-      // Greenhouse: "Apply for this job" button
-      const applyBtn = page.locator('#apply_button, a[href*="?gh_jid="], button:has-text("Apply"), a:has-text("Apply")').first();
-      if (await applyBtn.count() > 0) {
-        await applyBtn.click();
-        applyClicked = true;
-        await page.waitForTimeout(3000);
-      }
-    } else if (platform === 'lever') {
-      // Lever: Apply button opens form inline or redirects
-      const applyBtn = page.locator('a[href*="/apply"], button:has-text("Apply"), .postings-btn').first();
-      if (await applyBtn.count() > 0) {
-        await applyBtn.click();
-        applyClicked = true;
-        await page.waitForTimeout(3000);
-      }
-    } else if (platform === 'workable') {
-      // Workable: Apply button
-      const applyBtn = page.locator('button[data-ui="apply-button"], a:has-text("Apply")').first();
-      if (await applyBtn.count() > 0) {
-        await applyBtn.click();
-        applyClicked = true;
-        await page.waitForTimeout(3000);
-      }
-    } else {
-      // Generic: try common apply button patterns
-      const genericApply = page.locator('a:has-text("Apply Now"), button:has-text("Apply"), a:has-text("Apply for"), button:has-text("Submit Application")').first();
-      if (await genericApply.count() > 0) {
-        await genericApply.click();
-        applyClicked = true;
-        await page.waitForTimeout(3000);
-      }
+    const jobContext = { company: job.company, title: job.title };
+    let report = await fill(frame, profile, jobContext);
+    const attached = await attachFiles(frame, report, profile);
+    if (attached.length > 0) {
+      // Some ATSs parse the resume and reveal or prefill fields; fill again without clobbering.
+      await page.waitForTimeout(1500);
+      report = await fill(frame, profile, jobContext);
     }
 
-    if (!applyClicked) {
-      console.log('  WARNING: No Apply button found. Job may require external application.');
-      result.error = 'No Apply button found';
-      return result;
+    const summary = {
+      filled: report.results.filter((r) => r.status === 'filled').length,
+      attached,
+      unanswered: report.requiredUnanswered.map((r) => ({ question: r.question, status: r.status, detail: r.message })),
+    };
+    let outcome = decide(report);
+
+    if (outcome.status === 'ready' && opts.submit) {
+      outcome = await submit(page, frame);
+    } else if (!opts.headless) {
+      console.log(`  ${outcome.reason}. Review the browser window${outcome.status === 'ready' ? ' and submit if it looks right' : ''}.`);
+      for (const q of summary.unanswered) console.log(`    - ${q.question || '(unlabeled)'} [${q.status}]`);
+      await waitForEnter('  Press Enter to continue to the next job… ');
+      const confirmed = await frame.evaluate(() => window.AutoApplyEngine.detectConfirmation(document)).catch(() => false);
+      if (confirmed) outcome = { status: 'submitted', reason: 'submitted manually during review' };
     }
 
-    console.log('  Application form loaded. Filling...');
-
-    // Fill form based on platform
-    let fillResult;
-    switch (platform) {
-      case 'greenhouse': fillResult = await fillGreenhouse(page, profile); break;
-      case 'lever': fillResult = await fillLever(page, profile); break;
-      case 'workable': fillResult = await fillWorkable(page, profile); break;
-      default: fillResult = await fillGeneric(page, profile); break;
+    if (outcome.status !== 'submitted') {
+      fs.mkdirSync(opts.screenshotDir, { recursive: true });
+      const shot = path.join(opts.screenshotDir, `${slug(job.company)}_${slug(job.title)}.png`);
+      await page.screenshot({ path: shot, fullPage: true }).catch(() => {});
+      summary.screenshot = path.relative(ROOT, shot);
     }
-
-    result.filled = fillResult.filled;
-    console.log(`  Fields filled on ${platform}`);
-
-    // Submit or review
-    if (config.submit) {
-      // Only target visible, non-hidden submit buttons (skip hCaptcha hidden buttons)
-      const allSubmitBtns = page.locator('input[type="submit"]:visible, button[type="submit"]:visible, button:has-text("Submit"):visible, button:has-text("Send"):visible, button:has-text("Apply"):visible, input[type="submit"][value*="Submit" i], button:has-text("Submit Application"):visible, a[role="button"]:has-text("Submit"):visible, [data-testid*="submit"]:visible, [data-qa*="submit"]:visible');
-      const submitCount = await allSubmitBtns.count();
-      let submitted = false;
-      for (let si = 0; si < submitCount; si++) {
-        const btn = allSubmitBtns.nth(si);
-        try {
-          const isVisible = await btn.isVisible();
-          const isEnabled = await btn.isEnabled();
-          const hasHiddenClass = await btn.evaluate(el => el.classList.contains('hidden') || el.closest('.hidden'));
-          if (isVisible && isEnabled && !hasHiddenClass) {
-            await btn.click();
-            await page.waitForTimeout(3000);
-            submitted = true;
-            break;
-          }
-        } catch { /* try next */ }
-      }
-      if (submitted) {
-        result.submitted = true;
-        console.log('  ✅ SUBMITTED');
-      } else {
-        console.log('  ⚠️  No visible submit button found — filled but not submitted');
-      }
-    } else {
-      if (config.headless) {
-        // Take screenshot for review
-        const ssDir = path.resolve(__dirname, '..', 'screenshots');
-        fs.mkdirSync(ssDir, { recursive: true });
-        const ssName = `${job.company.replace(/[^a-zA-Z0-9]/g, '_')}_${index}.png`;
-        await page.screenshot({ path: path.join(ssDir, ssName), fullPage: true });
-        console.log(`  📸 Screenshot saved: screenshots/${ssName}`);
-      } else {
-        console.log('  ⏸️  REVIEW MODE: Form filled. Review and submit manually.');
-        await page.waitForTimeout(30000);
-      }
-    }
-
-    result.success = true;
+    return { ...record, ...outcome, ...summary };
   } catch (error) {
-    console.error(`  ❌ Error: ${error.message}`);
-    result.error = error.message;
+    return { ...record, status: 'error', reason: error instanceof Error ? error.message.split('\n')[0] : String(error) };
   } finally {
-    try { await context.close(); } catch {}
+    await context.close().catch(() => {});
   }
-
-  return result;
 }
 
-// ─── Main ─────────────────────────────────────────────────────────
+// ─── CLI ────────────────────────────────────────────────────────────
+
+function parseCli(argv) {
+  const { values } = parseArgs({
+    args: argv,
+    options: {
+      submit: { type: 'boolean', default: false },
+      headless: { type: 'boolean', default: false },
+      retry: { type: 'boolean', default: false },
+      jobs: { type: 'string', default: path.join(ROOT, 'jobs.json') },
+      profile: { type: 'string', default: path.join(ROOT, 'profile.json') },
+      results: { type: 'string', default: path.join(ROOT, 'apply-results.json') },
+      screenshots: { type: 'string', default: path.join(ROOT, 'screenshots') },
+      limit: { type: 'string', default: '25' },
+      'min-score': { type: 'string', default: '0' },
+      location: { type: 'string' },
+      only: { type: 'string' },
+      'delay-ms': { type: 'string', default: '4000' },
+    },
+  });
+  const int = (name) => {
+    const n = Number(values[name]);
+    if (!Number.isFinite(n) || n < 0) throw new Error(`--${name} must be a non-negative number`);
+    return n;
+  };
+  return {
+    submit: values.submit,
+    headless: values.headless,
+    retry: values.retry,
+    jobsFile: path.resolve(values.jobs),
+    profileFile: path.resolve(values.profile),
+    resultsFile: path.resolve(values.results),
+    screenshotDir: path.resolve(values.screenshots),
+    limit: int('limit'),
+    minScore: int('min-score'),
+    location: values.location,
+    only: values.only,
+    delayMs: int('delay-ms'),
+  };
+}
+
+function loadProfile(file) {
+  if (!fs.existsSync(ENGINE_CJS)) throw new Error('Engine bundle missing; run `pnpm build:autofill` first.');
+  const { normalizeProfile, validateProfile } = require(ENGINE_CJS);
+  const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const problems = validateProfile(normalizeProfile(raw));
+  if (problems.length > 0) throw new Error(`profile ${file} is incomplete:\n  - ${problems.join('\n  - ')}`);
+
+  const resolveFile = (p) => (p ? path.resolve(path.dirname(file), p) : undefined);
+  const profile = { ...raw, resumePath: resolveFile(raw.resumePath), coverLetterPath: resolveFile(raw.coverLetterPath) };
+  for (const key of ['resumePath', 'coverLetterPath']) {
+    if (profile[key] && !fs.existsSync(profile[key])) throw new Error(`${key} does not exist: ${profile[key]}`);
+  }
+  if (!profile.resumePath) console.warn('[auto-apply] No resumePath in profile; most forms require a resume and will end up needs-review.');
+  return profile;
+}
+
+function printSummary(results, resultsFile) {
+  const byStatus = {};
+  const questions = {};
+  for (const r of results) {
+    byStatus[r.status] = (byStatus[r.status] || 0) + 1;
+    for (const q of r.unanswered || []) questions[q.question] = (questions[q.question] || 0) + 1;
+  }
+  console.log('\n── Summary ─────────────────────────────────────');
+  for (const [status, count] of Object.entries(byStatus)) console.log(`  ${status.padEnd(13)} ${count}`);
+  const common = Object.entries(questions).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  if (common.length > 0) {
+    console.log('\n  Most common unanswered questions (add these to customAnswers in your profile):');
+    for (const [q, n] of common) console.log(`    ${String(n).padStart(3)}× ${q}`);
+  }
+  console.log(`\n  Results: ${path.relative(process.cwd(), resultsFile)}`);
+}
 
 async function main() {
-  // Load previously processed URLs if resuming
-  let processedUrls = new Set();
-  let existingResults = [];
-  if (config.resume) {
-    try {
-      existingResults = JSON.parse(fs.readFileSync(RESULTS_FILE, 'utf-8'));
-      processedUrls = new Set(existingResults.map(r => r.job.url));
-      console.log(`[auto-apply] Resuming: skipping ${processedUrls.size} already-processed jobs`);
-    } catch { /* no existing results */ }
+  const opts = parseCli(process.argv.slice(2));
+  const profile = loadProfile(opts.profileFile);
+  const jobs = JSON.parse(fs.readFileSync(opts.jobsFile, 'utf8'));
+  const results = loadResults(opts.resultsFile);
+  const selected = selectJobs(jobs, results, opts);
+
+  console.log(`[auto-apply] ${opts.submit ? 'SUBMIT' : 'REVIEW'} mode · ${selected.length} of ${jobs.length} jobs selected`);
+  if (selected.length === 0) return;
+
+  const { chromium } = require('playwright');
+  const browser = await chromium.launch({ headless: opts.headless, executablePath: process.env.CHROMIUM_PATH || undefined });
+  const run = [];
+  try {
+    for (const [i, job] of selected.entries()) {
+      console.log(`\n[${i + 1}/${selected.length}] ${job.title} @ ${job.company}\n  ${job.url}`);
+      const result = await applyToJob(browser, job, profile, opts);
+      console.log(`  → ${result.status}: ${result.reason}`);
+      results.set(job.url, result);
+      saveResults(opts.resultsFile, results);
+      run.push(result);
+      if (i < selected.length - 1) await new Promise((r) => setTimeout(r, opts.delayMs * (0.75 + Math.random() / 2)));
+    }
+  } finally {
+    await browser.close();
   }
-
-  // Filter and sort jobs: US/Remote, high score
-  const filtered = jobs
-    .filter(j => {
-      if (processedUrls.has(j.url)) return false;
-      const loc = (j.location || '').toLowerCase();
-      const isUS = /united states|usa|san francisco|new york|palo alto|seattle|remote|austin|boston|denver|chicago|los angeles|dc|mountain view|menlo park/i.test(loc);
-      return (j.score || 0) >= 35 && (isUS || loc.includes('remote'));
-    })
-    .sort((a, b) => (b.score || 0) - (a.score || 0))
-    .slice(0, config.limit);
-
-  console.log(`\n[auto-apply] Targeting ${filtered.length} high-relevance US/Remote jobs`);
-
-  const results = config.resume ? [...existingResults] : [];
-  const browser = await chromium.launch({
-    headless: config.headless,
-    slowMo: config.headless ? 0 : 100, // Slow down in visible mode
-  });
-
-  for (let i = 0; i < filtered.length; i++) {
-    const result = await applyToJob(browser, filtered[i], profileData, i, filtered.length);
-    results.push({
-      job: filtered[i],
-      result,
-      timestamp: new Date().toISOString(),
-    });
-
-    // Save incremental results
-    fs.writeFileSync(RESULTS_FILE, JSON.stringify(results, null, 2));
-
-    // Rate limit between applications
-    await new Promise(r => setTimeout(r, 2000 + Math.random() * 3000));
-  }
-
-  await browser.close();
-
-  // Final summary
-  const successCount = results.filter(r => r.result.success).length;
-  const submittedCount = results.filter(r => r.result.submitted).length;
-  const filledCount = results.filter(r => r.result.filled).length;
-
-  console.log('\n═══════════════════════════════════════════════════════');
-  console.log(`  AUTO-APPLY SUMMARY`);
-  console.log(`  Total attempted: ${results.length}`);
-  console.log(`  Successfully filled: ${filledCount}`);
-  console.log(`  Submitted: ${submittedCount}`);
-  console.log(`  Results saved to: ${RESULTS_FILE}`);
-  console.log('═══════════════════════════════════════════════════════\n');
-
-  if (!config.submit) {
-    console.log('💡 To auto-submit, run with --submit flag after reviewing the filled forms.');
-  }
+  printSummary(run, opts.resultsFile);
+  if (run.some((r) => r.status === 'error')) process.exitCode = 1;
 }
 
-main().catch(err => {
-  console.error('Fatal error:', err);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(`[auto-apply] ${error.message}`);
+    process.exit(1);
+  });
+}
+
+module.exports = { applicationUrl, applyToJob, decide, detectPlatform, loadProfile, parseCli, selectJobs };

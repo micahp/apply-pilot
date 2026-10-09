@@ -11,13 +11,44 @@ export interface PersonalInfo {
   linkedIn?: string;
   github?: string;
   website?: string;
+  preferredName?: string;
+  pronouns?: string;
 }
 
+/** Leave a field empty to decline to self-identify where the form allows it. */
 export interface EEOData {
   gender?: string;
+  race?: string;
+  /** @deprecated older profiles stored race here; read as `race`. */
   ethnicity?: string;
-  veteranStatus?: boolean;
-  disabilityStatus?: boolean;
+  hispanicOrLatino?: string;
+  veteranStatus?: string;
+  disabilityStatus?: string;
+}
+
+/** 'Yes' / 'No' / '' (unanswered) for yes/no screening questions. */
+export type YesNo = 'Yes' | 'No' | '';
+
+export interface Preferences {
+  workAuthorized?: YesNo;
+  requiresSponsorship?: YesNo;
+  willingToRelocate?: YesNo;
+  desiredSalary?: string;
+  availableStartDate?: string;
+  noticePeriod?: string;
+  howDidYouHear?: string;
+}
+
+export interface CustomAnswer {
+  /** Case-insensitive substring of the question, or /regex/. */
+  question: string;
+  answer: string;
+}
+
+export interface StoredFile {
+  name: string;
+  type: string;
+  dataUrl: string;
 }
 
 export interface WorkExperience {
@@ -56,6 +87,9 @@ export interface Profile {
   education: Education[];
   skills: Skill[];
   documents: Documents;
+  preferences?: Preferences;
+  customAnswers?: CustomAnswer[];
+  resumeFile?: StoredFile;
 }
 
 export type PartialProfile = {
@@ -65,6 +99,9 @@ export type PartialProfile = {
   eeo?: Partial<EEOData>;
   skills?: (Skill | string)[];
   documents?: Partial<Documents>;
+  preferences?: Preferences;
+  customAnswers?: CustomAnswer[];
+  resumeFile?: StoredFile;
 }
 
 // Added from user context and popup implementation needs

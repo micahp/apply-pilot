@@ -23,5 +23,7 @@ document.addEventListener('submit', function (event) {
   var data = {};
   new FormData(form).forEach(function (value, key) { data[key] = value instanceof File ? value.name : value; });
   window.__submitted = data;
+  // Lets tests observe exactly what was submitted.
+  fetch('/__submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).catch(function () {});
   document.body.innerHTML = '<h1>Thank you for applying!</h1><p>Your application has been submitted.</p>';
 });

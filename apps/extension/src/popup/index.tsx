@@ -1,184 +1,157 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { onMessage } from 'webext-bridge/popup';
 import EditProfile from './EditProfile';
 import ProfileDisplay from './ProfileDisplay';
 import CoverLetterGenerator from './CoverLetterGenerator';
-import { PartialProfile, ATSMessageData, ATSFieldDescriptor } from '../types/profile';
-import { DEFAULT_PROFILE } from '../utils/defaultProfile';
+import type { PartialProfile } from '../types/profile';
+import type { FillReport } from '../autofill';
 import './styles.css';
+
+type FillState =
+  | { kind: 'idle' }
+  | { kind: 'running' }
+  | { kind: 'done'; report: FillReport }
+  | { kind: 'error'; message: string };
+
+async function activeTabId(): Promise<number | undefined> {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  return tab?.id;
+}
 
 const Popup: React.FC = () => {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<PartialProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showCoverLetter, setShowCoverLetter] = useState(false);
-
   const [detectedATS, setDetectedATS] = useState<string | null>(null);
-  const [isOnApplicationPage, setIsOnApplicationPage] = useState<boolean>(false);
-  const [showAutoApplyButton, setShowAutoApplyButton] = useState<boolean>(false);
-  const [atsFormFields, setAtsFormFields] = useState<ATSFieldDescriptor[] | null>(null);
   const [isWorkExperienceOpen, setIsWorkExperienceOpen] = useState(false);
-  const [isOnGreenhouseSite, setIsOnGreenhouseSite] = useState<boolean>(false);
+  const [fillState, setFillState] = useState<FillState>({ kind: 'idle' });
+  const [notice, setNotice] = useState<string | null>(null);
+  const importInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     chrome.storage.local.get(['profile'], (result) => {
       setLoading(false);
-      if (result.profile) {
-        setProfile(result.profile);
-      } else {
-        // Pre-load default profile (Micah's resume data) instead of blank form
-        setProfile(DEFAULT_PROFILE);
-        setIsEditing(true);
-        // Save default to storage so it persists
-        chrome.storage.local.set({ profile: DEFAULT_PROFILE });
-      }
+      if (result.profile) setProfile(result.profile);
+      else setIsEditing(true);
     });
 
-    // Check if on Greenhouse for a specific button
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]?.url?.includes('greenhouse.io')) {
-        setIsOnGreenhouseSite(true);
-      }
+    activeTabId().then((tabId) => {
+      if (!tabId) return;
+      chrome.tabs.sendMessage(tabId, { action: 'checkATS' }, (response) => {
+        // No content script on this page (not an ATS site): lastError is expected.
+        if (chrome.runtime.lastError) return;
+        if (response?.detected) setDetectedATS(response.ats);
+      });
     });
-
-    const cleanupAtsAppPage = onMessage<ATSMessageData, 'ats-application-page-detected'>('ats-application-page-detected', ({ data }) => {
-      console.log('Popup: ATS Application Page Detected:', data.ats, data.fields);
-      setDetectedATS(data.ats);
-      setIsOnApplicationPage(true);
-      setShowAutoApplyButton(true);
-      setAtsFormFields(data.fields || null);
-    });
-
-    const cleanupAtsSite = onMessage<ATSMessageData, 'ats-site-detected-not-app-page'>('ats-site-detected-not-app-page', ({ data }) => {
-      console.log('Popup: ATS Site Detected (not app page):', data.ats);
-      setDetectedATS(data.ats);
-      setIsOnApplicationPage(false);
-      setShowAutoApplyButton(false);
-      setAtsFormFields(null);
-    });
-
-    const cleanupNoAts = onMessage('no-ats-detected', () => {
-      console.log('Popup: No ATS Detected');
-      setDetectedATS(null);
-      setIsOnApplicationPage(false);
-      setShowAutoApplyButton(false);
-      setAtsFormFields(null);
-    });
-
-    return () => {
-      cleanupAtsAppPage();
-      cleanupAtsSite();
-      cleanupNoAts();
-    };
   }, []);
 
-  const handleSaveProfile = (updatedProfile: PartialProfile) => {
-    chrome.storage.local.set({ profile: updatedProfile }, () => {
-      setProfile(updatedProfile);
+  const saveProfile = (updated: PartialProfile) => {
+    chrome.storage.local.set({ profile: updated }, () => {
+      if (chrome.runtime.lastError) {
+        setNotice(`Could not save: ${chrome.runtime.lastError.message}`);
+        return;
+      }
+      setProfile(updated);
       setIsEditing(false);
     });
   };
 
-  const handleFillPageOrAutoApply = () => {
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-      if (tabs[0]?.id && profile) {
-        const action = isOnApplicationPage && atsFormFields ? 'autoApplyWithATSFields' : 'fillFields';
-        const messagePayload: any = {
-          action,
-          profileData: profile,
-        };
-        if (action === 'autoApplyWithATSFields') {
-          messagePayload.atsFields = atsFormFields;
-          messagePayload.atsName = detectedATS;
-        }
-        chrome.tabs.sendMessage(tabs[0].id, messagePayload);
-        console.log(`Sent ${action} to tab ${tabs[0].id}`, messagePayload);
+  const fillPage = async () => {
+    const tabId = await activeTabId();
+    if (!tabId) return;
+    setFillState({ kind: 'running' });
+    chrome.tabs.sendMessage(tabId, { action: 'fillFields' }, (response) => {
+      if (chrome.runtime.lastError) {
+        setFillState({ kind: 'error', message: 'AutoApply is not running on this page. Reload the page and try again.' });
+      } else if (!response?.success) {
+        setFillState({ kind: 'error', message: response?.error || 'Autofill failed.' });
+      } else {
+        setFillState({ kind: 'done', report: response.report });
       }
     });
   };
 
-  const openOptionsPage = () => {
-    chrome.runtime.openOptionsPage();
+  const exportProfile = () => {
+    if (!profile) return;
+    const blob = new Blob([JSON.stringify(profile, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'profile.json';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  const openJobListingsPage = () => {
-    const url = chrome.runtime.getURL('src/jobs/index.html');
-    console.log('Opening jobs page at URL:', url);
-    chrome.tabs.create({ url });
+  const importProfile = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      const parsed = JSON.parse(await file.text());
+      if (!parsed || typeof parsed !== 'object' || !parsed.personal) throw new Error('missing "personal" section');
+      saveProfile(parsed);
+      setNotice(`Imported ${file.name}`);
+    } catch (error) {
+      setNotice(`Import failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
   };
 
-  if (loading) {
-    return <div className="popup loading">Loading profile...</div>;
-  }
+  if (loading) return <div className="popup loading">Loading profile...</div>;
 
   return (
     <div className="popup">
       <div className="header">
         <h1>AutoApply</h1>
         <div className="header-buttons">
-          <button 
-            className="options-btn" 
-            onClick={openOptionsPage}
-            title="Open full settings page"
-          >
-            Settings
+          <button className="options-btn" onClick={() => importInput.current?.click()} title="Load a profile.json (same format as the auto-apply script)">
+            Import
           </button>
-          <button 
-            className="jobs-btn"
-            onClick={openJobListingsPage}
-            title="Find job listings"
-          >
+          <button className="options-btn" onClick={exportProfile} disabled={!profile} title="Save your profile as profile.json for the auto-apply script">
+            Export
+          </button>
+          <button className="jobs-btn" onClick={() => chrome.tabs.create({ url: chrome.runtime.getURL('src/jobs/index.html') })}>
             Find Jobs
           </button>
+          <input ref={importInput} type="file" accept="application/json,.json" hidden onChange={(e) => importProfile(e.target.files?.[0])} />
         </div>
       </div>
 
-      <div className="action-header">
-        {detectedATS && (
-          <p className="ats-info">
-            Detected: <strong>{detectedATS}</strong>
-            {isOnApplicationPage ? " (Application Page)" : detectedATS ? " (Site)" : ""}
-          </p>
-        )}
-        {/* Greenhouse-specific button */}
-        {isOnGreenhouseSite && profile && (
-          <button
-            className="fill-btn primary-action greenhouse-btn"
-            onClick={handleFillPageOrAutoApply}
-            title="Fill Greenhouse page with your profile data"
-          >
-            Autofill Greenhouse Page
+      {notice && <p className="form-hint">{notice}</p>}
+
+      {detectedATS && profile && (
+        <div className="action-header">
+          <p className="ats-info">Detected: <strong>{detectedATS}</strong></p>
+          <button className="fill-btn primary-action" onClick={fillPage} disabled={fillState.kind === 'running'}>
+            {fillState.kind === 'running' ? 'Filling…' : 'Autofill this application'}
           </button>
-        )}
-        {/* Generic AutoApply button (will not show if Greenhouse button is shown and we hide it) */}
-        {!isOnGreenhouseSite && showAutoApplyButton && profile && (
-          <button
-            className="fill-btn primary-action"
-            onClick={handleFillPageOrAutoApply}
-            title={isOnApplicationPage && atsFormFields ? `Auto-fill ${detectedATS} application with your profile` : "Fill page with your profile data"}
-          >
-            {isOnApplicationPage && detectedATS ? `Auto Apply to ${detectedATS}` : "Fill Current Page"}
-          </button>
-        )}
-      </div>
+          {fillState.kind === 'error' && <div className="error-message">{fillState.message}</div>}
+          {fillState.kind === 'done' && (
+            <div className="fill-report">
+              <p>Filled {fillState.report.filled} fields.</p>
+              {fillState.report.requiredUnanswered.length > 0 && (
+                <>
+                  <p>Required questions still unanswered:</p>
+                  <ul>
+                    {fillState.report.requiredUnanswered.map((f) => (
+                      <li key={f.id}>{f.question || '(unlabeled field)'}</li>
+                    ))}
+                  </ul>
+                  <p className="form-hint">Add custom answers in your profile to fill these next time.</p>
+                </>
+              )}
+              {fillState.report.captcha.blocking && <p className="error-message">Solve the CAPTCHA on the page before submitting.</p>}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="content">
         {showCoverLetter ? (
-          <CoverLetterGenerator
-            profile={profile}
-            onBack={() => setShowCoverLetter(false)}
-          />
+          <CoverLetterGenerator profile={profile} onBack={() => setShowCoverLetter(false)} />
         ) : isEditing || !profile ? (
-          <EditProfile 
-            initialProfile={profile || {}} 
-            onSave={handleSaveProfile} 
-            onCancel={profile ? () => setIsEditing(false) : undefined}
-          />
+          <EditProfile initialProfile={profile || {}} onSave={saveProfile} onCancel={profile ? () => setIsEditing(false) : undefined} />
         ) : (
-          <ProfileDisplay 
-            profile={profile} 
+          <ProfileDisplay
+            profile={profile}
             onEdit={() => setIsEditing(true)}
             onGenerateCoverLetter={() => setShowCoverLetter(true)}
             isWorkExperienceOpen={isWorkExperienceOpen}
@@ -195,4 +168,4 @@ root.render(
   <React.StrictMode>
     <Popup />
   </React.StrictMode>
-); 
+);

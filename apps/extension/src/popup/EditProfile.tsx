@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Profile, PartialProfile, WorkExperience, Education, Skill } from '../types/profile';
+import { PartialProfile, WorkExperience, Education } from '../types/profile';
+import ApplicationAnswers from './ApplicationAnswers';
 import './styles.css';
 
 interface EditProfileProps {
@@ -15,7 +16,10 @@ const EditProfile: React.FC<EditProfileProps> = ({ initialProfile, onSave, onCan
     education: initialProfile.education || [{ institution: '', degree: '', fieldOfStudy: '', startDate: '' }],
     skills: initialProfile.skills || [],
     eeo: initialProfile.eeo || {},
-    documents: initialProfile.documents || {}
+    documents: initialProfile.documents || {},
+    preferences: initialProfile.preferences || {},
+    customAnswers: initialProfile.customAnswers || [],
+    resumeFile: initialProfile.resumeFile,
   });
 
   // Personal information handler
@@ -97,7 +101,11 @@ const EditProfile: React.FC<EditProfileProps> = ({ initialProfile, onSave, onCan
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(profile);
+    onSave({
+      ...profile,
+      // Drop half-entered custom answers rather than matching every question with "".
+      customAnswers: (profile.customAnswers || []).filter((a) => a.question.trim() && a.answer.trim()),
+    });
   };
 
   return (
@@ -179,6 +187,8 @@ const EditProfile: React.FC<EditProfileProps> = ({ initialProfile, onSave, onCan
             </div>
           </div>
         </section>
+
+        <ApplicationAnswers profile={profile} onChange={setProfile} />
 
         {/* Work Experience Section */}
         <section className="form-section">
